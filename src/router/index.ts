@@ -12,6 +12,15 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: '',
+          redirect: 'home',
+        },
+        {
+          path: '/home',
+          name: 'pages-home',
+          component: () => import('@/views/pages/HomeView.vue'),
+        },
+        {
           path: 'space/apps',
           name: 'space-apps-list',
           component: () => import('@/views/space/apps/ListsView.vue'),
