@@ -52,7 +52,7 @@
               <div
                 class="max-w-max bg-gray-100 text-gray-900 border border-gray-200 px-4 py-3 rounded-2xl leading-5"
               >
-                JAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxx
+                JAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxx
               </div>
             </div>
           </div>
