@@ -48,7 +48,7 @@ const baseFetch = <T>(url: string, fetchOption: FetchOptionType): Promise<T> => 
       globalThis
         .fetch(urlWithPrefix, options as RequestInit)
         .then((res) => {
-          resolve(res.json)
+          resolve(res.json())
         })
         .catch((err) => {
           reject(err)

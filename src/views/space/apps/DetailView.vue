@@ -25,39 +25,55 @@
         <!-- 调试对话界面 -->
         <div class="h-full min-h-0 px-6 py-7 overflow-x-hidden overflow-y-scroll scrollbar-w-none">
           <!-- 人类消息 -->
-          <div class="flex flex-row gap-2 mb-6">
+          <div class="flex flex-row gap-2 mb-6" v-for="message in messages" :key="message.content">
             <!-- 头像 -->
-            <a-avatar :style="{ backgroundColor: '#3370ff' }" :size="30" class="flex-shrink-0"
-              >蔡</a-avatar
+            <a-avatar
+              v-if="message.role === 'human'"
+              :style="{ backgroundColor: '#3370ff' }"
+              :size="30"
+              class="flex-shrink-0"
             >
-            <!-- 实际消息 -->
-            <div class="flex flex-col gap-2">
-              <div class="font-semibold text-gray-700">caixiaorong</div>
-              <div
-                class="max-w-max bg-blue-700 text-white border border-blue-800 px-4 py-3 rounded-2xl leading-5"
-              >
-                能详细讲解下JAVA吗
-              </div>
-            </div>
-          </div>
-          <!-- AI消息 -->
-          <div class="flex flex-row gap-2 mb-6">
-            <!-- 头像 -->
-            <a-avatar :style="{ backgroundColor: '#00d0b6' }" :size="30" class="flex-shrink-0">
+              蔡
+            </a-avatar>
+            <a-avatar
+              v-else
+              :style="{ backgroundColor: '#00d0b6' }"
+              :size="30"
+              class="flex-shrink-0"
+            >
               <icon-apps />
             </a-avatar>
             <!-- 实际消息 -->
             <div class="flex flex-col gap-2">
-              <div class="font-semibold text-gray-700">ChatGPT</div>
+              <div class="font-semibold text-gray-700">
+                {{ message.role === 'human' ? '用户' : '聊天机器人' }}
+              </div>
               <div
+                v-if="message.role === 'human'"
+                class="max-w-max bg-blue-700 text-white border border-blue-800 px-4 py-3 rounded-2xl leading-5"
+              >
+                {{ message.content }}
+              </div>
+              <div
+                v-else
                 class="max-w-max bg-gray-100 text-gray-900 border border-gray-200 px-4 py-3 rounded-2xl leading-5"
               >
-                JAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxxJAVA是xxxx
+                {{ message.content }}
               </div>
             </div>
           </div>
+          <!-- 没有数据时 -->
+          <div
+            v-if="!messages.length"
+            class="mt-[200px] flex flex-col items-center justify-center gap-2"
+          >
+            <a-avatar :size="70" shape="square" :style="{ backgroundColor: '#00d0b6' }">
+              <icon-apps />
+            </a-avatar>
+            <div class="text-2xl font-semibold text-gray-900 mt-2">聊天机器人</div>
+          </div>
           <!-- 加载状态 -->
-          <div class="flex flex-row gap-2 mb-6">
+          <div v-if="isLoading" class="flex flex-row gap-2 mb-6">
             <!-- 头像 -->
             <a-avatar :style="{ backgroundColor: '#00d0b6' }" :size="30" class="flex-shrink-0">
               <icon-apps />
@@ -77,7 +93,8 @@
         <div class="w-full flex-shrink-0 flex flex-col">
           <!-- 顶部输入框 -->
           <div class="px-6 flex items-center gap-4">
-            <a-button class="flex-shrink-0" type="text" shape="circle">
+            <!-- 清除消息历史 -->
+            <a-button class="flex-shrink-0" type="text" shape="circle" @click="clearMessages">
               <template #icon>
                 <icon-empty size="16" :style="{ color: '#374151' }" />
               </template>
@@ -86,14 +103,14 @@
             <div
               class="h-[50px] flex items-center gap-2 px-4 flex-1 border border-gary-200 rounded-full"
             >
-              <input type="text" class="flex-1 outline-0" />
+              <input type="text" class="flex-1 outline-0" v-model="query" @keyup.enter="send" />
               <a-button type="text" shape="circle">
                 <template #icon>
                   <icon-plus-circle size="16" :style="{ color: '#374151' }" />
                 </template>
               </a-button>
 
-              <a-button type="text" shape="circle">
+              <a-button type="text" shape="circle" @click="send">
                 <template #icon>
                   <icon-send size="16" :style="{ color: '#1d4ed8' }" />
                 </template>
@@ -110,6 +127,46 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+import { post } from '@/utils/request'
+import { Message } from '@arco-design/web-vue'
+
+const query = ref('')
+const messages = ref<any>([])
+const isLoading = ref(false)
+
+const clearMessages = () => {
+  messages.value = []
+}
+
+const send = async () => {
+  // 获取用户输入数据，校验值是否存在
+  if (!query.value) {
+    Message.error('用户提问不能为空')
+    return
+  }
+  if (isLoading.value) {
+    Message.warning('提问频繁，请稍后')
+    return
+  }
+
+  const humanQuery = query.value
+  messages.value.push({
+    role: 'human',
+    content: humanQuery,
+  })
+  query.value = ''
+  isLoading.value = true
+  const response = await post('/apps/550e8400-e29b-41d4-a716-446655440000/debug', {
+    body: { query: humanQuery },
+  })
+  messages.value.push({
+    role: 'ai',
+    content: response.data.content,
+  })
+  isLoading.value = false
+}
+</script>
 
 <style></style>
