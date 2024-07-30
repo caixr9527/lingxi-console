@@ -129,12 +129,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { post } from '@/utils/request'
 import { Message } from '@arco-design/web-vue'
+import { debugApp } from '@/services/app'
+import { useRoute } from 'vue-router'
 
 const query = ref('')
 const messages = ref<any>([])
 const isLoading = ref(false)
+const route = useRoute()
 
 const clearMessages = () => {
   messages.value = []
@@ -151,21 +153,23 @@ const send = async () => {
     return
   }
 
-  const humanQuery = query.value
-  messages.value.push({
-    role: 'human',
-    content: humanQuery,
-  })
-  query.value = ''
-  isLoading.value = true
-  const response = await post('/apps/550e8400-e29b-41d4-a716-446655440000/debug', {
-    body: { query: humanQuery },
-  })
-  messages.value.push({
-    role: 'ai',
-    content: response.data.content,
-  })
-  isLoading.value = false
+  try {
+    isLoading.value = true
+    const humanQuery = query.value
+    messages.value.push({
+      role: 'human',
+      content: humanQuery,
+    })
+    query.value = ''
+
+    const response = await debugApp(route.params.app_id as string, humanQuery)
+    messages.value.push({
+      role: 'ai',
+      content: response.data.content,
+    })
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
