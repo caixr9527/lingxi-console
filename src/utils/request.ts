@@ -1,6 +1,6 @@
 import { apiPrefix, httpCode } from '@/config'
 import { Message } from '@arco-design/web-vue'
-const TIME_OUT = 10 * 1000
+const TIME_OUT = 60 * 1000
 const baseFetchOptions = {
   method: 'GET',
   mode: 'cors',
