@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { getCategories, getBuiltinTools } from '@/services/builtin-tool'
 import { apiPrefix } from '@/config'
 import moment from 'moment'
+import { typeMap } from '@/config'
 
 const categories = reactive<Array<any>>([])
 const providers = reactive<Array<any>>([])
@@ -162,7 +163,7 @@ onMounted(async () => {
           <hr class="my-4" />
           <!-- 提供者工具列表 -->
           <div class="flex flex-col">
-            <div class="mb-3 text-xs text-gray-500">
+            <div class="text-xs text-gray-500 gap-2">
               包含 {{ filterProviders[showIndex].tools.length }} 个工具
             </div>
             <!-- 工具列表 -->

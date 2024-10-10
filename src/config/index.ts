@@ -8,3 +8,10 @@ export const httpCode = {
   forbidden: 'forbidden',
   validateError: 'validate_error',
 }
+
+export const typeMap = {
+  str: '字符串',
+  int: '整型',
+  fload: '浮点型',
+  bool: '布尔值',
+}
