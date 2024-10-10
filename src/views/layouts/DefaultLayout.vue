@@ -1,5 +1,5 @@
 <template>
-  <a-layout>
+  <a-layout has-sider class="h-full">
     <!-- 侧边栏 -->
     <a-layout-sider :width="240" class="min-h-screen bg-gray-50 p-2 shadow-none">
       <div class="bg-white h-full rounded-lg px-2 py-4 flex flex-col justify-between">
