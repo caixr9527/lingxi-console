@@ -1,25 +1,78 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { getApiToolProvidersWithPage } from '@/services/api-tool'
 import moment from 'moment'
 import { typeMap } from '@/config'
 
+const route = useRoute()
+
 const providers = reactive<Array<any>>([])
+const paginator = reactive({
+  current_page: 1,
+  page_size: 20,
+  total_page: 0,
+  total_record: 0,
+})
 const loading = ref<boolean>(false)
 const showIndex = ref<number>(-1)
 
-onMounted(async () => {
+const loadMoreData = async (init: boolean = false) => {
+  if (!init && paginator.current_page > paginator.total_page) return
   try {
     loading.value = true
-    const resp = await getApiToolProvidersWithPage()
-    Object.assign(providers, resp.data.list)
+    const resp = await getApiToolProvidersWithPage(
+      paginator.current_page,
+      paginator.page_size,
+      route.query?.search_word ?? '',
+    )
+    const data = resp.data
+    paginator.current_page = data.paginator.current_page
+    paginator.page_size = data.paginator.page_size
+    paginator.total_page = data.paginator.total_page
+    paginator.total_record = data.paginator.total_record
+    if (paginator.current_page <= paginator.total_page) {
+      paginator.current_page += 1
+    }
+    if (init) {
+      providers.splice(0, providers.length, ...data.list)
+    } else {
+      providers.push(...data.list)
+    }
   } finally {
     loading.value = false
   }
+}
+const handleScroll = (event: any) => {
+  const { scrollTop, scrollHeight, clientHeight } = event.target
+  if (scrollTop + clientHeight >= scrollHeight - 10) {
+    if (loading.value) {
+      return
+    }
+    loadMoreData()
+  }
+}
+
+onMounted(async () => {
+  await loadMoreData(true)
 })
+watch(
+  () => route.query?.search_word,
+  () => {
+    paginator.current_page = 1
+    paginator.page_size = 20
+    paginator.total_page = 0
+    paginator.total_record = 0
+    loadMoreData(true)
+  },
+)
 </script>
 <template>
-  <a-spin :loading="loading" class="block h-full w-full">
+  <a-spin
+    :loading="loading"
+    class="block h-full w-full scrollbar-w-none overflow-scroll"
+    @scroll="handleScroll"
+  >
     <!-- 底部插件列表 -->
     <a-row :gutter="[20, 20]" class="flex-1">
       <!-- 有数据 -->
@@ -58,6 +111,21 @@ onMounted(async () => {
           description="没有可用的API插件"
           class="h-[400px] flex flex-col items-center justify-center"
         />
+      </a-col>
+    </a-row>
+    <!-- 加载器 -->
+    <a-row v-if="providers.length > 0">
+      <!-- 加载数据中 -->
+      <a-col v-if="paginator.current_page <= paginator.total_page" :span="24" align="center">
+        <a-space class="my-4">
+          <a-spin>
+            <div class="text-gray-400">加载中</div>
+          </a-spin>
+        </a-space>
+      </a-col>
+      <!-- 加载数据完成 -->
+      <a-col v-else :span="24" align="center">
+        <div class="text-gary-400 my-4">数据已加载完成</div>
       </a-col>
     </a-row>
     <!-- 卡片抽屉 -->

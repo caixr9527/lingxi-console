@@ -25,9 +25,10 @@ onMounted(async () => {
   try {
     loading.value = true
     const categoriesResp = await getCategories()
-    Object.assign(categories, categoriesResp.data)
+    categories.push(...categoriesResp.data)
+
     const builtinToolsResp = await getBuiltinTools()
-    Object.assign(providers, builtinToolsResp.data)
+    providers.push(...builtinToolsResp.data)
   } finally {
     loading.value = false
   }
