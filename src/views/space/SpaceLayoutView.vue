@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
+const searchWord = ref(route.query?.search_word || '')
 
 const search = (value: any) => {
   router.push({
@@ -12,6 +14,13 @@ const search = (value: any) => {
     },
   })
 }
+
+watch(
+  () => route.query?.search_word,
+  () => {
+    searchWord.value = route.query.search_word || ''
+  },
+)
 </script>
 <template>
   <div class="px-6 flex flex-col overflow-hidden h-full">
@@ -78,6 +87,7 @@ const search = (value: any) => {
         </div>
         <!-- 右侧搜索 -->
         <a-input-search
+          v-model="searchWord"
           placeholder="请输入搜索词"
           class="w-[240px] bg-white rounded-lg border-gary-300"
           @search="search"

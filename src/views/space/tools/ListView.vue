@@ -24,7 +24,7 @@ const loadMoreData = async (init: boolean = false) => {
     const resp = await getApiToolProvidersWithPage(
       paginator.current_page,
       paginator.page_size,
-      route.query?.search_word ?? '',
+      String(route.query?.search_word ?? ''),
     )
     const data = resp.data
     paginator.current_page = data.paginator.current_page
@@ -156,6 +156,13 @@ watch(
         <div class="leading-[18px] text-gray-500 mb-2">
           {{ providers[showIndex].description }}
         </div>
+        <!-- 编辑 -->
+        <a-button type="dashed" long class="mb-2 rounded-lg">
+          <template #icon>
+            <icon-edit />
+          </template>
+          编辑工具
+        </a-button>
         <!-- 分隔符 -->
         <hr class="my-4" />
         <!-- 提供者工具列表 -->
@@ -198,6 +205,128 @@ watch(
         </div>
       </div>
     </a-drawer>
+    <!-- 新建/修改模态框 -->
+    <a-modal :width="630" :visible="false" hide-title :footer="false" modal-class="rounded-xl">
+      <!-- 标题 -->
+      <div class="flex items-center justify-between">
+        <div class="text-lg font-bold text-gray-700">新建插件</div>
+        <a-button type="text" class="!text-gray-700" size="small">
+          <template #icon>
+            <icon-close />
+          </template>
+        </a-button>
+      </div>
+      <!-- 中间表单 -->
+      <div class="pt-6">
+        <a-form layout="vertical">
+          <a-form-item
+            field="icon"
+            hide-label
+            :rules="[{ required: true, message: '插件图标不能为空' }]"
+          >
+            <a-upload
+              :limit="1"
+              list-type="picture-card"
+              accept="image/png, image/jepg"
+              class="!w-auto mx-auto"
+            />
+          </a-form-item>
+          <a-form-item
+            field="name"
+            label="插件名称"
+            asterisk-position="end"
+            :rules="[{ required: true, message: '插件名称不能为空' }]"
+          >
+            <a-input placeholder="请输入插件名称" show-word-limit :max-length="60" />
+          </a-form-item>
+          <a-form-item
+            field="openapi_schema"
+            label="OpenAPI Schema"
+            asterisk-position="end"
+            :rules="[{ required: true, message: 'OpenAPI Schema不能为空' }]"
+          >
+            <a-textarea
+              :auto-size="{ minRows: 4, maxRows: 6 }"
+              placeholder="请输入OpenAPI Schema"
+            />
+          </a-form-item>
+          <a-form-item label="可用工具">
+            <div class="rounded-lg border border-gray-200 w-full overflow-x-auto">
+              <table class="w-full leading-[18px] text-xs text-gray-700 font-normal">
+                <thead class="text-gray-500">
+                  <tr class="border-b border-gray-200">
+                    <th class="p-2 pl-3 font-medium">名称</th>
+                    <th class="p-2 pl-3 font-medium w-[236px]">描述</th>
+                    <th class="p-2 pl-3 font-medium">方法</th>
+                    <th class="p-2 pl-3 font-medium">路径</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b last:border-0 border-gray-200 text-gray-700">
+                    <td class="p-2 pl-3">GetCurrentWeather</td>
+                    <td class="p-2 pl-3 w-[236px]">获取天气预报工具</td>
+                    <td class="p-2 pl-3">get</td>
+                    <td class="p-2 pl-3 w-[62px]">/path</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </a-form-item>
+          <a-form-item field="Headers" label="Headers">
+            <!-- 请求头表单 -->
+            <div class="rounded-lg border border-gray-200 w-full overflow-x-auto">
+              <table class="w-full leading-[18px] text-xs text-gray-700 font-normal mb-3">
+                <thead class="text-gray-500">
+                  <tr class="border-b border-gray-200">
+                    <th class="p-2 pl-3">key</th>
+                    <th class="p-2 pl-3">value</th>
+                    <th class="p-2 pl-3 w-[50px]">操作</th>
+                  </tr>
+                </thead>
+                <tbody class="border-b border-gray-200">
+                  <tr class="border-b last:border-0 border-gray-200">
+                    <td class="p-2 pl-3">
+                      <a-form-item hide-label class="m-0">
+                        <a-input placeholder="请输入请求头键名" />
+                      </a-form-item>
+                    </td>
+                    <td class="p-2 pl-3">
+                      <a-form-item hide-label class="m-0">
+                        <a-input placeholder="请输入请求头" />
+                      </a-form-item>
+                    </td>
+                    <td class="p-2 pl-3">
+                      <a-button size="mini" type="text" class="!text-gray-700">
+                        <template #icon>
+                          <icon-delete />
+                        </template>
+                      </a-button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- 新增 -->
+              <a-button size="mini" class="rounded ml-3 mb-3 !text-gray-700">
+                <template #icon>
+                  <icon-plus />
+                </template>
+                新增参数
+              </a-button>
+            </div>
+          </a-form-item>
+          <!-- 底部按钮 -->
+          <div class="flex items-center justify-between">
+            <div class="">
+              <a-button class="rounded-lg !text-red-700">删除</a-button>
+            </div>
+            <a-space :size="16">
+              <a-button class="rounded-lg">取消</a-button>
+              <a-button type="primary" html-type="submit" class="rounded-lg">保存</a-button>
+            </a-space>
+          </div>
+        </a-form>
+      </div>
+    </a-modal>
   </a-spin>
 </template>
 <style scoped></style>
