@@ -36,5 +36,5 @@ export const updateApiToolProvider = (provider_id: string, req: UpdateApiToolPro
 }
 
 export const getApiToolProvider = (provider_id: string) => {
-  return get<BaseResponse<GetApiToolProviderResponse>>(`/api-tools/${provider_id}`)
+  return get<GetApiToolProviderResponse>(`/api-tools/${provider_id}`)
 }

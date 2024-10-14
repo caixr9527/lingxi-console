@@ -12,6 +12,7 @@ import {
 import moment from 'moment'
 import { Message, Modal } from '@arco-design/web-vue'
 import { typeMap } from '@/config'
+import type { CreateApiToolProviderRequest } from '@/models/api-tool'
 
 const route = useRoute()
 const props = defineProps({
@@ -33,7 +34,7 @@ const form = reactive({
   icon: 'https://picsum.photos/400',
   name: '',
   openapi_schema: '',
-  headers: [],
+  headers: [] as { key: string; value: string }[],
 })
 const formRef = ref()
 const loading = ref<boolean>(false)
@@ -122,10 +123,13 @@ const handleSubmit = async ({ values, errors }: any) => {
     sumbitLoading.value = true
 
     if (props.createType === 'tool') {
-      const resp = await createApiToolProvider(values)
+      const resp = await createApiToolProvider(values as CreateApiToolProviderRequest)
       Message.success(resp.message)
     } else if (showUpdateModal.value) {
-      const resp = await updateApiToolProvider(providers[showIndex.value]['id'], values)
+      const resp = await updateApiToolProvider(
+        providers[showIndex.value]['id'],
+        values as CreateApiToolProviderRequest,
+      )
       Message.success(resp.message)
     }
     handleCancel()
@@ -156,7 +160,7 @@ const handleDelete = () => {
 }
 
 const handleCancel = () => {
-  formRef.value.resetFields()
+  formRef.value?.resetFields()
   emits('update-create-type', '')
   showUpdateModal.value = false
 }
@@ -170,7 +174,7 @@ const handleUpdate = async () => {
     console.log(resp)
     const data = resp.data
 
-    formRef.value.resetFields()
+    formRef.value?.resetFields()
     form.icon = data.icon
     form.name = data.name
     form.openapi_schema = data.openapi_schema
