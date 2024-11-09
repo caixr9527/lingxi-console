@@ -77,7 +77,7 @@ export const post = <T>(url: string, options = {}) => {
   return request<T>(url, Object.assign({}, options, { method: 'POST' }))
 }
 
-export const ssePost = (
+export const ssePost = async (
   url: string,
   fetchOptions: FetchOptionType,
   onData: (data: { [key: string]: any }) => void,
@@ -86,9 +86,11 @@ export const ssePost = (
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
   const { body } = fetchOptions
   if (body) options.body = JSON.stringify(body)
-  globalThis.fetch(urlWithPrefix, options as RequestInit).then((response) => {
-    return handleStream(response, onData)
-  })
+  //   globalThis.fetch(urlWithPrefix, options as RequestInit).then((response) => {
+  //     return handleStream(response, onData)
+  //   })
+  const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
+  return handleStream(response, onData)
 }
 
 const handleStream = (response: Response, onData: (data: { [key: string]: any }) => void) => {

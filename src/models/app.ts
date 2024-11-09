@@ -1,5 +1,5 @@
-import type { BaseResponse } from './base'
+// import type { BaseResponse } from './base'
 
-export type DebugAppResponse = BaseResponse<{
-  content: string
-}>
+// export type DebugAppResponse = BaseResponse<{
+//   content: string
+// }>

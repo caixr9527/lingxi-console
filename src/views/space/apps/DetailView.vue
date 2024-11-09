@@ -59,6 +59,7 @@
                 class="max-w-max bg-gray-100 text-gray-900 border border-gray-200 px-4 py-3 rounded-2xl leading-5"
               >
                 {{ message.content }}
+                <div v-if="isLoading" class="cursor"></div>
               </div>
             </div>
           </div>
@@ -71,22 +72,6 @@
               <icon-apps />
             </a-avatar>
             <div class="text-2xl font-semibold text-gray-900 mt-2">聊天机器人</div>
-          </div>
-          <!-- 加载状态 -->
-          <div v-if="isLoading" class="flex flex-row gap-2 mb-6">
-            <!-- 头像 -->
-            <a-avatar :style="{ backgroundColor: '#00d0b6' }" :size="30" class="flex-shrink-0">
-              <icon-apps />
-            </a-avatar>
-            <!-- 实际消息 -->
-            <div class="flex flex-col gap-2">
-              <div class="font-semibold text-gray-700">ChatGPT</div>
-              <div
-                class="max-w-max bg-gray-100 text-gray-900 border border-gray-200 px-4 py-3 rounded-2xl leading-5"
-              >
-                <icon-loading />
-              </div>
-            </div>
           </div>
         </div>
         <!-- 调试对话输入框 -->
@@ -161,11 +146,20 @@ const send = async () => {
       content: humanQuery,
     })
     query.value = ''
-
-    const response = await debugApp(route.params.app_id as string, humanQuery)
     messages.value.push({
       role: 'ai',
-      content: response.data.content,
+      content: '',
+    })
+    await debugApp(route.params.app_id as string, humanQuery, (event_response) => {
+      const event = event_response?.event
+      const data = event_response?.data
+
+      const lastIndex = messages.value.length - 1
+      let message = messages.value[lastIndex]
+      if (event === 'agent_message') {
+        let chunk_content = data?.data
+        messages.value[lastIndex].content = message.content + chunk_content
+      }
     })
   } finally {
     isLoading.value = false
@@ -173,4 +167,22 @@ const send = async () => {
 }
 </script>
 
-<style></style>
+<style scoped>
+.cursor {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background-color: #444444;
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1; /*显示 */
+  }
+  50% {
+    opacity: 0; /*隐藏 */
+  }
+}
+</style>
