@@ -1,5 +1,5 @@
 import { apiPrefix, httpCode } from '@/config'
-import { Message } from '@arco-design/web-vue'
+import { Message, Tr } from '@arco-design/web-vue'
 const TIME_OUT = 60 * 1000
 const baseFetchOptions = {
   method: 'GET',
@@ -75,4 +75,64 @@ export const get = <T>(url: string, options = {}) => {
 
 export const post = <T>(url: string, options = {}) => {
   return request<T>(url, Object.assign({}, options, { method: 'POST' }))
+}
+
+export const ssePost = (
+  url: string,
+  fetchOptions: FetchOptionType,
+  onData: (data: { [key: string]: any }) => void,
+) => {
+  const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
+  const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
+  const { body } = fetchOptions
+  if (body) options.body = JSON.stringify(body)
+  globalThis.fetch(urlWithPrefix, options as RequestInit).then((response) => {
+    return handleStream(response, onData)
+  })
+}
+
+const handleStream = (response: Response, onData: (data: { [key: string]: any }) => void) => {
+  // 检测网络请求
+  if (!response.ok) throw new Error('网络请求失败')
+  // 构建reader和decoder
+  const reader = response.body?.getReader()
+  const decoder = new TextDecoder('utf-8')
+  let buffer = ''
+  const read = () => {
+    let hasError = false
+    reader?.read().then((result: any) => {
+      if (result.done) return
+      buffer += decoder.decode(result.value, { stream: true })
+      const lines = buffer.split('\n')
+      let event = ''
+      let data = ''
+      try {
+        lines.forEach((line) => {
+          line = line.trim()
+          if (line.startsWith('event:')) {
+            event = line.slice(6).trim()
+          } else if (line.startsWith('data:')) {
+            data = line.slice(5).trim()
+          }
+          if (line === '') {
+            if (event !== '' && data !== '') {
+              onData({
+                event: event,
+                data: JSON.parse(data),
+              })
+              event = ''
+              data = ''
+            }
+          }
+        })
+        buffer = lines.pop() || ''
+      } catch (e) {
+        hasError = true
+      }
+
+      if (!hasError) read()
+    })
+  }
+
+  read()
 }
