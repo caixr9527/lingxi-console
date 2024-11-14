@@ -1,68 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
-import { getDatasetsWithPage } from '@/services/dataset'
-import { useRoute } from 'vue-router'
 import moment from 'moment'
+import { useGetDatasetWithPage } from '@/hooks/use-dataset'
 
-const route = useRoute()
-const loading = ref(false)
-const datasets = reactive<Array<any>>([])
-
-const paginator = reactive({
-  current_page: 1,
-  page_size: 20,
-  total_page: 0,
-  total_record: 0,
-})
-
-onMounted(async () => {
-  await initData()
-})
-
-watch(
-  () => route.query?.search_word,
-  async () => {
-    await initData()
-  },
-)
-
-const initData = async () => {
-  paginator.current_page = 1
-  paginator.page_size = 20
-  paginator.total_page = 0
-  paginator.total_record = 0
-  await loadMoreData(true)
-}
-
-const loadMoreData = async (init: boolean = false) => {
-  if (!init && paginator.current_page > paginator.total_page) return
-
-  try {
-    loading.value = true
-    const resp = await getDatasetsWithPage(
-      paginator.current_page,
-      paginator.page_size,
-      String(route.query?.search_word ?? ''),
-    )
-    const data = resp.data
-
-    paginator.current_page = data.paginator.current_page
-    paginator.page_size = data.paginator.page_size
-    paginator.total_page = data.paginator.total_page
-    paginator.total_record = data.paginator.total_record
-
-    if (paginator.current_page <= paginator.total_page) {
-      paginator.current_page += 1
-    }
-    if (init) {
-      datasets.splice(0, datasets.length, ...data.list)
-    } else {
-      datasets.push(...data.list)
-    }
-  } finally {
-    loading.value = false
-  }
-}
+const { loading, datasets, paginator, loadDatasets } = useGetDatasetWithPage()
 
 const handleScroll = async (event: any) => {
   const { scrollTop, scrollHeight, clientHeight } = event.target
@@ -70,7 +10,7 @@ const handleScroll = async (event: any) => {
     if (loading.value) {
       return
     }
-    await loadMoreData()
+    await loadDatasets()
   }
 }
 </script>
@@ -83,7 +23,7 @@ const handleScroll = async (event: any) => {
     <!-- 底部知识库列表 -->
     <a-row :gutter="[20, 20]" class="flex-1">
       <!-- 有数据 -->
-      <a-col v-for="(dataset, idx) in datasets" :key="dataset.id" :span="6">
+      <a-col v-for="dataset in datasets" :key="dataset.id" :span="6">
         <a-card hoverable class="cursor-pointer rounded-lg">
           <!-- 顶部知识库名称 -->
           <div class="flex items-center gap-3 mb-3">
