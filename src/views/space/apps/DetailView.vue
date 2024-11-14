@@ -156,9 +156,10 @@ const send = async () => {
 
       const lastIndex = messages.value.length - 1
       let message = messages.value[lastIndex]
-      if (event === 'agent_message') {
-        let chunk_content = data?.data
-        messages.value[lastIndex].content = message.content + chunk_content
+      // 需要从data中获取
+      if (data.event === 'agent_message') {
+        // let chunk_content = data?.data
+        messages.value[lastIndex].content = message.content + data.answer
       }
     })
   } finally {

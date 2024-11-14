@@ -242,7 +242,7 @@ watch(
       </a-col>
     </a-row>
     <!-- 加载器 -->
-    <a-row v-if="providers.length > 0">
+    <a-row v-if="paginator.total_page >= 2">
       <!-- 加载数据中 -->
       <a-col v-if="paginator.current_page <= paginator.total_page" :span="24" align="center">
         <a-space class="my-4">
