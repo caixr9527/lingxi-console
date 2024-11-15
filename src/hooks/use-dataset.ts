@@ -1,6 +1,12 @@
-import { getDatasetsWithPage } from '@/services/dataset'
+import {
+  createDataset,
+  deleteDataset,
+  getDatasetsWithPage,
+  updateDataset,
+} from '@/services/dataset'
 import { reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { Message, Modal } from '@arco-design/web-vue'
 
 export const useGetDatasetWithPage = () => {
   const route = useRoute()
@@ -70,4 +76,59 @@ export const useGetDatasetWithPage = () => {
     },
   )
   return { loading, datasets, paginator, loadDatasets }
+}
+
+export const useDeleteDataset = () => {
+  const handleDelete = (dataset_id: string, callback?: () => void) => {
+    Modal.warning({
+      title: '是否删除？',
+      content:
+        '删除知识库后，关联该知识库的应用将无法再使用该知识库，所有的提示配置和文档将被永久删除',
+      hideCancel: false,
+      onOk: async () => {
+        try {
+          const resp = await deleteDataset(dataset_id)
+          Message.success(resp.message)
+        } finally {
+          callback && callback()
+        }
+      },
+    })
+  }
+
+  return { handleDelete }
+}
+
+export const useCrateOrUpdateDataset = () => {
+  const loading = ref(false)
+  const defaultForm = {
+    icon: 'https://picsum.photos/400',
+    name: '',
+    description: '',
+  }
+  const form = reactive({ ...defaultForm })
+
+  const formRef = ref()
+  const showUpdateModal = ref(false)
+  const updateShowUpdateModal = (new_value: boolean, callback?: () => void) => {
+    showUpdateModal.value = new_value
+    callback && callback()
+  }
+
+  const saveDataset = async (dataset_id?: string) => {
+    try {
+      loading.value = true
+      if (dataset_id !== undefined && dataset_id !== '') {
+        const resp = await updateDataset(dataset_id, form)
+        Message.success(resp.message)
+      } else {
+        const resp = await createDataset(form)
+        Message.success(resp.message)
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, form, formRef, saveDataset, showUpdateModal, updateShowUpdateModal }
 }

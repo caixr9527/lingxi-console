@@ -1,8 +1,29 @@
 <script setup lang="ts">
 import moment from 'moment'
-import { useGetDatasetWithPage } from '@/hooks/use-dataset'
-
+import {
+  useGetDatasetWithPage,
+  useDeleteDataset,
+  useCrateOrUpdateDataset,
+} from '@/hooks/use-dataset'
+import { getDataset } from '@/services/dataset'
+let updateDatasetID = ''
+const props = defineProps({
+  createType: {
+    type: String,
+    required: true,
+  },
+})
+const emits = defineEmits(['update-create-type'])
 const { loading, datasets, paginator, loadDatasets } = useGetDatasetWithPage()
+const { handleDelete } = useDeleteDataset()
+const {
+  loading: sumbitLoading,
+  form,
+  formRef,
+  saveDataset,
+  showUpdateModal,
+  updateShowUpdateModal,
+} = useCrateOrUpdateDataset()
 
 const handleScroll = async (event: any) => {
   const { scrollTop, scrollHeight, clientHeight } = event.target
@@ -12,6 +33,36 @@ const handleScroll = async (event: any) => {
     }
     await loadDatasets()
   }
+}
+
+const handleUpdate = (dataset_id: string) => {
+  updateShowUpdateModal(true, async () => {
+    const resp = await getDataset(dataset_id)
+    const data = resp.data
+    updateDatasetID = dataset_id
+
+    formRef.value?.resetFields()
+    form.name = data.name
+    form.icon = data.icon
+    form.description = data.description
+  })
+}
+
+const handleCancel = () => {
+  updateShowUpdateModal(false, async () => {
+    updateDatasetID = ''
+    formRef.value?.resetFields()
+    emits('update-create-type', '')
+  })
+}
+
+const handleSubmit = async ({ errors }: any) => {
+  if (errors) return
+
+  await saveDataset(updateDatasetID)
+
+  handleCancel()
+  await loadDatasets(true)
 }
 </script>
 <template>
@@ -47,8 +98,18 @@ const handleScroll = async (event: any) => {
                   </template>
                 </a-button>
                 <template #content>
-                  <a-doption>设置</a-doption>
-                  <a-doption class="!text-red-500">删除</a-doption>
+                  <a-doption @click="() => handleUpdate(dataset.id)">设置</a-doption>
+                  <a-doption
+                    class="!text-red-500"
+                    @click="
+                      () => {
+                        handleDelete(dataset.id, () => {
+                          loadDatasets(true)
+                        })
+                      }
+                    "
+                    >删除</a-doption
+                  >
                 </template>
               </a-dropdown>
             </div>
@@ -91,6 +152,79 @@ const handleScroll = async (event: any) => {
         <div class="text-gary-400 my-4">数据已加载完成</div>
       </a-col>
     </a-row>
+    <!-- 新建/修改模态框 -->
+    <a-modal
+      :width="630"
+      :visible="props.createType === 'dataset' || showUpdateModal"
+      hide-title
+      :footer="false"
+      modal-class="rounded-xl"
+      @cancel="handleCancel"
+    >
+      <!-- 标题 -->
+      <div class="flex items-center justify-between">
+        <div class="text-lg font-bold text-gray-700">
+          {{ props.createType === 'dataset' ? '新建' : '更新' }}知识库
+        </div>
+        <a-button type="text" class="!text-gray-700" size="small" @click="handleCancel">
+          <template #icon>
+            <icon-close />
+          </template>
+        </a-button>
+      </div>
+      <!-- 中间表单 -->
+      <div class="pt-6">
+        <a-form ref="formRef" :model="form" @submit="handleSubmit" layout="vertical">
+          <a-form-item
+            field="icon"
+            hide-label
+            :rules="[{ required: true, message: '知识库图标不能为空' }]"
+          >
+            <a-upload
+              v-model="form.icon"
+              :limit="1"
+              list-type="picture-card"
+              accept="image/png, image/jepg"
+              class="!w-auto mx-auto"
+            />
+          </a-form-item>
+          <a-form-item
+            field="name"
+            label="知识库名称"
+            asterisk-position="end"
+            :rules="[{ required: true, message: '知识库名称不能为空' }]"
+          >
+            <a-input
+              v-model="form.name"
+              placeholder="请输入知识库名称"
+              show-word-limit
+              :max-length="60"
+            />
+          </a-form-item>
+          <a-form-item field="description" label="知识库内容描述" asterisk-position="end">
+            <a-textarea
+              v-model="form.description"
+              :auto-size="{ minRows: 4, maxRows: 6 }"
+              placeholder="请输入知识库内容描述"
+            />
+          </a-form-item>
+          <!-- 底部按钮 -->
+          <div class="flex items-center justify-between">
+            <div class=""></div>
+            <a-space :size="16">
+              <a-button class="rounded-lg" @click="handleCancel">取消</a-button>
+              <a-button
+                :loading="sumbitLoading"
+                type="primary"
+                html-type="submit"
+                class="rounded-lg"
+                >保存</a-button
+              >
+            </a-space>
+          </div>
+        </a-form>
+      </div>
+    </a-modal>
   </a-spin>
 </template>
 <style scoped></style>
