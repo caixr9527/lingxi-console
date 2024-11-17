@@ -3,6 +3,7 @@ import {
   type CreateDatasetRequest,
   type GetDatasetResponse,
   type GetDatasetsWithPageResp,
+  type GetDocumentResponse,
   type GetDocumentsWithPageRequest,
   type GetDocumentsWithPageResponse,
   type UpdateDatasetRequest,
@@ -49,5 +50,29 @@ export const getDocumentsWithPage = (
 ) => {
   return get<GetDocumentsWithPageResponse>(`/datasets/${dataset_id}/documents`, {
     params: req,
+  })
+}
+
+export const getDocument = (dataset_id: string, document_id: string) => {
+  return get<GetDocumentResponse>(`/datasets/${dataset_id}/documents/${document_id}`)
+}
+
+export const updateDocumentEnabled = (
+  dataset_id: string,
+  document_id: string,
+  enabled: boolean,
+) => {
+  return post<BaseResponse<any>>(`/datasets/${dataset_id}/documents/${document_id}/enabled`, {
+    body: { enabled },
+  })
+}
+
+export const deleteDocument = (dataset_id: string, document_id: string) => {
+  return post<BaseResponse<any>>(`/datasets/${dataset_id}/documents/${document_id}/delete`)
+}
+
+export const updateDocumentName = (dataset_id: string, document_id: string, name: string) => {
+  return post<BaseResponse<any>>(`/datasets/${dataset_id}/documents/${document_id}/name`, {
+    body: { name },
   })
 }

@@ -1,10 +1,12 @@
 import {
   createDataset,
   deleteDataset,
+  deleteDocument,
   getDataset,
   getDatasetsWithPage,
   getDocumentsWithPage,
   updateDataset,
+  updateDocumentEnabled,
 } from '@/services/dataset'
 import { reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -214,4 +216,47 @@ export const useGetDocumentsWithPage = (dataset_id: string) => {
     },
   )
   return { loading, documents, paginator, loadDocuments }
+}
+
+export const useDeleteDocument = () => {
+  const handleDelete = (dataset_id: string, document_id: string, callback?: () => void) => {
+    Modal.warning({
+      title: '是否删除？',
+      content:
+        '删除文档后，知识库/向量数据库将无法检索到该文档，如需暂时关闭该文档的检索，可以选择禁用功能',
+      hideCancel: false,
+      onOk: async () => {
+        try {
+          const resp = await deleteDocument(dataset_id, document_id)
+          Message.success(resp.message)
+        } finally {
+          callback && callback()
+        }
+      },
+    })
+  }
+
+  return { handleDelete }
+}
+
+export const useUpdateDocumentEnabled = () => {
+  const handleUpdate = async (
+    dataset_id: string,
+    document_id: string,
+    enabled: boolean,
+    callback?: () => void,
+  ) => {
+    let resp
+    try {
+      resp = await updateDocumentEnabled(dataset_id, document_id, enabled)
+      if (resp.code !== 'success') {
+        Message.error(resp.message)
+      } else {
+        Message.success(resp.message)
+      }
+    } finally {
+      callback && resp?.code === 'success' && callback()
+    }
+  }
+  return { handleUpdate }
 }

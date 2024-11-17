@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { useGetDataset, useGetDocumentsWithPage } from '@/hooks/use-dataset'
+import {
+  useGetDataset,
+  useGetDocumentsWithPage,
+  useDeleteDocument,
+  useUpdateDocumentEnabled,
+} from '@/hooks/use-dataset'
 import moment from 'moment'
 import { useRoute, useRouter } from 'vue-router'
+import UpdateDocumentNameModal from './components/UpdateDocumentNameModal.vue'
+import { ref } from 'vue'
 const route = useRoute()
 const router = useRouter()
-
-const { dataset } = useGetDataset(String(route.params?.dataset_id))
+const updateDocumentNameModalVisible = ref(false)
+const updateDocumentID = ref('')
+const { dataset, loadDataset } = useGetDataset(String(route.params?.dataset_id))
 const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage(
   String(route.params?.dataset_id),
 )
+
+const { handleDelete } = useDeleteDocument()
+const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
 </script>
 
 <template>
@@ -178,7 +189,7 @@ const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage
             cell-class="bg-transparent text-gray-700 !h-[40px]"
             :width="100"
           >
-            <template #cell="{ record }">
+            <template #cell="{ record, rowIndex }">
               <a-space :size="0">
                 <template #split>
                   <a-divider direction="vertical" />
@@ -195,7 +206,18 @@ const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage
                   size="small"
                   type="round"
                   :model-value="record.enabled"
-                  @change="(value) => {}"
+                  @change="
+                    (value) => {
+                      handleUpdateEnabled(
+                        String(route.params?.dataset_id),
+                        record.id,
+                        Boolean(value),
+                        () => {
+                          documents[rowIndex].enabled = value
+                        },
+                      )
+                    }
+                  "
                 />
                 <a-dropdown position="br">
                   <a-button type="text" size="mini" class="!text-gray-700">
@@ -204,8 +226,27 @@ const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage
                     </template>
                   </a-button>
                   <template #content>
-                    <a-doption @click="() => {}">重命名 </a-doption>
-                    <a-doption class="!text-red-700" @click="() => {}"> 删除 </a-doption>
+                    <a-doption
+                      @click="
+                        () => {
+                          updateDocumentNameModalVisible = true
+                          updateDocumentID = record.id
+                        }
+                      "
+                      >重命名
+                    </a-doption>
+                    <a-doption
+                      class="!text-red-700"
+                      @click="
+                        () =>
+                          handleDelete(String(route.params?.dataset_id), record.id, async () => {
+                            await loadDocuments()
+                            await loadDataset(String(route.params?.dataset_id))
+                          })
+                      "
+                    >
+                      删除
+                    </a-doption>
                   </template>
                 </a-dropdown>
               </a-space>
@@ -214,6 +255,17 @@ const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage
         </template>
       </a-table>
     </div>
+    <!-- 更新文档名字模态框 -->
+    <update-document-name-modal
+      :document_id="updateDocumentID"
+      :dataset_id="String(route.params?.dataset_id)"
+      v-model:visible="updateDocumentNameModalVisible"
+      :on-after-update="
+        async () => {
+          await loadDocuments()
+        }
+      "
+    />
   </div>
 </template>
 
