@@ -83,7 +83,14 @@ const handleSubmit = async ({ errors }: any) => {
             <!-- 右侧知识库信息 -->
             <div class="flex flex-1 justify-between">
               <div class="flex flex-col">
-                <div class="text-base text-gray-900 font-bold">{{ dataset.name }}</div>
+                <router-link
+                  :to="{
+                    name: 'space-datasets-documents-list',
+                    params: { dataset_id: dataset.id },
+                  }"
+                  class="text-base text-gray-900 font-bold"
+                  >{{ dataset.name }}</router-link
+                >
                 <div class="text-xs text-gray-500 line-clamp-1">
                   {{ dataset.document_count }} 文档 -
                   {{ Math.round(dataset.character_count / 1000) }} 千字符 -
