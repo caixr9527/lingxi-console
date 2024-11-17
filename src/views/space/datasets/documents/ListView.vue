@@ -1,85 +1,14 @@
 <script setup lang="ts">
+import { useGetDataset, useGetDocumentsWithPage } from '@/hooks/use-dataset'
 import moment from 'moment'
-const documents = [
-  {
-    character_count: 128,
-    created_at: 1730791138,
-    disabled_at: 0,
-    enabled: true,
-    error: '',
-    hit_count: 7,
-    id: 'f425bf62-f3ae-4d24-8e0c-5133d450f506',
-    name: '满江红.md',
-    position: 6,
-    status: 'completed',
-    updated_at: 1730791138,
-  },
-  {
-    character_count: 217,
-    created_at: 1730790923,
-    disabled_at: 0,
-    enabled: true,
-    error: '',
-    hit_count: 2,
-    id: '72d5a696-d1fd-4139-9ef4-4ccf93ddc6ca',
-    name: '将进酒.md',
-    position: 5,
-    status: 'completed',
-    updated_at: 1730790923,
-  },
-  {
-    character_count: 0,
-    created_at: 1730790654,
-    disabled_at: 0,
-    enabled: false,
-    error: 'failed to find libmagic.  Check your installation',
-    hit_count: 0,
-    id: '04fc03c5-b43c-4fbb-8371-418574dc190f',
-    name: '将进酒.txt',
-    position: 4,
-    status: 'error',
-    updated_at: 1730790654,
-  },
-  {
-    character_count: 1029,
-    created_at: 1730596443,
-    disabled_at: 0,
-    enabled: true,
-    error: '',
-    hit_count: 8,
-    id: '796d1f5b-79ac-478c-a07c-0f7565a450b8',
-    name: '长恨歌.md',
-    position: 3,
-    status: 'completed',
-    updated_at: 1730596443,
-  },
-  {
-    character_count: 1029,
-    created_at: 1730596212,
-    disabled_at: 0,
-    enabled: false,
-    error: '',
-    hit_count: 0,
-    id: '5b98dd22-4d51-4b43-aba3-8c5ca3616f9a',
-    name: '长恨歌.md',
-    position: 2,
-    status: 'indexing',
-    updated_at: 1730596212,
-  },
-  {
-    character_count: 67576,
-    created_at: 1730596067,
-    disabled_at: 0,
-    enabled: true,
-    error: '',
-    hit_count: 14,
-    id: '38d5df91-4cdc-4407-931b-283eebb836f8',
-    name: '长恨歌.md',
-    position: 1,
-    status: 'completed',
-    updated_at: 1730596067,
-  },
-]
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute()
+const router = useRouter()
+
+const { dataset } = useGetDataset(String(route.params?.dataset_id))
+const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage(
+  String(route.params?.dataset_id),
+)
 </script>
 
 <template>
@@ -97,19 +26,25 @@ const documents = [
       <!-- 右侧知识库信息 -->
       <div class="flex items-center gap-3">
         <!-- 知识库图标 -->
-        <a-avatar :size="40" shape="square" class="rounded-lg" image-url="" />
+        <a-avatar :size="40" shape="square" class="rounded-lg" :image-url="dataset.icon" />
         <!-- 知识库信息 -->
         <div class="flex flex-col justify-between h-[40px]">
-          <div class="text-gray-700">知识库 / LLMOPS知识库</div>
-          <div class="flex items-center gap-2">
+          <a-skeleton-line v-if="!dataset?.name" :widths="[100]" />
+          <div v-else class="text-gray-700">知识库 / {{ dataset.name }}</div>
+          <div v-if="!dataset?.name" class="flex items-center gap-2">
+            <a-skeleton-line :widths="[60]" :line-height="18" />
+            <a-skeleton-line :widths="[60]" :line-height="18" />
+            <a-skeleton-line :widths="[60]" :line-height="18" />
+          </div>
+          <div v-else class="flex items-center gap-2">
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              10 文档
+              {{ dataset.document_count }} 文档
             </a-tag>
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              145命中
+              {{ dataset.hit_count }} 命中
             </a-tag>
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              10 关联应用
+              {{ dataset.related_app_count }} 关联应用
             </a-tag>
           </div>
         </div>
@@ -119,8 +54,20 @@ const documents = [
     <div class="flex items-center justify-between mb-6">
       <!-- 左侧搜索框 -->
       <a-input-search
+        :default-value="route.query?.search_word || ''"
         placeholder="请输入关键词搜索文档"
         class="w-[240px] bg-white rounded-lg border-gray-200"
+        @search="
+          (value: string) => {
+            router.push({
+              path: route.path,
+              query: {
+                search_word: value,
+                current_page: 1,
+              },
+            })
+          }
+        "
       />
       <!-- 右侧按钮 -->
       <a-space :size="12">
@@ -134,16 +81,29 @@ const documents = [
       <a-table
         hoverable
         :pagination="{
-          total: 50,
-          current: 1,
+          total: paginator.total_record,
+          current: paginator.current_page,
           defaultCurrent: 1,
-          pageSize: 20,
+          pageSize: paginator.page_size,
           defaultPageSize: 20,
+          showTotal: true,
         }"
+        :loading="loading"
         :data="documents"
         :bordered="{
           wrapper: false,
         }"
+        @page-change="
+          (page: number) => {
+            router.push({
+              path: route.path,
+              query: {
+                current_page: page,
+                search_word: route.query?.search_word || '',
+              },
+            })
+          }
+        "
       >
         <template #columns>
           <a-table-column

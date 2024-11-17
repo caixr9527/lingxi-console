@@ -1,7 +1,9 @@
 import {
   createDataset,
   deleteDataset,
+  getDataset,
   getDatasetsWithPage,
+  getDocumentsWithPage,
   updateDataset,
 } from '@/services/dataset'
 import { reactive, ref, onMounted, watch } from 'vue'
@@ -131,4 +133,85 @@ export const useCrateOrUpdateDataset = () => {
   }
 
   return { loading, form, formRef, saveDataset, showUpdateModal, updateShowUpdateModal }
+}
+
+export const useGetDataset = (dataset_id: string) => {
+  const loading = ref(false)
+  const dataset = reactive<any>({})
+
+  const loadDataset = async (dataset_id: string) => {
+    try {
+      loading.value = true
+      const resp = await getDataset(dataset_id)
+      const data = resp.data
+      Object.assign(dataset, { ...data })
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(async () => await loadDataset(dataset_id))
+
+  return { loading, dataset, loadDataset }
+}
+
+export const useGetDocumentsWithPage = (dataset_id: string) => {
+  const route = useRoute()
+  const loading = ref(false)
+  const documents = reactive<Array<any>>([])
+
+  const defaultPaginator = {
+    current_page: 1,
+    page_size: 20,
+    total_page: 0,
+    total_record: 0,
+  }
+  const paginator = reactive({ ...defaultPaginator })
+  const loadDocuments = async (init: boolean = false) => {
+    if (!init && paginator.current_page > paginator.total_page) return
+
+    try {
+      loading.value = true
+      const resp = await getDocumentsWithPage(dataset_id, {
+        current_page: Number(route.query?.current_page ?? 1),
+        page_size: Number(route.query?.page_size ?? 20),
+        search_word: String(route.query?.search_word ?? ''),
+      })
+      const data = resp.data
+
+      updatePaginator(data)
+
+      documents.splice(0, documents.length, ...data.list)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const initPaginator = () => {
+    Object.assign(paginator, { ...defaultPaginator })
+  }
+
+  const updatePaginator = (data: any) => {
+    paginator.current_page = data.paginator.current_page
+    paginator.page_size = data.paginator.page_size
+    paginator.total_page = data.paginator.total_page
+    paginator.total_record = data.paginator.total_record
+  }
+
+  onMounted(async () => {
+    await loadDocuments(true)
+  })
+
+  watch(
+    () => route.query,
+    async (newQuery, oldQuery) => {
+      if (newQuery.search_word !== oldQuery.search_word) {
+        initPaginator()
+        await loadDocuments(true)
+      } else if (newQuery.current_page !== oldQuery.current_page) {
+        await loadDocuments()
+      }
+    },
+  )
+  return { loading, documents, paginator, loadDocuments }
 }

@@ -36,3 +36,23 @@ export type GetDatasetResponse = BaseResponse<{
   updated_at: number
   created_at: number
 }>
+
+export type GetDocumentsWithPageRequest = {
+  current_page: number
+  page_size: number
+  search_word: string
+}
+
+export type GetDocumentsWithPageResponse = BasePaginatorResponse<{
+  id: string
+  name: string
+  charatcter_count: number
+  hit_count: number
+  position: number
+  enabled: boolean
+  disabled_at: number
+  status: string
+  error: string
+  update_at: number
+  created_at: number
+}>
