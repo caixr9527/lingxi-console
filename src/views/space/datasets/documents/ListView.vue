@@ -9,6 +9,7 @@ import moment from 'moment'
 import { useRoute, useRouter } from 'vue-router'
 import UpdateDocumentNameModal from './components/UpdateDocumentNameModal.vue'
 import { ref } from 'vue'
+import HitTestingModal from './components/HitTestingModal.vue'
 const route = useRoute()
 const router = useRouter()
 const updateDocumentNameModalVisible = ref(false)
@@ -266,6 +267,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
         }
       "
     />
+    <hit-testing-modal />
   </div>
 </template>
 
