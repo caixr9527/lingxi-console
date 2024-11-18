@@ -13,6 +13,7 @@ import moment from 'moment'
 import { Message, Modal } from '@arco-design/web-vue'
 import { typeMap } from '@/config'
 import type { CreateApiToolProviderRequest } from '@/models/api-tool'
+import { uploadImage } from '@/services/upload-file'
 
 const route = useRoute()
 const props = defineProps({
@@ -31,7 +32,8 @@ const paginator = reactive({
   total_record: 0,
 })
 const form = reactive({
-  icon: 'https://picsum.photos/400',
+  fileList: [],
+  icon: '',
   name: '',
   openapi_schema: '',
   headers: [] as { key: string; value: string }[],
@@ -161,6 +163,7 @@ const handleDelete = () => {
 
 const handleCancel = () => {
   formRef.value?.resetFields()
+  form.fileList = []
   emits('update-create-type', '')
   showUpdateModal.value = false
 }
@@ -175,6 +178,7 @@ const handleUpdate = async () => {
     const data = resp.data
 
     formRef.value?.resetFields()
+    form.fileList = [{ uid: '1', name: '插件图标', url: data.icon }]
     form.icon = data.icon
     form.name = data.name
     form.openapi_schema = data.openapi_schema
@@ -368,11 +372,26 @@ watch(
             :rules="[{ required: true, message: '插件图标不能为空' }]"
           >
             <a-upload
-              v-model="form.icon"
               :limit="1"
               list-type="picture-card"
-              accept="image/png, image/jepg"
+              accept="image/png, image/jpeg"
               class="!w-auto mx-auto"
+              v-model:file-list="form.fileList"
+              image-preview
+              :custom-request="
+                async (option: any) => {
+                  const { fileItem, onSuccess, onError } = option
+                  const resp = await uploadImage(fileItem.file)
+                  form.icon = resp.data.image_url
+                  onSuccess(resp)
+                }
+              "
+              :on-before-remove="
+                () => {
+                  form.icon = ''
+                  return true
+                }
+              "
             />
           </a-form-item>
           <a-form-item
@@ -505,8 +524,9 @@ watch(
                 type="primary"
                 html-type="submit"
                 class="rounded-lg"
-                >保存</a-button
               >
+                保存
+              </a-button>
             </a-space>
           </div>
         </a-form>

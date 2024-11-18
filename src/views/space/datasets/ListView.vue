@@ -54,6 +54,8 @@ const handleCancel = () => {
   updateShowUpdateModal(false, async () => {
     updateDatasetID = ''
     formRef.value?.resetFields()
+    form.fileList = []
+    console.log('handleCancel')
     emits('update-create-type', '')
   })
 }
