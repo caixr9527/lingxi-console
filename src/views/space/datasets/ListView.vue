@@ -6,6 +6,7 @@ import {
   useCrateOrUpdateDataset,
 } from '@/hooks/use-dataset'
 import { getDataset } from '@/services/dataset'
+import { uploadImage } from '@/services/upload-file'
 let updateDatasetID = ''
 const props = defineProps({
   createType: {
@@ -42,6 +43,7 @@ const handleUpdate = (dataset_id: string) => {
     updateDatasetID = dataset_id
 
     formRef.value?.resetFields()
+    form.fileList = [{ uid: '1', name: '知识库图标', url: data.icon }]
     form.name = data.name
     form.icon = data.icon
     form.description = data.description
@@ -188,11 +190,26 @@ const handleSubmit = async ({ errors }: any) => {
             :rules="[{ required: true, message: '知识库图标不能为空' }]"
           >
             <a-upload
-              v-model="form.icon"
               :limit="1"
               list-type="picture-card"
-              accept="image/png, image/jepg"
+              accept="image/png, image/jpeg"
               class="!w-auto mx-auto"
+              v-model:file-list="form.fileList"
+              image-preview
+              :custom-request="
+                async (option: any) => {
+                  const { fileItem, onSuccess, onError } = option
+                  const resp = await uploadImage(fileItem.file)
+                  form.icon = resp.data.image_url
+                  onSuccess(resp)
+                }
+              "
+              :on-before-remove="
+                () => {
+                  form.icon = ''
+                  return true
+                }
+              "
             />
           </a-form-item>
           <a-form-item
