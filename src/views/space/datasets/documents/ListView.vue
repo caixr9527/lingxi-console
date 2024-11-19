@@ -12,11 +12,12 @@ import { ref } from 'vue'
 import HitTestingModal from './components/HitTestingModal.vue'
 const route = useRoute()
 const router = useRouter()
+const hitModalVisible = ref(false)
 const updateDocumentNameModalVisible = ref(false)
 const updateDocumentID = ref('')
-const { dataset, loadDataset } = useGetDataset(String(route.params?.dataset_id))
+const { dataset, loadDataset } = useGetDataset(route.params?.dataset_id as string)
 const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage(
-  String(route.params?.dataset_id),
+  route.params?.dataset_id as string,
 )
 
 const { handleDelete } = useDeleteDocument()
@@ -83,7 +84,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
       />
       <!-- 右侧按钮 -->
       <a-space :size="12">
-        <a-button class="rounded-lg">召回测试</a-button>
+        <a-button class="rounded-lg" @click="hitModalVisible = true">召回测试</a-button>
         <a-button type="primary" class="rounded-lg">添加文件</a-button>
       </a-space>
     </div>
@@ -210,9 +211,9 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
                   @change="
                     (value) => {
                       handleUpdateEnabled(
-                        String(route.params?.dataset_id),
+                        route.params?.dataset_id as string,
                         record.id,
-                        Boolean(value),
+                        value as boolean,
                         () => {
                           documents[rowIndex].enabled = value
                         },
@@ -240,9 +241,9 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
                       class="!text-red-700"
                       @click="
                         () =>
-                          handleDelete(String(route.params?.dataset_id), record.id, async () => {
+                          handleDelete(route.params?.dataset_id as string, record.id, async () => {
                             await loadDocuments()
-                            await loadDataset(String(route.params?.dataset_id))
+                            await loadDataset(route.params?.dataset_id as string)
                           })
                       "
                     >
@@ -259,7 +260,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
     <!-- 更新文档名字模态框 -->
     <update-document-name-modal
       :document_id="updateDocumentID"
-      :dataset_id="String(route.params?.dataset_id)"
+      :dataset_id="route.params?.dataset_id as string"
       v-model:visible="updateDocumentNameModalVisible"
       :on-after-update="
         async () => {
@@ -267,7 +268,10 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
         }
       "
     />
-    <hit-testing-modal />
+    <hit-testing-modal
+      v-model:visible="hitModalVisible"
+      :dataset_id="route.params?.dataset_id as string"
+    />
   </div>
 </template>
 

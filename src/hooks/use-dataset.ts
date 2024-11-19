@@ -184,9 +184,9 @@ export const useGetDocumentsWithPage = (dataset_id: string) => {
     try {
       loading.value = true
       const resp = await getDocumentsWithPage(dataset_id, {
-        current_page: Number(route.query?.current_page ?? 1),
-        page_size: Number(route.query?.page_size ?? 20),
-        search_word: String(route.query?.search_word ?? ''),
+        current_page: (route.query?.current_page || 1) as number,
+        page_size: (route.query?.page_size || 20) as number,
+        search_word: (route.query?.search_word || '') as string,
       })
       const data = resp.data
 

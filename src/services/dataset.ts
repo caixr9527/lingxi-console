@@ -1,11 +1,14 @@
 import { get, post } from '@/utils/request'
 import {
   type CreateDatasetRequest,
+  type GetDatasetQueriesResponse,
   type GetDatasetResponse,
   type GetDatasetsWithPageResp,
   type GetDocumentResponse,
   type GetDocumentsWithPageRequest,
   type GetDocumentsWithPageResponse,
+  type HitRequest,
+  type HitResponse,
   type UpdateDatasetRequest,
 } from '@/models/dataset'
 import type { BaseResponse } from '@/models/base'
@@ -75,4 +78,14 @@ export const updateDocumentName = (dataset_id: string, document_id: string, name
   return post<BaseResponse<any>>(`/datasets/${dataset_id}/documents/${document_id}/name`, {
     body: { name },
   })
+}
+
+export const hit = (dataset_id: string, req: HitRequest) => {
+  return post<HitResponse>(`/datasets/${dataset_id}/hit`, {
+    body: req,
+  })
+}
+
+export const getDatasetQueries = (dataset_id: string) => {
+  return get<GetDatasetQueriesResponse>(`/datasets/${dataset_id}/queries`)
 }
