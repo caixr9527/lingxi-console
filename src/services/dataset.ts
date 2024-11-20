@@ -1,10 +1,13 @@
 import { get, post } from '@/utils/request'
 import {
   type CreateDatasetRequest,
+  type CreateDocumentsRequest,
+  type CreateDocumentsResponse,
   type GetDatasetQueriesResponse,
   type GetDatasetResponse,
   type GetDatasetsWithPageResp,
   type GetDocumentResponse,
+  type GetDocumentStatusResponse,
   type GetDocumentsWithPageRequest,
   type GetDocumentsWithPageResponse,
   type HitRequest,
@@ -88,4 +91,14 @@ export const hit = (dataset_id: string, req: HitRequest) => {
 
 export const getDatasetQueries = (dataset_id: string) => {
   return get<GetDatasetQueriesResponse>(`/datasets/${dataset_id}/queries`)
+}
+
+export const createDocuments = (dataset_id: string, req: CreateDocumentsRequest) => {
+  return post<CreateDocumentsResponse>(`/datasets/${dataset_id}/documents`, {
+    body: req,
+  })
+}
+
+export const getDocumentStatus = (dataset_id: string, batch: string) => {
+  return get<GetDocumentStatusResponse>(`/datasets/${dataset_id}/documents/batch/${batch}`)
 }
