@@ -272,6 +272,8 @@ onUnmounted(() => stopTimer())
             </div>
             <!-- 处理的百分比 -->
             <div v-if="document.segment_count === 0" class="text-gray-500">0.00%</div>
+            <div v-else-if="document.status === 'error'">处理出错</div>
+            <div v-else-if="document.status === 'completed'">处理完成</div>
             <div v-else class="text-gray-500">
               {{ ((document.completed_segment_count / document.segment_count) * 100).toFixed(2) }}%
             </div>
@@ -305,7 +307,7 @@ onUnmounted(() => stopTimer())
         </a-button>
         <!-- 数据处理页面显示的内容 -->
         <div v-if="currentStep === 3" class="flex items-center gap-2">
-          <div class="text-gray-500">点击趣儿不影响数据处理，处理完毕后可进行引用</div>
+          <div class="text-gray-500">点击确定不影响数据处理，处理完毕后可进行引用</div>
           <router-link
             :to="{
               name: 'space-datasets-documents-list',
