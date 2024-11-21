@@ -162,3 +162,60 @@ export type GetDocumentStatusResponse = BaseResponse<
     created_at: number
   }>
 >
+
+// 获取指定文档的片段列表请求结构
+export type GetSegmentsWithPageRequest = {
+  current_page: number
+  page_size: number
+  search_word: string
+}
+
+// 获取指定文档的片段列表响应结构
+export type GetSegmentsWithPageResponse = BasePaginatorResponse<{
+  id: string
+  dataset_id: string
+  document_id: string
+  position: number
+  content: string
+  keywords: string[]
+  character_count: number
+  token_count: number
+  hit_count: number
+  enabled: boolean
+  disabled_at: number
+  status: string
+  error: string
+  updated_at: number
+  created_at: number
+}>
+
+// 新增文档片段请求结构
+export type CreateSegmentRequest = {
+  content: string
+  keywords: string[]
+}
+
+// 修改文档片段请求结构
+export type UpdateSegmentRequest = {
+  content: string
+  keywords: string[]
+}
+
+// 查询文档片段响应结构
+export type GetSegmentResponse = BaseResponse<{
+  id: string
+  document_id: string
+  dataset_id: string
+  position: number
+  content: string
+  keywords: string[]
+  character_count: number
+  token_count: number
+  hit_count: number
+  hash: string
+  enabled: boolean
+  status: string
+  error: string
+  updated_at: number
+  created_at: number
+}>

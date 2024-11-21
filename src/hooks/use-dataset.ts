@@ -2,11 +2,15 @@ import {
   createDataset,
   deleteDataset,
   deleteDocument,
+  deleteSegment,
   getDataset,
   getDatasetsWithPage,
+  getDocument,
   getDocumentsWithPage,
+  getSegmentsWithPage,
   updateDataset,
   updateDocumentEnabled,
+  updateSegmentEnabled,
 } from '@/services/dataset'
 import { reactive, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -267,5 +271,153 @@ export const useUpdateDocumentEnabled = () => {
       callback && resp?.code === 'success' && callback()
     }
   }
+  return { handleUpdate }
+}
+
+export const useGetDocument = (dataset_id: string, document_id: string) => {
+  // 1.定义hooks所需的基础数据
+  const loading = ref(false)
+  const document = reactive<any>({})
+
+  // 2.定义加载文档函数
+  const loadDocument = async (dataset_id: string, document_id: string) => {
+    try {
+      loading.value = true
+      const resp = await getDocument(dataset_id, document_id)
+      const data = resp.data
+
+      Object.assign(document, { ...data })
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 3.页面DOM加载完毕时加载数据
+  onMounted(async () => await loadDocument(dataset_id, document_id))
+
+  return { loading, document, loadDocument }
+}
+
+export const useGetSegmentsWithPage = (dataset_id: string, document_id: string) => {
+  // 1.定义hooks所需数据
+  const route = useRoute()
+  const loading = ref(false)
+  const segments = reactive<Array<any>>([])
+  const defaultPaginator = {
+    current_page: 1,
+    page_size: 20,
+    total_page: 0,
+    total_record: 0,
+  }
+  const paginator = reactive({ ...defaultPaginator })
+
+  // 2.定义加载数据函数
+  const loadSegments = async (init: boolean = false) => {
+    // 2.1 判断是否是初始化，如果是的话则先初始化分页器
+    if (init) {
+      Object.assign(paginator, { ...defaultPaginator })
+    } else if (paginator.current_page > paginator.total_page) {
+      return
+    }
+
+    // 2.2 加载数据并更新
+    try {
+      // 2.3 调用接口获取响应数据
+      loading.value = true
+      const resp = await getSegmentsWithPage(dataset_id, document_id, {
+        current_page: paginator.current_page,
+        page_size: paginator.page_size,
+        search_word: String(route.query?.search_word || ''),
+      })
+      const data = resp.data
+
+      // 2.4 更新分页器
+      updatePaginator(data)
+
+      // 2.5 判断是否存在更多数据
+      if (paginator.current_page <= paginator.total_page) {
+        paginator.current_page += 1
+      }
+
+      // 2.6 追加或者是覆盖数据
+      if (init) {
+        segments.splice(0, segments.length, ...data.list)
+      } else {
+        segments.push(...data.list)
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 3.定义更新分页器函数
+  const updatePaginator = (data: any) => {
+    paginator.current_page = data.paginator.current_page
+    paginator.page_size = data.paginator.page_size
+    paginator.total_page = data.paginator.total_page
+    paginator.total_record = data.paginator.total_record
+  }
+
+  // 4.页面DOM加载完毕时初始化数据
+  onMounted(async () => {
+    await loadSegments(true)
+  })
+
+  // 5.监听路由query的变化
+  watch(
+    () => route.query?.search_word,
+    async () => {
+      await loadSegments(true)
+    },
+  )
+
+  return { loading, segments, paginator, loadSegments }
+}
+
+export const useDeleteSegment = () => {
+  const handleDelete = async (
+    dataset_id: string,
+    document_id: string,
+    segment_id: string,
+    callback?: () => void,
+  ) => {
+    Modal.warning({
+      title: '要删除该文档片段吗?',
+      content:
+        '删除文档文档后，知识库/向量数据库将无法检索到该文档，如需暂时关闭该文档的检索，可以选择禁用功能。',
+      hideCancel: false,
+      onOk: async () => {
+        try {
+          // 1.点击确定后向API接口发起请求
+          const resp = await deleteSegment(dataset_id, document_id, segment_id)
+          Message.success(resp.message)
+        } finally {
+          // 2.调用callback函数指定回调功能
+          callback && callback()
+        }
+      },
+    })
+  }
+
+  return { handleDelete }
+}
+
+export const useUpdateSegmentEnabled = () => {
+  const handleUpdate = async (
+    dataset_id: string,
+    document_id: string,
+    segment_id: string,
+    enabled: boolean,
+    callback?: () => void,
+  ) => {
+    try {
+      const resp = await updateSegmentEnabled(dataset_id, document_id, segment_id, enabled)
+      Message.success(resp.message)
+    } finally {
+      // 2.调用callback函数指定回调功能
+      callback && callback()
+    }
+  }
+
   return { handleUpdate }
 }
