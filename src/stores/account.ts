@@ -1,19 +1,24 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
+import storage from '@/utils/storage'
 const initAccount = {
-  name: 'caixr',
-  email: 'smart_r@163.com',
+  id: '',
+  name: '',
+  email: '',
   avatar: '',
+  last_login_ip: '',
+  last_login_at: 0,
+  created_at: 0,
 }
 
-export const useAccountStore = defineStore('account', () => {
-  const account = ref({ ...initAccount })
-  function update(params: any) {
-    Object.assign(account.value, params)
+export const useAccountState = defineStore('account', () => {
+  const account = ref(storage.get('account', initAccount))
+  const update = (params: any) => {
+    storage.set('account', params)
   }
-  function clear() {
-    account.value = { ...initAccount }
+  const clear = () => {
+    account.value = initAccount
+    storage.remove('account')
   }
   return { account, update, clear }
 })
