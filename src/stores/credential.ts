@@ -7,7 +7,7 @@ const initCredential = {
   expire_at: 0,
 }
 
-export const useCredentialState = defineStore('credential', () => {
+export const useCredentialStore = defineStore('credential', () => {
   const credential = ref(storage.get('credential', initCredential))
   const update = (params: any) => {
     credential.value = params

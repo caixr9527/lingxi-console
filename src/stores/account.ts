@@ -11,7 +11,7 @@ const initAccount = {
   created_at: 0,
 }
 
-export const useAccountState = defineStore('account', () => {
+export const useAccountStore = defineStore('account', () => {
   const account = ref(storage.get('account', initAccount))
   const update = (params: any) => {
     storage.set('account', params)

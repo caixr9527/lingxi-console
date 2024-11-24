@@ -1,5 +1,7 @@
 import { apiPrefix, httpCode } from '@/config'
 import { Message } from '@arco-design/web-vue'
+import { useCredentialStore } from '@/stores/credential'
+import router from '@/router'
 const TIME_OUT = 60 * 1000
 const baseFetchOptions = {
   method: 'GET',
@@ -22,6 +24,10 @@ const baseFetch = <T>(url: string, fetchOption: FetchOptionType): Promise<T> => 
     baseFetchOptions,
     fetchOption,
   )
+  const { credential, clear: clearCredential } = useCredentialStore()
+  if (credential.access_token) {
+    options.headers.set('Authorization', `Bearer ${credential.access_token}`)
+  }
   let urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
   const { method, params, body } = options
   if (method === 'GET' && params) {
@@ -52,6 +58,9 @@ const baseFetch = <T>(url: string, fetchOption: FetchOptionType): Promise<T> => 
           const json = await res.json()
           if (json.code === httpCode.success) {
             resolve(json)
+          } else if (json.code === httpCode.unauthorized) {
+            clearCredential()
+            await router.replace({ path: '/auth/login' })
           } else {
             Message.error(json.message)
             reject(new Error(json.message))
@@ -83,12 +92,16 @@ export const ssePost = async (
   onData: (data: { [key: string]: any }) => void,
 ) => {
   const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
+
+  const { credential } = useCredentialStore()
+  if (credential.access_token) {
+    options.headers.set('Authorization', `Bearer ${credential.access_token}`)
+  }
+
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
   const { body } = fetchOptions
   if (body) options.body = JSON.stringify(body)
-  //   globalThis.fetch(urlWithPrefix, options as RequestInit).then((response) => {
-  //     return handleStream(response, onData)
-  //   })
+
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
   return handleStream(response, onData)
 }
@@ -139,7 +152,7 @@ const handleStream = (response: Response, onData: (data: { [key: string]: any })
   read()
 }
 
-export const upload = <T>(url: string, options = {}): Promise<T> => {
+export const upload = <T>(url: string, options: any = {}): Promise<T> => {
   // 1 组装请求URL
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
@@ -154,6 +167,11 @@ export const upload = <T>(url: string, options = {}): Promise<T> => {
     ...defaultOptions,
     ...options,
     headers: { ...defaultOptions.headers, ...options.headers },
+  }
+
+  const { credential, clear: clearCredential } = useCredentialStore()
+  if (credential.access_token) {
+    options.headers['Authorization'] = `Bearer ${credential.access_token}`
   }
 
   // 3.构建promise并使用xhr完成文件上传
@@ -172,12 +190,20 @@ export const upload = <T>(url: string, options = {}): Promise<T> => {
     xhr.responseType = 'json'
 
     // 7.监听xhr状态变化并导出数据
-    xhr.onreadystatechange = () => {
+    xhr.onreadystatechange = async () => {
       // 8.判断xhr的状态是不是为4，如果为4则代表已经传输完成（涵盖成功与失败）
       if (xhr.readyState === 4) {
         // 9.检查响应状态码，当HTTP状态码为200的时候表示请求成功
         if (xhr.status === 200) {
-          resolve(xhr.response)
+          const response = xhr.response
+          if (response.code === httpCode.success) {
+            resolve(response)
+          } else if (response.code === httpCode.unauthorized) {
+            clearCredential()
+            await router.replace({ path: '/auth/login' })
+          } else {
+            resolve(xhr.response)
+          }
         } else {
           reject(xhr)
         }

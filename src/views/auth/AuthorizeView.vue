@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { authorize } from '@/services/oauth'
-import { useCredentialState } from '@/stores/credential'
+import { useCredentialStore } from '@/stores/credential'
 import { Message } from '@arco-design/web-vue'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
-const credentialStore = useCredentialState()
+const credentialStore = useCredentialStore()
 onMounted(async () => {
   try {
     const resp = await authorize(route.params?.provider_name as string, route.query?.code as string)
