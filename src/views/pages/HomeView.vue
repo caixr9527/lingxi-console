@@ -1,11 +1,7 @@
-<script setup lang="ts">
-import { useAccountStore } from '@/stores/account'
-const accountStore = useAccountStore()
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <p>这是主页</p>
-  <p>用户名：{{ accountStore.account }}</p>
+  <router-link to="/space/apps">跳转到应用列表</router-link>
 </template>
 
-<style></style>
+<style scoped></style>

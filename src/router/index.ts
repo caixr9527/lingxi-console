@@ -88,6 +88,11 @@ const router = createRouter({
           component: () => import('@/views/auth/LoginView.vue'),
         },
         {
+          path: 'auth/authorize/:provider_name',
+          name: 'auth-authorize',
+          component: () => import('@/views/auth/AuthorizeView.vue'),
+        },
+        {
           path: 'space/apps/:app_id',
           name: 'space-apps-detail',
           component: () => import('@/views/space/apps/DetailView.vue'),
@@ -97,7 +102,7 @@ const router = createRouter({
   ],
 })
 router.beforeEach(async (to, from) => {
-  if (!auth.isLogin() && to.name !== 'auth-login') {
+  if (!auth.isLogin() && !['auth-authorize', 'auth-login'].includes(to.name as string)) {
     return { path: '/auth/login' }
   }
 })
