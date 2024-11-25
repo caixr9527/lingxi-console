@@ -14,6 +14,7 @@ const initAccount = {
 export const useAccountStore = defineStore('account', () => {
   const account = ref(storage.get('account', initAccount))
   const update = (params: any) => {
+    account.value = params
     storage.set('account', params)
   }
   const clear = () => {
