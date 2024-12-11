@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 bg-white">应用编排页面</div>
+  <div class="">统计分析页面</div>
 </template>
 
 <script setup lang="ts"></script>
