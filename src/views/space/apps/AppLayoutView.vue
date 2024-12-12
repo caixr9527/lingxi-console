@@ -2,7 +2,12 @@
 import { useRoute } from 'vue-router'
 import moment from 'moment'
 import { useGetApp, usePublish, useCancelPublish } from '@/hooks/use-app'
+import PublishHistoryDrawer from '@/views/space/apps/components/PublishHistoryDrawer.vue'
+import { ref } from 'vue'
+
 const route = useRoute()
+const publishHistoryDrawerVisible = ref(false)
+
 const { loading, app, loadApp } = useGetApp(String(route.params?.app_id))
 const { loading: publishLoading, handlePublish } = usePublish()
 const { handleCancelPublish } = useCancelPublish()
@@ -47,7 +52,7 @@ const { handleCancelPublish } = useCancelPublish()
                 {{ app.status === 'draft' ? '草稿' : '已发布' }}
               </div>
               <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-                已自动保存 {{ moment(app.draft_updated_at).format('HH:mm:ss') }}
+                已自动保存 {{ moment(app.draft_updated_at * 1000).format('HH:mm:ss') }}
               </a-tag>
             </div>
           </div>
@@ -82,13 +87,18 @@ const { handleCancelPublish } = useCancelPublish()
       <!-- 右侧按钮信息 -->
       <div class="">
         <a-space :size="12">
-          <a-button class="rounded-lg">
+          <a-button
+            :disabled="loading"
+            class="rounded-lg"
+            @click="publishHistoryDrawerVisible = true"
+          >
             <template #icon>
               <icon-schedule />
             </template>
           </a-button>
           <a-button-group>
             <a-button
+              :disabled="loading"
               :loading="publishLoading"
               type="primary"
               class="!rounded-tl-lg !rounded-bl-lg"
@@ -129,6 +139,12 @@ const { handleCancelPublish } = useCancelPublish()
     </div>
     <!-- 底部内容区 -->
     <router-view />
+    <!-- 发布历史抽屉组件 -->
+    <publish-history-drawer
+      :app="app"
+      v-model:visible="publishHistoryDrawerVisible"
+      @load-draft-app-config="() => {}"
+    />
   </div>
 </template>
 
