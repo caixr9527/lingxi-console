@@ -1,9 +1,12 @@
+import type { UpdateDraftAppConfigRequest } from '@/models/app'
 import {
   cancelPublish,
   fallbackHistoryToDraft,
   getApp,
+  getDraftAppConfig,
   getPublishHistoriesWithPage,
   publish,
+  updateDraftAppConfig,
 } from '@/services/app'
 import { Message, Modal } from '@arco-design/web-vue'
 import { onMounted, reactive, ref } from 'vue'
@@ -130,4 +133,54 @@ export const useFallbackHistoryToDraft = () => {
     }
   }
   return { loading, handleFallbackHistoryToDraft }
+}
+
+export const useGetDraftAppConfig = (app_id: string) => {
+  const loading = ref(false)
+  const draftAppConfigForm = reactive<Record<string, any>>({})
+
+  const loadDraftAppConfig = async (app_id: string) => {
+    try {
+      loading.value = true
+      const resp = await getDraftAppConfig(app_id)
+      const data = resp.data
+
+      Object.assign(draftAppConfigForm, {
+        preset_prompt: data.preset_prompt,
+        long_term_memory: data.long_term_memory,
+        opening_statement: data.opening_statement,
+        opening_questions: data.opening_questions,
+        suggested_after_answer: data.suggested_after_answer,
+        review_config: data.review_config,
+        datasets: data.datasets,
+        retrieval_config: data.retrieval_config,
+        tools: data.tools,
+      })
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(async () => await loadDraftAppConfig(app_id))
+
+  return { loading, draftAppConfigForm, loadDraftAppConfig }
+}
+
+export const useUpdateDraftAppConfig = () => {
+  const loading = ref(false)
+
+  const handleUpdateDraftAppConfig = async (
+    app_id: string,
+    draft_app_config: UpdateDraftAppConfigRequest,
+  ) => {
+    try {
+      loading.value = true
+      const resp = await updateDraftAppConfig(app_id, draft_app_config)
+      Message.success(resp.message)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, handleUpdateDraftAppConfig }
 }
