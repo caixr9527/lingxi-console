@@ -117,4 +117,10 @@ const handleSubmit = async () => {
     </div>
   </div>
 </template>
-<style scoped></style>
+<style>
+.preset-prompt-textarea {
+  textarea {
+    scrollbar-width: none;
+  }
+}
+</style>

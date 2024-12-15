@@ -3,6 +3,7 @@ import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
 import { useRoute } from 'vue-router'
 import { useGetDraftAppConfig, useUpdateDraftAppConfig } from '@/hooks/use-app'
 import PreViewDebugHeader from './components/PreViewDebugHeader.vue'
+import AgentAppAbility from './components/AgentAppAbility.vue'
 const route = useRoute()
 
 const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig(
@@ -21,7 +22,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
           <!-- LLM模型配置 -->
         </div>
         <!-- 底部编排区域 -->
-        <div class="grid grid-cols-[13fr_13fr] flex-1 overflow-hidden">
+        <div class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
           <!-- 左侧人设与回复逻辑 -->
           <div class="border-r py-4">
             <preset-prompt-textarea
@@ -30,7 +31,10 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
             />
           </div>
           <!-- 右侧应用能力 -->
-          <div>右侧应用能力</div>
+          <agent-app-ability
+            :draft_app_config="draftAppConfigForm"
+            :app_id="String(route.params?.app_id)"
+          />
         </div>
       </div>
       <!-- 右侧调试与会话 -->
