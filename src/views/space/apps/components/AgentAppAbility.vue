@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import LongTermMemoryAbilityItem from './abilities/LongTermMemoryAbilityItem.vue'
 import OpeningAbilityItem from './abilities/OpeningAbilityItem.vue'
+import SuggestedAfterAnswerAbilityItem from './abilities/SuggestedAfterAnswerAbilityItem.vue'
+import ReviewConfigAbilityItem from './abilities/ReviewConfigAbilityItem.vue'
+
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   draft_app_config: { type: Object, required: true },
 })
 const emits = defineEmits(['update:draft_app_config'])
+const defaultActiveKeys = ['long_term_memory', 'opening', 'suggested_after_answer', 'review_config']
 </script>
 
 <template>
@@ -14,7 +18,7 @@ const emits = defineEmits(['update:draft_app_config'])
     <div class="p-4 text-gray-700 font-bold">应用能力</div>
     <!-- 应用能力列表 -->
     <div class="flex-1 overfolw-scroll scrollbar-w-none">
-      <a-collapse :bordered="false">
+      <a-collapse :bordered="false" :default-active-key="defaultActiveKeys">
         <template #expand-icon="{ active }">
           <icon-down v-if="active" />
           <icon-right v-else />
@@ -28,6 +32,16 @@ const emits = defineEmits(['update:draft_app_config'])
         <opening-ability-item
           v-model:opening_questions="draft_app_config.opening_questions"
           v-model:opening_statement="draft_app_config.opening_statement"
+          :app_id="props.app_id"
+        />
+        <!-- 回答后生成建议问题 -->
+        <suggested-after-answer-ability-item
+          v-model:suggested_after_answer="draft_app_config.suggested_after_answer"
+          :app_id="props.app_id"
+        />
+        <!-- 内容审核 -->
+        <review-config-ability-item
+          v-model:review_config="draft_app_config.review_config"
           :app_id="props.app_id"
         />
       </a-collapse>
