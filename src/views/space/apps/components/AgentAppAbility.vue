@@ -3,6 +3,7 @@ import LongTermMemoryAbilityItem from './abilities/LongTermMemoryAbilityItem.vue
 import OpeningAbilityItem from './abilities/OpeningAbilityItem.vue'
 import SuggestedAfterAnswerAbilityItem from './abilities/SuggestedAfterAnswerAbilityItem.vue'
 import ReviewConfigAbilityItem from './abilities/ReviewConfigAbilityItem.vue'
+import DatasetsAbilityItem from './abilities/DatasetsAbilityItem.vue'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
@@ -23,6 +24,12 @@ const defaultActiveKeys = ['long_term_memory', 'opening', 'suggested_after_answe
           <icon-down v-if="active" />
           <icon-right v-else />
         </template>
+        <!-- 知识库组件 -->
+        <datasets-ability-item
+          v-model:retrieval_config="draft_app_config.retrieval_config"
+          v-model:datasets="draft_app_config.datasets"
+          :app_id="app_id"
+        />
         <!-- 长期记忆召回 -->
         <long-term-memory-ability-item
           v-model:long_term_memory="draft_app_config.long_term_memory"
