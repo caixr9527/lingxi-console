@@ -103,53 +103,63 @@ export const ssePost = async (
   if (body) options.body = JSON.stringify(body)
 
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
-  return handleStream(response, onData)
+  return await handleStream(response, onData)
 }
 
-const handleStream = (response: Response, onData: (data: { [key: string]: any }) => void) => {
-  // 检测网络请求
-  if (!response.ok) throw new Error('网络请求失败')
-  // 构建reader和decoder
-  const reader = response.body?.getReader()
-  const decoder = new TextDecoder('utf-8')
-  let buffer = ''
-  const read = () => {
-    let hasError = false
-    reader?.read().then((result: any) => {
-      if (result.done) return
-      buffer += decoder.decode(result.value, { stream: true })
-      const lines = buffer.split('\n')
-      let event = ''
-      let data = ''
-      try {
-        lines.forEach((line) => {
-          line = line.trim()
-          if (line.startsWith('event:')) {
-            event = line.slice(6).trim()
-          } else if (line.startsWith('data:')) {
-            data = line.slice(5).trim()
-          }
-          if (line === '') {
-            if (event !== '' && data !== '') {
-              onData({
-                event: event,
-                data: JSON.parse(data),
-              })
-              event = ''
-              data = ''
+const handleStream = (
+  response: Response,
+  onData: (data: Record<string, any>) => void,
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // 检测网络请求
+    if (!response.ok) {
+      reject(new Error('网络请求失败'))
+      return
+    }
+    // 构建reader和decoder
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
+    const read = () => {
+      reader?.read().then((result: any) => {
+        if (result.done) {
+          resolve()
+          return
+        }
+        buffer += decoder.decode(result.value, { stream: true })
+        const lines = buffer.split('\n')
+        let event = ''
+        let data = ''
+        try {
+          lines.forEach((line) => {
+            line = line.trim()
+            if (line.startsWith('event:')) {
+              event = line.slice(6).trim()
+            } else if (line.startsWith('data:')) {
+              data = line.slice(5).trim()
             }
-          }
-        })
-        buffer = lines.pop() || ''
-      } catch (e) {
-        hasError = true
-      }
+            if (line === '') {
+              if (event !== '' && data !== '') {
+                onData({
+                  event: event,
+                  data: JSON.parse(data),
+                })
+                event = ''
+                data = ''
+              }
+            }
+          })
+          buffer = lines.pop() || ''
+        } catch (e) {
+          reject(e)
+        }
 
-      if (!hasError) read()
-    })
-  }
+        read()
+      })
+    }
 
-  read()
+    read()
+  })
 }
 
 export const upload = <T>(url: string, options: any = {}): Promise<T> => {

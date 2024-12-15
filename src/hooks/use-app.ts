@@ -1,4 +1,5 @@
 import type { UpdateDraftAppConfigRequest } from '@/models/app'
+import { optimizePrompt } from '@/services/ai'
 import {
   cancelPublish,
   fallbackHistoryToDraft,
@@ -183,4 +184,22 @@ export const useUpdateDraftAppConfig = () => {
   }
 
   return { loading, handleUpdateDraftAppConfig }
+}
+
+export const useOptimizePrompt = () => {
+  const loading = ref(false)
+  const optimize_prompt = ref('')
+  const handleOptimizePrompt = async (prompt: string) => {
+    try {
+      loading.value = true
+      optimize_prompt.value = ''
+      await optimizePrompt(prompt, (event_response) => {
+        const data = event_response.data
+        optimize_prompt.value += data?.optimize_prompt
+      })
+    } finally {
+      loading.value = false
+    }
+  }
+  return { loading, optimize_prompt, handleOptimizePrompt }
 }

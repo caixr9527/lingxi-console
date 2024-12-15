@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { useUpdateDraftAppConfig } from '@/hooks/use-app'
+import { useUpdateDraftAppConfig, useOptimizePrompt } from '@/hooks/use-app'
+import { Message } from '@arco-design/web-vue'
+import { ref } from 'vue'
 
 // 1.定义自定义组件所需数据
 const props = defineProps({
@@ -7,20 +9,93 @@ const props = defineProps({
   preset_prompt: { type: String, default: '', required: true },
 })
 const emits = defineEmits(['update:preset_prompt'])
-
+const optimizeTriggerVisible = ref(false)
+const origin_prompt = ref('')
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
+const { loading, optimize_prompt, handleOptimizePrompt } = useOptimizePrompt()
+
+const handleReplacePresetPrompt = () => {
+  if (optimize_prompt.value.trim() === '') {
+    Message.warning('优化prompt为空，请重新生成')
+    return
+  }
+  emits('update:preset_prompt', optimize_prompt.value)
+
+  handleUpdateDraftAppConfig(props.app_id, { preset_prompt: optimize_prompt.value })
+  optimizeTriggerVisible.value = false
+}
+
+const handleSubmit = async () => {
+  if (origin_prompt.value.trim() === '') {
+    Message.warning('原始prompt不能为空')
+    return
+  }
+  await handleOptimizePrompt(origin_prompt.value)
+}
 </script>
 <template>
   <div class="flex flex-col h-[calc(100vh-173px)]">
     <!-- 提示标题 -->
     <div class="flex items-center justify-between px-4 mb-4">
       <div class="text-gray-700 font-bold">人设与回复逻辑</div>
-      <a-button size="mini" class="rounded-lg px-2">
-        <template #icon>
-          <icon-sync />
+      <a-trigger
+        v-model:popup-visible="optimizeTriggerVisible"
+        :trigger="['click']"
+        position="bl"
+        :popup-translate="[0, 8]"
+      >
+        <a-button size="mini" class="rounded-lg px-2">
+          <template #icon>
+            <icon-sync />
+          </template>
+          优化
+        </a-button>
+        <template #content>
+          <a-card class="rounded-lg w-[422px]">
+            <div class="flex flex-col">
+              <!-- 优化prompt -->
+              <div v-if="optimize_prompt" class="mb-4 flex flex-col">
+                <div
+                  class="max-h-[321px] overflow-scroll scrollbar-w-none mb-2 text-gray-700 whitespace-pre-line"
+                >
+                  {{ optimize_prompt }}
+                </div>
+                <a-space v-if="!loading">
+                  <a-button
+                    size="small"
+                    type="primary"
+                    class="rounded-lg"
+                    @click="handleReplacePresetPrompt"
+                  >
+                    替换
+                  </a-button>
+                  <a-button size="small" class="rounded-lg" @click="optimizeTriggerVisible = false">
+                    退出
+                  </a-button>
+                </a-space>
+              </div>
+              <!-- 底部输入框 -->
+              <div class="">
+                <div
+                  class="h-[50px] flex items-center gap-2 px-4 flex-1 border border-gray-200 rounded-full"
+                >
+                  <input
+                    v-model="origin_prompt"
+                    type="text"
+                    placeholder="你希望如何编写或优化提示词"
+                    class="flex-1 outline-0"
+                  />
+                  <a-button :loading="loading" type="text" shape="circle" @click="handleSubmit">
+                    <template #icon>
+                      <icon-send :size="16" class="!text-blue-700" />
+                    </template>
+                  </a-button>
+                </div>
+              </div>
+            </div>
+          </a-card>
         </template>
-        优化
-      </a-button>
+      </a-trigger>
     </div>
     <!-- 输入框容器 -->
     <div class="flex-1">
