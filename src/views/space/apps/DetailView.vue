@@ -2,6 +2,7 @@
 import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
 import { useRoute } from 'vue-router'
 import { useGetDraftAppConfig, useUpdateDraftAppConfig } from '@/hooks/use-app'
+import PreViewDebugHeader from './components/PreViewDebugHeader.vue'
 const route = useRoute()
 
 const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig(
@@ -20,7 +21,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
           <!-- LLM模型配置 -->
         </div>
         <!-- 底部编排区域 -->
-        <div class="grid grid-cols-[13fr_13fr] h-full overflow-hidden">
+        <div class="grid grid-cols-[13fr_13fr] flex-1 overflow-hidden">
           <!-- 左侧人设与回复逻辑 -->
           <div class="border-r py-4">
             <preset-prompt-textarea
@@ -33,7 +34,12 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
         </div>
       </div>
       <!-- 右侧调试与会话 -->
-      <div class="min-w-[404px] bg-red-50">调试与会话</div>
+      <div class="min-w-[404px]">
+        <pre-view-debug-header
+          :app_id="String(route.params?.app_id)"
+          :long_term_memory="draftAppConfigForm.long_term_memory"
+        />
+      </div>
     </div>
   </div>
 </template>

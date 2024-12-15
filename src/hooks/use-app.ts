@@ -4,9 +4,11 @@ import {
   cancelPublish,
   fallbackHistoryToDraft,
   getApp,
+  getDebugConversationSummary,
   getDraftAppConfig,
   getPublishHistoriesWithPage,
   publish,
+  updateDebugConversationSummary,
   updateDraftAppConfig,
 } from '@/services/app'
 import { Message, Modal } from '@arco-design/web-vue'
@@ -202,4 +204,39 @@ export const useOptimizePrompt = () => {
     }
   }
   return { loading, optimize_prompt, handleOptimizePrompt }
+}
+
+export const useGetDebugConversationSummary = () => {
+  const loading = ref(false)
+  const debug_conversation_summary = ref('')
+
+  const loadDebugConversationSummary = async (app_id: string) => {
+    try {
+      loading.value = true
+      const resp = await getDebugConversationSummary(app_id)
+      const data = resp.data
+
+      debug_conversation_summary.value = data.summary
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, debug_conversation_summary, loadDebugConversationSummary }
+}
+
+export const useUpdateDebugConversationSummary = () => {
+  const loading = ref(false)
+
+  const handleUpdateDebugConversationSummary = async (app_id: string, summary: string) => {
+    try {
+      loading.value = true
+      const resp = await updateDebugConversationSummary(app_id, summary)
+      Message.success(resp.message)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, handleUpdateDebugConversationSummary }
 }
