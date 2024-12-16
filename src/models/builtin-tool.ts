@@ -20,3 +20,34 @@ export type GetBuiltinToolsResponse = BaseResponse<
     tools: Array<any>
   }>
 >
+
+// 获取指定内置插件详情
+export type GetBuiltinToolResponse = BaseResponse<{
+  name: string
+  label: string
+  description: string
+  provider: {
+    name: string
+    label: string
+    category: string
+    background: string
+    description: string
+  }
+  params: {
+    name: string
+    label: string
+    type: string
+    required: boolean
+    default: any
+    min: number
+    max: number
+    options: { value: string; label: string }[]
+  }[]
+  inputs: {
+    type: string
+    name: string
+    required: boolean
+    description: string
+  }[]
+  created_at: number
+}>

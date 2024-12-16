@@ -64,7 +64,7 @@ const openSummaryModal = async () => {
           v-model:model-value="debug_conversation_summary"
           placeholder="请输入当前调试会话长期记忆"
           show-word-limit
-          max-length="2000"
+          :max-length="2000"
           :auto-size="{ minRows: 8, maxRows: 8 }"
         />
         <!-- 底部按钮 -->

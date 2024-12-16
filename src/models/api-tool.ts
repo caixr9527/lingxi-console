@@ -32,3 +32,23 @@ export type GetApiToolProviderResponse = BaseResponse<{
   headers: Array<any>
   created_at: number
 }>
+
+// 获取自定义API工具详情
+export type GetApiToolResponse = BaseResponse<{
+  id: string
+  name: string
+  description: string
+  provider: {
+    id: string
+    name: string
+    icon: string
+    headers: { key: string; value: string }[]
+    description: string
+  }
+  inputs: {
+    type: string
+    name: string
+    required: boolean
+    description: string
+  }[]
+}>
