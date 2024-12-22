@@ -4,8 +4,11 @@ import { useRoute } from 'vue-router'
 import { useGetDraftAppConfig, useUpdateDraftAppConfig } from '@/hooks/use-app'
 import PreViewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
+import PreviewDebugChat from './components/PreviewDebugChat.vue'
 const route = useRoute()
-
+const props = defineProps({
+  app: { type: Object, default: {}, required: true },
+})
 const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig(
   String(route.params?.app_id),
 )
@@ -39,9 +42,16 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
       </div>
       <!-- 右侧调试与会话 -->
       <div class="min-w-[404px]">
+        <!-- 头部信息 -->
         <pre-view-debug-header
           :app_id="String(route.params?.app_id)"
           :long_term_memory="draftAppConfigForm.long_term_memory"
+        />
+        <!-- 对话窗口 -->
+        <preview-debug-chat
+          :opening_questions="draftAppConfigForm.opening_questions"
+          :app="props.app"
+          :opening_statement="draftAppConfigForm.opening_statement"
         />
       </div>
     </div>

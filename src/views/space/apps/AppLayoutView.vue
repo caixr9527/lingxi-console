@@ -138,7 +138,7 @@ const { handleCancelPublish } = useCancelPublish()
       </div>
     </div>
     <!-- 底部内容区 -->
-    <router-view />
+    <router-view :app="app" />
     <!-- 发布历史抽屉组件 -->
     <publish-history-drawer
       :app="app"
