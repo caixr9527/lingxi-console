@@ -1899,6 +1899,11 @@ minimatch@^9.0.0, minimatch@^9.0.3, minimatch@^9.0.4:
   resolved "https://mirrors.cloud.tencent.com/npm/minipass/-/minipass-7.1.2.tgz"
   integrity sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==
 
+mitt@^2.1.0:
+  version "2.1.0"
+  resolved "https://mirrors.cloud.tencent.com/npm/mitt/-/mitt-2.1.0.tgz#f740577c23176c6205b121b2973514eade1b2230"
+  integrity sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==
+
 mlly@^1.4.2, mlly@^1.7.1:
   version "1.7.1"
   resolved "https://mirrors.cloud.tencent.com/npm/mlly/-/mlly-1.7.1.tgz"
@@ -2810,6 +2815,16 @@ vue-eslint-parser@^9.3.1, vue-eslint-parser@^9.4.3:
     lodash "^4.17.21"
     semver "^7.3.6"
 
+vue-observe-visibility@^2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://mirrors.cloud.tencent.com/npm/vue-observe-visibility/-/vue-observe-visibility-2.0.0-alpha.1.tgz#1e4eda7b12562161d58984b7e0dea676d83bdb13"
+  integrity sha512-flFbp/gs9pZniXR6fans8smv1kDScJ8RS7rEpMjhVabiKeq7Qz3D9+eGsypncjfIyyU84saU88XZ0zjbD6Gq/g==
+
+vue-resize@^2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://mirrors.cloud.tencent.com/npm/vue-resize/-/vue-resize-2.0.0-alpha.1.tgz#43eeb79e74febe932b9b20c5c57e0ebc14e2df3a"
+  integrity sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg==
+
 vue-router@^4.3.3:
   version "4.4.0"
   resolved "https://mirrors.cloud.tencent.com/npm/vue-router/-/vue-router-4.4.0.tgz"
@@ -2833,6 +2848,15 @@ vue-tsc@^2.0.21:
     "@volar/typescript" "~2.4.0-alpha.15"
     "@vue/language-core" "2.0.26"
     semver "^7.5.4"
+
+vue-virtual-scroller@^2.0.0-beta.8:
+  version "2.0.0-beta.8"
+  resolved "https://mirrors.cloud.tencent.com/npm/vue-virtual-scroller/-/vue-virtual-scroller-2.0.0-beta.8.tgz#eeceda57e4faa5ba1763994c873923e2a956898b"
+  integrity sha512-b8/f5NQ5nIEBRTNi6GcPItE4s7kxNHw2AIHLtDp+2QvqdTjVN0FgONwX9cr53jWRgnu+HRLPaWDOR2JPI5MTfQ==
+  dependencies:
+    mitt "^2.1.0"
+    vue-observe-visibility "^2.0.0-alpha.1"
+    vue-resize "^2.0.0-alpha.1"
 
 vue@^3.4.29:
   version "3.4.31"

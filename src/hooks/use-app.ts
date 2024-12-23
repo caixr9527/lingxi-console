@@ -1,13 +1,20 @@
-import type { UpdateDraftAppConfigRequest } from '@/models/app'
+import type {
+  GetDebugConversationMessagesWithPageResponse,
+  UpdateDraftAppConfigRequest,
+} from '@/models/app'
 import { optimizePrompt } from '@/services/ai'
 import {
   cancelPublish,
+  debugChat,
+  deleteDebugConversation,
   fallbackHistoryToDraft,
   getApp,
+  getDebugConversationMessagesWithPage,
   getDebugConversationSummary,
   getDraftAppConfig,
   getPublishHistoriesWithPage,
   publish,
+  stopDebugChat,
   updateDebugConversationSummary,
   updateDraftAppConfig,
 } from '@/services/app'
@@ -239,4 +246,109 @@ export const useUpdateDebugConversationSummary = () => {
   }
 
   return { loading, handleUpdateDebugConversationSummary }
+}
+
+export const useDeleteDebugConversation = () => {
+  const loading = ref(false)
+
+  const handleDeleteDebugConversation = async (app_id: string) => {
+    try {
+      loading.value = true
+      const resp = await deleteDebugConversation(app_id)
+      Message.success(resp.message)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, handleDeleteDebugConversation }
+}
+
+export const useGetDebugConversationMessageWithPage = () => {
+  const loading = ref(false)
+  const messages = ref<GetDebugConversationMessagesWithPageResponse['data']['list']>([])
+  const created_at = ref(0)
+  const defaultPaginator = {
+    current_page: 1,
+    page_size: 5,
+    total_page: 0,
+    total_record: 0,
+  }
+  const paginator = ref({ ...defaultPaginator })
+
+  // 2.定义加载数据函数
+  const loadDebugConversationMessages = async (app_id: string, init: boolean = false) => {
+    // 2.1 判断是否是初始化，如果是则先初始化分页器
+    if (init) {
+      paginator.value = { ...defaultPaginator }
+      created_at.value = 0
+    } else if (paginator.value.current_page > paginator.value.total_page) {
+      return
+    }
+
+    // 2.2 加载更多数据
+    try {
+      loading.value = true
+      const resp = await getDebugConversationMessagesWithPage(app_id, {
+        current_page: paginator.value.current_page,
+        page_size: paginator.value.page_size,
+        created_at: created_at.value,
+      })
+      const data = resp.data
+
+      // 2.3 更新分页器
+      paginator.value = data.paginator
+
+      // 2.4 判断是否存在更多数据
+      if (paginator.value.current_page <= paginator.value.total_page) {
+        paginator.value.current_page += 1
+      }
+
+      // 2.5 追加或者覆盖数据
+      if (init) {
+        messages.value = data.list
+      } else {
+        messages.value.push(...data.list)
+        created_at.value = data.list[0]?.created_at ?? 0
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, messages, paginator, loadDebugConversationMessages }
+}
+
+export const useDebugChat = () => {
+  const loading = ref(false)
+
+  const handleDebugChat = async (
+    app_id: string,
+    query: string,
+    onData: (event_response: Record<string, any>) => void,
+  ) => {
+    try {
+      loading.value = true
+      await debugChat(app_id, query, onData)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, handleDebugChat }
+}
+
+export const useStopDebugChat = () => {
+  const loading = ref(false)
+
+  const handleStopDebugChat = async (app_id: string, task_id: string) => {
+    try {
+      loading.value = true
+      await stopDebugChat(app_id, task_id)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, handleStopDebugChat }
 }
