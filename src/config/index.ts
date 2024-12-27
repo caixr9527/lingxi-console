@@ -15,3 +15,16 @@ export const typeMap = {
   fload: '浮点型',
   bool: '布尔值',
 }
+
+export const QueueEvent = {
+  longTermMemoryRecall: 'long_term_memory_recall',
+  agentThought: 'agent_thought',
+  agentMessage: 'agent_message',
+  agentAction: 'agent_action',
+  datasetRetrieval: 'dataset_retrieval',
+  agentEnd: 'agent_ent',
+  stop: 'stop',
+  error: 'error',
+  timeout: 'timeout',
+  ping: 'ping',
+}
