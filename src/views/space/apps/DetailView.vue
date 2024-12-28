@@ -49,6 +49,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
         />
         <!-- 对话窗口 -->
         <preview-debug-chat
+          :suggested_after_answer="draftAppConfigForm.suggested_after_answer"
           :opening_questions="draftAppConfigForm.opening_questions"
           :app="props.app"
           :opening_statement="draftAppConfigForm.opening_statement"

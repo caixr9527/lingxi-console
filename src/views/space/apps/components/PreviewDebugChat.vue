@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, type PropType } from 'vue'
-import { useDeleteDebugConversation, useGetDebugConversationMessageWithPage } from '@/hooks/use-app'
+import {
+  useDeleteDebugConversation,
+  useStopDebugChat,
+  useGetDebugConversationMessageWithPage,
+} from '@/hooks/use-app'
 // @ts-ignore
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
@@ -11,9 +15,15 @@ import AiMessage from './AiMessage.vue'
 import { Message } from '@arco-design/web-vue'
 import { useDebugChat } from '@/hooks/use-app'
 import { QueueEvent } from '@/config'
+import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 
 const props = defineProps({
   app: { type: Object, default: {}, required: true },
+  suggested_after_answer: {
+    type: Object as PropType<{ enable: boolean }>,
+    default: { enable: true },
+    required: true,
+  },
   opening_statement: { type: String, default: '', required: true },
   opening_questions: { type: Array as PropType<string[]>, default: [], required: true },
 })
@@ -30,11 +40,11 @@ const {
 const query = ref('')
 const message_id = ref('')
 const task_id = ref('')
-const suggested_questions = ref<string[]>([])
 const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const { loading: debugChatLoading, handleDebugChat } = useDebugChat()
-
+const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat()
+const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const saveScrollHeight = () => {
   scrollHeight.value = scroller.value.$el.scrollHeight
 }
@@ -165,6 +175,16 @@ const handleSubmit = async () => {
   }
 }
 
+const handleStop = async () => {
+  if (task_id.value === '' || !debugChatLoading.value) return
+  await handleStopDebugChat(props.app?.id, task_id.value)
+}
+
+const handleSubmitQuestion = async (question: string) => {
+  query.value = question
+  await handleSubmit()
+}
+
 onMounted(async () => {
   await loadDebugConversationMessages(String(route.params?.app_id), true)
   await nextTick(() => {
@@ -186,22 +206,33 @@ onMounted(async () => {
       @scroll="handleScroll"
       class="h-full scrollbar-w-none"
     >
-      <template v-slot="{ item, index, active }">
+      <template v-slot="{ item, active }">
         <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
           <div class="flex flex-col gap-6 py-6">
             <!-- 人类消息 -->
             <human-message :query="item.query" :account="accountStore.account" />
             <!-- AI消息 -->
             <ai-message
+              :suggested_questions="item.id === message_id ? suggested_questions : []"
               :agent_thoughts="item.agent_thoughts"
               :answer="item.answer"
               :app="props.app"
               :loading="item.id === message_id && debugChatLoading"
+              @select-suggested-question="handleSubmitQuestion"
             />
           </div>
         </dynamic-scroller-item>
       </template>
     </dynamic-scroller>
+    <!-- 停止调试会话 -->
+    <div v-if="task_id && debugChatLoading" class="h-[50px] flex items-center justify-center">
+      <a-button :loading="stopDebugChatLoading" class="rounded-lg px-2" @click="handleStop">
+        <template #icon>
+          <icon-poweroff />
+        </template>
+        停止响应
+      </a-button>
+    </div>
   </div>
   <!-- 对话列表为空时展示的对话开场白 -->
   <div v-else class="flex flex-col p-6 gap-2 items-center justify-center h-[calc(100vh-238px)]">
@@ -225,12 +256,7 @@ onMounted(async () => {
         )"
         :key="idx"
         class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
-        @click="
-          async () => {
-            query = opening_question
-            await handleSubmit()
-          }
-        "
+        @click="async () => await handleSubmitQuestion(opening_question)"
       >
         {{ opening_question }}
       </div>
@@ -248,6 +274,7 @@ onMounted(async () => {
         shape="circle"
         @click="
           async () => {
+            await handleStop()
             await handleDeleteDebugConversation(props.app?.id)
             await loadDebugConversationMessages(props.app?.id, true)
           }
