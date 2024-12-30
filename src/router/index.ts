@@ -80,6 +80,11 @@ const router = createRouter({
               name: 'openapi-index',
               component: () => import('@/views/openapi/IndexView.vue'),
             },
+            {
+              path: 'api-keys',
+              name: 'openapi-api-keys-list',
+              component: () => import('@/views/openapi/api-keys/ListView.vue'),
+            },
           ],
         },
       ],
