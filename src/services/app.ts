@@ -2,10 +2,13 @@ import { get, post, ssePost } from '@/utils/request'
 import type {
   CreateAppRequest,
   GetAppResponse,
+  GetAppsWithPageRequest,
+  GetAppsWithPageResponse,
   GetDebugConversationMessagesWithPageRequest,
   GetDebugConversationMessagesWithPageResponse,
   GetDraftAppConfigResponse,
   GetPublishHistoriesWithPageResponse,
+  UpdateAppRequest,
   UpdateDraftAppConfigRequest,
 } from '@/models/app'
 import type { BasePaginatorRequest, BaseResponse } from '@/models/base' // 获取应用基础信息
@@ -18,6 +21,26 @@ export const getApp = (app_id: string) => {
 // 在个人空间下新增应用
 export const createApp = (req: CreateAppRequest) => {
   return post<BaseResponse<{ id: string }>>(`/apps`)
+}
+
+// 修改指定应用
+export const updateApp = (app_id: string, req: UpdateAppRequest) => {
+  return post<BaseResponse<any>>(`/apps/${app_id}`, { body: req })
+}
+
+// 删除指定应用
+export const deleteApp = (app_id: string) => {
+  return post<BaseResponse<any>>(`/apps/${app_id}/delete`)
+}
+
+// 拷贝指定的应用
+export const copyApp = (app_id: string) => {
+  return post<BaseResponse<{ id: string }>>(`/apps/${app_id}/copy`)
+}
+
+// 获取应用分页列表数据
+export const getAppsWithPage = (req: GetAppsWithPageRequest) => {
+  return get<GetAppsWithPageResponse>(`/apps`, { params: req })
 }
 
 // 获取特定应用的草稿配置信息

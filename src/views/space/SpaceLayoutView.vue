@@ -40,7 +40,12 @@ watch(
           <div class="text-lg font-medium text-gray-900">个人空间</div>
         </div>
         <!-- 创建按钮 -->
-        <a-button v-if="route.path.startsWith('/space/apps')" type="primary" class="rounded-lg">
+        <a-button
+          v-if="route.path.startsWith('/space/apps')"
+          type="primary"
+          class="rounded-lg"
+          @click="createType = 'app'"
+        >
           创建 AI 应用
         </a-button>
         <a-button

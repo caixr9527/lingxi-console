@@ -207,7 +207,7 @@ const handleSubmit = async ({ errors }: any) => {
                 }
               "
               :on-before-remove="
-                () => {
+                async () => {
                   form.icon = ''
                   return true
                 }
