@@ -124,6 +124,11 @@ const router = createRouter({
             },
           ],
         },
+        {
+          path: 'space/workflows/:workflow_id',
+          name: 'space-workflows-detail',
+          component: () => import('@/views/space/workflows/DetailView.vue'),
+        },
       ],
     },
   ],

@@ -60,6 +60,7 @@ watch(
           v-if="route.path.startsWith('/space/workflows')"
           type="primary"
           class="rounded-lg"
+          @click="createType = 'workflow'"
         >
           创建工作流
         </a-button>
