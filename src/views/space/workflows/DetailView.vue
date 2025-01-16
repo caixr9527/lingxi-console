@@ -14,6 +14,8 @@ import '@vue-flow/core/dist/theme-default.css'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
+import StartNode from './components/nodes/StartNode.vue'
+import LlmNode from './components/nodes/LLMNode.vue'
 
 const route = useRoute()
 const instance = ref<any>(null)
@@ -136,6 +138,13 @@ onPaneReady((vueFlowInstance) => {
           }
         "
       >
+        <!-- 自定义节点类型插槽 -->
+        <template #node-start="customNodeProps">
+          <start-node v-bind="customNodeProps" />
+        </template>
+        <template #node-llm="customNodeProps">
+          <llm-node v-bind="customNodeProps" />
+        </template>
         <!-- 工作流背景 -->
         <background />
         <!-- 迷你地图 -->
