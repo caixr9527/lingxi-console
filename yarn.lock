@@ -381,6 +381,11 @@
   resolved "https://mirrors.cloud.tencent.com/npm/@tsconfig/node20/-/node20-20.1.4.tgz"
   integrity sha512-sqgsT69YFeLWf5NtJ4Xq/xAF8p4ZQHlmGW74Nu2tD4+g5fAsposc4ZfaaPixVu4y01BEiDCWLRDCvDM5JOsRxg==
 
+"@types/dagre@^0.7.52":
+  version "0.7.52"
+  resolved "https://mirrors.cloud.tencent.com/npm/@types/dagre/-/dagre-0.7.52.tgz#edbf0bca6922cd0ad1936a7486f9d03523d7565a"
+  integrity sha512-XKJdy+OClLk3hketHi9Qg6gTfe1F3y+UFnHxKA2rn9Dw+oXa4Gb378Ztz9HlMgZKSxpPmn4BNVh9wgkpvrK1uw==
+
 "@types/estree@1.0.5", "@types/estree@^1.0.0":
   version "1.0.5"
   resolved "https://mirrors.cloud.tencent.com/npm/@types/estree/-/estree-1.0.5.tgz"
@@ -1156,6 +1161,14 @@ d3-zoom@^3.0.0:
     d3-selection "2 - 3"
     d3-transition "2 - 3"
 
+dagre@^0.8.5:
+  version "0.8.5"
+  resolved "https://mirrors.cloud.tencent.com/npm/dagre/-/dagre-0.8.5.tgz#ba30b0055dac12b6c1fcc247817442777d06afee"
+  integrity sha512-/aTqmnRta7x7MCCpExk7HQL2O4owCT2h8NT//9I1OQ9vt29Pa0BzSAkR5lwFUcQ7491yVi/3CXU9jQ5o0Mn2Sw==
+  dependencies:
+    graphlib "^2.1.8"
+    lodash "^4.17.15"
+
 data-urls@^5.0.0:
   version "5.0.0"
   resolved "https://mirrors.cloud.tencent.com/npm/data-urls/-/data-urls-5.0.0.tgz"
@@ -1633,6 +1646,13 @@ graphemer@^1.4.0:
   resolved "https://mirrors.cloud.tencent.com/npm/graphemer/-/graphemer-1.4.0.tgz"
   integrity sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==
 
+graphlib@^2.1.8:
+  version "2.1.8"
+  resolved "https://mirrors.cloud.tencent.com/npm/graphlib/-/graphlib-2.1.8.tgz#5761d414737870084c92ec7b5dbcb0592c9d35da"
+  integrity sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==
+  dependencies:
+    lodash "^4.17.15"
+
 has-flag@^4.0.0:
   version "4.0.0"
   resolved "https://mirrors.cloud.tencent.com/npm/has-flag/-/has-flag-4.0.0.tgz"
@@ -1926,7 +1946,7 @@ lodash.merge@^4.6.2:
   resolved "https://mirrors.cloud.tencent.com/npm/lodash.merge/-/lodash.merge-4.6.2.tgz"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
-lodash@^4.17.21:
+lodash@^4.17.15, lodash@^4.17.21:
   version "4.17.21"
   resolved "https://mirrors.cloud.tencent.com/npm/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==

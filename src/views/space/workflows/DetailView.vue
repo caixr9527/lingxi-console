@@ -22,6 +22,8 @@ import HttpRequestNode from './components/nodes/HttpRequestNode.vue'
 import ToolNode from './components/nodes/ToolNode.vue'
 import TemplateTransformNode from './components/nodes/TemplateTransformNode.vue'
 import EndNode from './components/nodes/EndNode.vue'
+import dagre from 'dagre'
+import { cloneDeep } from 'lodash'
 
 const route = useRoute()
 const instance = ref<any>(null)
@@ -38,6 +40,48 @@ const zoomOptions = [
   { label: '50%', value: 0.5 },
   { label: '25%', value: 0.25 },
 ]
+
+const autoLayout = () => {
+  // 创建dagre图结构
+  const dagreGraph = new dagre.graphlib.Graph()
+
+  // 设置布局参数
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  dagreGraph.setGraph({
+    rankdir: 'LR', // 纵向布局
+    align: 'UL', // 左上对齐
+    nodesep: 80, // 节点间距
+    ranksep: 60, // 层次间距
+    edgesep: 10, // 边间距
+  })
+
+  // 深度拷贝nodes和edges对应的数据，避免影响元数据
+  const cloneNodes = cloneDeep(nodes.value)
+  const cloneEdges = cloneDeep(edges.value)
+
+  // 将节点添加到图中
+  cloneNodes.forEach((node: any) => {
+    dagreGraph.setNode(node.id, { width: node.dimensions.width, height: node.dimensions.height })
+  })
+
+  // 将边添加到图中
+  cloneEdges.forEach((edge: any) => {
+    dagreGraph.setEdge(edge.source, edge.target)
+  })
+
+  // 运行布局算法
+  dagre.layout(dagreGraph)
+
+  // 根据布局结果更新工作流的图结构布局
+  nodes.value = cloneNodes.map((node: any) => {
+    const { x, y } = dagreGraph.node(node.id)
+    return {
+      ...node,
+      position: { x, y },
+    }
+  })
+}
+
 onMounted(() => {
   const workflow_id = String(route.params?.workflow_id ?? '')
   loadWorkflow(workflow_id)
@@ -310,11 +354,19 @@ onPaneReady((vueFlowInstance) => {
             </a-trigger>
             <!-- 自适应布局&视口大小 -->
             <div class="flex items-center gap-3">
-              <a-button size="small" type="text" class="!text-gray-700 rounded-lg">
-                <template #icon>
-                  <icon-apps />
-                </template>
-              </a-button>
+              <a-tooltip content="自适应布局">
+                <a-button
+                  size="small"
+                  type="text"
+                  class="!text-gray-700 rounded-lg"
+                  @click="() => autoLayout()"
+                >
+                  <template #icon>
+                    <icon-apps />
+                  </template>
+                </a-button>
+              </a-tooltip>
+
               <a-dropdown
                 trigger="hover"
                 @select="
