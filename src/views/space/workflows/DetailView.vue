@@ -16,6 +16,12 @@ import { MiniMap } from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
 import StartNode from './components/nodes/StartNode.vue'
 import LlmNode from './components/nodes/LLMNode.vue'
+import DatasetRetrievalNode from './components/nodes/DatasetRetrievalNode.vue'
+import CodeNode from './components/nodes/CodeNode.vue'
+import HttpRequestNode from './components/nodes/HttpRequestNode.vue'
+import ToolNode from './components/nodes/ToolNode.vue'
+import TemplateTransformNode from './components/nodes/TemplateTransformNode.vue'
+import EndNode from './components/nodes/EndNode.vue'
 
 const route = useRoute()
 const instance = ref<any>(null)
@@ -144,6 +150,24 @@ onPaneReady((vueFlowInstance) => {
         </template>
         <template #node-llm="customNodeProps">
           <llm-node v-bind="customNodeProps" />
+        </template>
+        <template #node-dataset_retrieval="customNodeProps">
+          <dataset-retrieval-node v-bind="customNodeProps" />
+        </template>
+        <template #node-code="customNodeProps">
+          <code-node v-bind="customNodeProps" />
+        </template>
+        <template #node-http_request="customNodeProps">
+          <http-request-node v-bind="customNodeProps" />
+        </template>
+        <template #node-tool="customNodeProps">
+          <tool-node v-bind="customNodeProps" />
+        </template>
+        <template #node-template_transform="customNodeProps">
+          <template-transform-node v-bind="customNodeProps" />
+        </template>
+        <template #node-end="customNodeProps">
+          <end-node v-bind="customNodeProps" />
         </template>
         <!-- 工作流背景 -->
         <background />
