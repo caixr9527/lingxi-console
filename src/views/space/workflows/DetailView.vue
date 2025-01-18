@@ -117,7 +117,7 @@ const NODE_DATA_MAP: Record<string, any> = {
       {
         name: 'query',
         type: 'string',
-        value: { type: 'ref', content: { ref_node_id: '', ref_var_name: '' } },
+        value: { type: 'literal', content: '' },
       },
     ],
     outputs: [
@@ -525,10 +525,10 @@ onMounted(async () => {
                         <a-avatar shape="square" :size="24" class="bg-violet-500 rounded-lg">
                           <icon-storage />
                         </a-avatar>
-                        <div class="text-gray-700 font-semibold">知识库检索节点</div>
+                        <div class="text-gray-700 font-semibold">知识库检索</div>
                       </div>
                       <!-- 节点描述 -->
-                      <div class="text-gray-500 font-xs">
+                      <div class="text-gray-500 text-xs">
                         根据输入的参数，在选定的知识库中检索相关片段并召回，返回切片列表。
                       </div>
                     </div>
