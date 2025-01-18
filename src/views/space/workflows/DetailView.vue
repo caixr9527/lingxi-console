@@ -1,19 +1,19 @@
 <script setup lang="ts">
+import { markRaw, onMounted, ref } from 'vue'
+import moment from 'moment/moment'
+import { useRoute } from 'vue-router'
+import { ConnectionMode, Panel, useVueFlow, VueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { MiniMap } from '@vue-flow/minimap'
+import dagre from 'dagre'
+import { cloneDeep } from 'lodash'
 import {
   useCancelPublishWorkflow,
   useGetDraftGraph,
   useGetWorkflow,
   usePublishWorkflow,
+  useUpdateDraftGraph,
 } from '@/hooks/use-workflow'
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import moment from 'moment/moment'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
-import '@vue-flow/core/dist/style.css'
-import '@vue-flow/core/dist/theme-default.css'
-import { Background } from '@vue-flow/background'
-import { MiniMap } from '@vue-flow/minimap'
-import '@vue-flow/minimap/dist/style.css'
 import StartNode from './components/nodes/StartNode.vue'
 import LlmNode from './components/nodes/LLMNode.vue'
 import DatasetRetrievalNode from './components/nodes/DatasetRetrievalNode.vue'
@@ -22,8 +22,10 @@ import HttpRequestNode from './components/nodes/HttpRequestNode.vue'
 import ToolNode from './components/nodes/ToolNode.vue'
 import TemplateTransformNode from './components/nodes/TemplateTransformNode.vue'
 import EndNode from './components/nodes/EndNode.vue'
-import dagre from 'dagre'
-import { cloneDeep } from 'lodash'
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
+import '@vue-flow/minimap/dist/style.css'
+import { Message } from '@arco-design/web-vue'
 
 const route = useRoute()
 const instance = ref<any>(null)
@@ -31,7 +33,18 @@ const { loading: getWorkflowLoading, workflow, loadWorkflow } = useGetWorkflow()
 const { loading: getDraftGraphLoading, nodes, edges, loadDraftGraph } = useGetDraftGraph()
 const { loading: publishWorkflowLoading, handlePublishWorkflow } = usePublishWorkflow()
 const { handleCancelPublish } = useCancelPublishWorkflow()
-const { onPaneReady } = useVueFlow()
+const {
+  onPaneReady, // 面板加载完毕事件
+  onViewportChange, // 视口变化回调函数
+  onConnect, // 边连接回调函数
+  onPaneClick, // 工作流面板点击事件
+  onNodeClick, // 节点点击事件
+  onEdgeClick, // 边点击事件
+  onNodeDragStop, // 节点拖动停止回调函数
+  findNode, // 根据id查找节点
+  nodes: allNodes, // 所有节点
+} = useVueFlow()
+const { handleUpdateDraftGraph, convertGraphToReq } = useUpdateDraftGraph()
 const zoomLevel = ref<number>(1)
 const zoomOptions = [
   { label: '200%', value: 2 },
@@ -40,7 +53,28 @@ const zoomOptions = [
   { label: '50%', value: 0.5 },
   { label: '25%', value: 0.25 },
 ]
+const NOTE_TYPES = {
+  start: markRaw(StartNode),
+  llm: markRaw(LlmNode),
+  tool: markRaw(ToolNode),
+  dataset_retrieval: markRaw(DatasetRetrievalNode),
+  template_transform: markRaw(TemplateTransformNode),
+  http_request: markRaw(HttpRequestNode),
+  code: markRaw(CodeNode),
+  end: markRaw(EndNode),
+}
+// 定义监听工作流变化事件（涵盖节点+边）
+const onChange = () => {
+  // 检测是否初始化，如果是则直接中断程序
+  if (isInitializing.value) return
 
+  // 如果不是则发起更新图草稿配置
+  handleUpdateDraftGraph(
+    String(route.params?.workflow_id ?? ''),
+    convertGraphToReq(nodes.value, edges.value),
+  )
+}
+const isInitializing = ref(true)
 const autoLayout = () => {
   // 创建dagre图结构
   const dagreGraph = new dagre.graphlib.Graph()
@@ -82,14 +116,58 @@ const autoLayout = () => {
   })
 }
 
-onMounted(() => {
-  const workflow_id = String(route.params?.workflow_id ?? '')
-  loadWorkflow(workflow_id)
-  loadDraftGraph(workflow_id)
+// 节点链接hooks
+onConnect((connection) => {
+  // 获取节点和目标的节点id
+  const { source, target } = connection
+
+  // 检查是否连接统一节点
+  if (source === target) {
+    Message.error('不能将节点连接到本身')
+    return
+  }
+
+  // 检查节点和目标节点是否已经存在链接
+  const isAlreadyConnected = edges.value.some((edge: any) => {
+    return (
+      (edge.source === source && edge.target === target) ||
+      (edge.source === target && edge.target === source)
+    )
+  })
+
+  // 如果已经连接，则提示用户并阻止连接
+  if (isAlreadyConnected) {
+    Message.error('这两个节点已有连接，无需重复添加')
+    return
+  }
+
+  // 获取边的起点和终点类型
+  const source_node = findNode(source)
+  const target_node = findNode(target)
+
+  // 将数据添加到edges
+  edges.value.push({
+    ...connection,
+    id: crypto.randomUUID(),
+    source_type: source_node?.type,
+    target_type: target_node?.type,
+    animated: true,
+    style: { strokeWidth: 2, stroke: '#9ca3af' },
+  })
 })
 onPaneReady((vueFlowInstance) => {
   vueFlowInstance.fitView()
   instance.value = vueFlowInstance
+})
+onViewportChange((viewportTransform) => {
+  zoomLevel.value = viewportTransform.zoom
+})
+
+onMounted(async () => {
+  const workflow_id = String(route.params?.workflow_id ?? '')
+  await loadWorkflow(workflow_id)
+  await loadDraftGraph(workflow_id)
+  isInitializing.value = false
 })
 </script>
 
@@ -180,39 +258,15 @@ onPaneReady((vueFlowInstance) => {
       <vue-flow
         :min-zoom="0.25"
         :max-zoom="2"
+        :nodes-connectable="true"
+        :connection-mode="ConnectionMode.Strict"
+        :connection-line-options="{ style: { strokeWidth: 2, stroke: '#9ca3af' } }"
+        :node-types="NOTE_TYPES"
         v-model:nodes="nodes"
         v-model:edges="edges"
-        @viewport-change="
-          (viewport) => {
-            zoomLevel = viewport.zoom
-          }
-        "
+        @update:nodes="onChange"
+        @update:edges="onChange"
       >
-        <!-- 自定义节点类型插槽 -->
-        <template #node-start="customNodeProps">
-          <start-node v-bind="customNodeProps" />
-        </template>
-        <template #node-llm="customNodeProps">
-          <llm-node v-bind="customNodeProps" />
-        </template>
-        <template #node-dataset_retrieval="customNodeProps">
-          <dataset-retrieval-node v-bind="customNodeProps" />
-        </template>
-        <template #node-code="customNodeProps">
-          <code-node v-bind="customNodeProps" />
-        </template>
-        <template #node-http_request="customNodeProps">
-          <http-request-node v-bind="customNodeProps" />
-        </template>
-        <template #node-tool="customNodeProps">
-          <tool-node v-bind="customNodeProps" />
-        </template>
-        <template #node-template_transform="customNodeProps">
-          <template-transform-node v-bind="customNodeProps" />
-        </template>
-        <template #node-end="customNodeProps">
-          <end-node v-bind="customNodeProps" />
-        </template>
         <!-- 工作流背景 -->
         <background />
         <!-- 迷你地图 -->
@@ -224,179 +278,181 @@ onPaneReady((vueFlowInstance) => {
           zoomable
         />
         <!-- 使用默认插槽添加工具菜单 -->
-        <div
-          class="absolute bottom-6 left-1/2 transform -translate-x-1/2 p-[5px] bg-white rounded-xl border z-50"
-        >
-          <a-space :size="8">
-            <template #split>
-              <a-divider direction="vertical" class="m-0" />
-            </template>
-            <!-- 添加节点 -->
-            <a-trigger position="top" :popup-translate="[0, -16]">
-              <a-button type="primary" size="small" class="rounded-lg px-2">
-                <template #icon>
-                  <icon-plus-circle-fill />
-                </template>
-                节点
-              </a-button>
-              <template #content>
-                <div
-                  class="bg-white border border-gary-200 w-[240px] shadow rounded-xl h-[calc(100vh-300px)] overflow-scroll py-2"
-                >
-                  <!-- 开始节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-blue-700 rounded-lg">
-                        <icon-home />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">开始节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">
-                      工作流的起始节点，支持定义工作流的起点输入等信息。
-                    </div>
-                  </div>
-                  <!-- 大语言模型节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-sky-500 rounded-lg">
-                        <icon-language />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">大语言模型节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">
-                      调用大语言模型，根据输入参数和提示词生成回复。
-                    </div>
-                  </div>
-                  <!-- 扩展插件节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-orange-500 rounded-lg">
-                        <icon-tool />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">扩展插件节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">
-                      添加插件广场内或自定义API插件，支持能力扩展和复用。
-                    </div>
-                  </div>
-                  <!-- 知识库检索节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-violet-500 rounded-lg">
-                        <icon-storage />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">知识库检索节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">
-                      根据输入的参数，在选定的知识库中检索相关片段并召回，返回切片列表。
-                    </div>
-                  </div>
-                  <!-- 模板转换节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-emerald-400 rounded-lg">
-                        <icon-branch />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">模板转换节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">对多个字符串变量的格式进行处理。</div>
-                  </div>
-                  <!-- HTTP请求节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-rose-500 rounded-lg">
-                        <icon-link />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">HTTP请求节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">配置外部API服务，并发起请求。</div>
-                  </div>
-                  <!-- Python代码执行节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-cyan-500 rounded-lg">
-                        <icon-code />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">Python代码执行节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">编写代码处理输入输出变量来生成返回值。</div>
-                  </div>
-                  <!-- 结束节点 -->
-                  <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
-                    <!-- 节点名称 -->
-                    <div class="flex items-center gap-2">
-                      <a-avatar shape="square" :size="24" class="bg-red-700 rounded-lg">
-                        <icon-filter />
-                      </a-avatar>
-                      <div class="text-gray-700 font-semibold">结束节点</div>
-                    </div>
-                    <!-- 节点描述 -->
-                    <div class="text-gray-500 font-xs">
-                      工作流的结束节点，支持定义工作流最终输出的变量等信息。
-                    </div>
-                  </div>
-                </div>
+        <panel position="bottom-center">
+          <div class="p-[5px] bg-white rounded-xl border z-50">
+            <a-space :size="8">
+              <template #split>
+                <a-divider direction="vertical" class="m-0" />
               </template>
-            </a-trigger>
-            <!-- 自适应布局&视口大小 -->
-            <div class="flex items-center gap-3">
-              <a-tooltip content="自适应布局">
-                <a-button
-                  size="small"
-                  type="text"
-                  class="!text-gray-700 rounded-lg"
-                  @click="() => autoLayout()"
-                >
+              <!-- 添加节点 -->
+              <a-trigger position="top" :popup-translate="[0, -16]">
+                <a-button type="primary" size="small" class="rounded-lg px-2">
                   <template #icon>
-                    <icon-apps />
+                    <icon-plus-circle-fill />
                   </template>
-                </a-button>
-              </a-tooltip>
-
-              <a-dropdown
-                trigger="hover"
-                @select="
-                  (value) => {
-                    // 调整视口大小并更新视口等级
-                    zoomLevel = Number(value)
-                    instance.zoomTo(value)
-                  }
-                "
-              >
-                <a-button size="small" class="!text-gray-700 px-2 rounded-lg gap-1 w-[80px]">
-                  {{ (zoomLevel * 100).toFixed(0) }}%
-                  <icon-down />
+                  节点
                 </a-button>
                 <template #content>
-                  <a-doption v-for="zoom in zoomOptions" :key="zoom.value" :value="zoom.value">
-                    {{ zoom.label }}
-                  </a-doption>
+                  <div
+                    class="bg-white border border-gary-200 w-[240px] shadow rounded-xl h-[calc(100vh-300px)] overflow-scroll py-2"
+                  >
+                    <!-- 开始节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-blue-700 rounded-lg">
+                          <icon-home />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">开始节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        工作流的起始节点，支持定义工作流的起点输入等信息。
+                      </div>
+                    </div>
+                    <!-- 大语言模型节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-sky-500 rounded-lg">
+                          <icon-language />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">大语言模型节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        调用大语言模型，根据输入参数和提示词生成回复。
+                      </div>
+                    </div>
+                    <!-- 扩展插件节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-orange-500 rounded-lg">
+                          <icon-tool />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">扩展插件节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        添加插件广场内或自定义API插件，支持能力扩展和复用。
+                      </div>
+                    </div>
+                    <!-- 知识库检索节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-violet-500 rounded-lg">
+                          <icon-storage />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">知识库检索节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        根据输入的参数，在选定的知识库中检索相关片段并召回，返回切片列表。
+                      </div>
+                    </div>
+                    <!-- 模板转换节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-emerald-400 rounded-lg">
+                          <icon-branch />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">模板转换节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">对多个字符串变量的格式进行处理。</div>
+                    </div>
+                    <!-- HTTP请求节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-rose-500 rounded-lg">
+                          <icon-link />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">HTTP请求节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">配置外部API服务，并发起请求。</div>
+                    </div>
+                    <!-- Python代码执行节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-cyan-500 rounded-lg">
+                          <icon-code />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">Python代码执行节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        编写代码处理输入输出变量来生成返回值。
+                      </div>
+                    </div>
+                    <!-- 结束节点 -->
+                    <div class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50">
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-red-700 rounded-lg">
+                          <icon-filter />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">结束节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 font-xs">
+                        工作流的结束节点，支持定义工作流最终输出的变量等信息。
+                      </div>
+                    </div>
+                  </div>
                 </template>
-              </a-dropdown>
-            </div>
-            <!-- 调试与预览 -->
-            <a-button type="text" size="small" class="px-2 rounded-lg">
-              <template #icon>
-                <icon-play-arrow />
-              </template>
-              调试
-            </a-button>
-          </a-space>
-        </div>
+              </a-trigger>
+              <!-- 自适应布局&视口大小 -->
+              <div class="flex items-center gap-3">
+                <a-tooltip content="自适应布局">
+                  <a-button
+                    size="small"
+                    type="text"
+                    class="!text-gray-700 rounded-lg"
+                    @click="() => autoLayout()"
+                  >
+                    <template #icon>
+                      <icon-apps />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+
+                <a-dropdown
+                  trigger="hover"
+                  @select="
+                    (value) => {
+                      // 调整视口大小并更新视口等级
+                      zoomLevel = Number(value)
+                      instance.zoomTo(value)
+                    }
+                  "
+                >
+                  <a-button size="small" class="!text-gray-700 px-2 rounded-lg gap-1 w-[80px]">
+                    {{ (zoomLevel * 100).toFixed(0) }}%
+                    <icon-down />
+                  </a-button>
+                  <template #content>
+                    <a-doption v-for="zoom in zoomOptions" :key="zoom.value" :value="zoom.value">
+                      {{ zoom.label }}
+                    </a-doption>
+                  </template>
+                </a-dropdown>
+              </div>
+              <!-- 调试与预览 -->
+              <a-button type="text" size="small" class="px-2 rounded-lg">
+                <template #icon>
+                  <icon-play-arrow />
+                </template>
+                调试
+              </a-button>
+            </a-space>
+          </div>
+        </panel>
       </vue-flow>
     </div>
   </div>
