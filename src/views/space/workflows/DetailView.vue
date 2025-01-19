@@ -28,11 +28,16 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/minimap/dist/style.css'
 import { Message } from '@arco-design/web-vue'
 import { generateRandomString } from '@/utils/helper'
+import StartNodeInfo from './components/Infos/StartNodeInfo.vue'
+import CodeNodeInfo from './components/Infos/CodeNodeInfo.vue'
+import LlmNodeInfo from './components/Infos/LLMNodeInfo.vue'
+import TemplateTransformNodeInfo from './components/Infos/TemplateTransformNodeInfo.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
 const instance = ref<any>(null)
 const isDebug = ref(false)
+const nodeInfoVisible = ref(false)
 const { loading: getWorkflowLoading, workflow, loadWorkflow } = useGetWorkflow()
 const { loading: getDraftGraphLoading, nodes, edges, loadDraftGraph } = useGetDraftGraph()
 const { loading: publishWorkflowLoading, handlePublishWorkflow } = usePublishWorkflow()
@@ -48,7 +53,11 @@ const {
   findNode, // 根据id查找节点
   nodes: allNodes, // 所有节点
 } = useVueFlow()
-const { handleUpdateDraftGraph, convertGraphToReq } = useUpdateDraftGraph()
+const {
+  loading: updateDraftGraphLoading,
+  handleUpdateDraftGraph,
+  convertGraphToReq,
+} = useUpdateDraftGraph()
 const zoomLevel = ref<number>(1)
 const zoomOptions = [
   { label: '200%', value: 2 },
@@ -254,6 +263,30 @@ const addNode = (node_type: string) => {
   })
 }
 
+const clearSelectedNode = () => {
+  selectedNode.value = null
+}
+
+const onUpdateNode = (node_data: Record<string, any>) => {
+  // 获取该节点对应的索引
+  const idx = nodes.value.findIndex((item) => item.id === node_data.id)
+
+  // 检测是否存在数据，如果存在则更新
+  if (idx !== -1) {
+    nodes.value[idx].data = {
+      ...nodes.value[idx].data,
+      ...node_data,
+    }
+  }
+
+  // 调用API发起更新请求，由于字典嵌套比较深@update有可能无法主动监听
+  handleUpdateDraftGraph(
+    String(route.params?.workflow_id ?? ''),
+    convertGraphToReq(nodes.value, edges.value),
+    true,
+  )
+}
+
 // 工作流面板点击hooks
 onPaneClick((mouseEvent) => {
   isDebug.value = false
@@ -271,7 +304,7 @@ onNodeClick((nodeMouseEvent) => {
   // 限制每个节点只能点击一次，点击的时候将节点的数据赋值给selectedNode
   if (!selectedNode.value || selectedNode.value?.id !== nodeMouseEvent.node.id) {
     selectedNode.value = nodeMouseEvent.node
-    // nodeInfoVisible.value = true
+    nodeInfoVisible.value = true
   }
 
   isDebug.value = false
@@ -464,7 +497,7 @@ onMounted(async () => {
                 </a-button>
                 <template #content>
                   <div
-                    class="bg-white border border-gary-200 w-[240px] shadow rounded-xl h-[calc(100vh-300px)] overflow-scroll py-2"
+                    class="bg-white border border-gary-200 w-[240px] shadow rounded-xl h-[calc(100vh-300px)] overflow-scroll scrollbar-w-none py-2"
                   >
                     <!-- 开始节点 -->
                     <div
@@ -651,6 +684,39 @@ onMounted(async () => {
         <debug-modal
           :workflow_id="String(route.params?.workflow_id ?? '')"
           v-model:visible="isDebug"
+        />
+        <!-- 节点信息容器 -->
+        <start-node-info
+          v-if="selectedNode && selectedNode?.type === 'start'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <code-node-info
+          v-if="selectedNode && selectedNode?.type === 'code'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <llm-node-info
+          v-if="selectedNode && selectedNode?.type === 'llm'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <template-transform-node-info
+          v-if="selectedNode && selectedNode?.type === 'template_transform'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
         />
       </vue-flow>
     </div>

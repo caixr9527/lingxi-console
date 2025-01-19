@@ -87,7 +87,7 @@ watch(
         @click="() => emits('update:visible', false)"
       >
         <template #icon>
-          <icon-colse />
+          <icon-close />
         </template>
       </a-button>
     </div>
