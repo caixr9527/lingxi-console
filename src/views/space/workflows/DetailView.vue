@@ -35,6 +35,7 @@ import TemplateTransformNodeInfo from './components/Infos/TemplateTransformNodeI
 import HttpRequestNodeInfo from './components/Infos/HttpRequestNodeInfo.vue'
 import DatasetRetrievalNodeInfo from './components/Infos/DatasetRetrievalNodeInfo.vue'
 import ToolNodeInfo from './components/Infos/ToolNodeInfo.vue'
+import EndNodeInfo from './components/Infos/EndNodeInfo.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -739,6 +740,14 @@ onMounted(async () => {
         />
         <tool-node-info
           v-if="selectedNode && selectedNode?.type === 'tool'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <end-node-info
+          v-if="selectedNode && selectedNode?.type === 'end'"
           :loading="updateDraftGraphLoading"
           :node="selectedNode"
           v-model:visible="nodeInfoVisible"
