@@ -7,6 +7,7 @@ import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
 import dagre from 'dagre'
 import { cloneDeep } from 'lodash'
+import DebugModal from './components/DebugModal.vue'
 import {
   useCancelPublishWorkflow,
   useGetDraftGraph,
@@ -31,6 +32,7 @@ import { generateRandomString } from '@/utils/helper'
 const route = useRoute()
 const selectedNode = ref<any>(null)
 const instance = ref<any>(null)
+const isDebug = ref(false)
 const { loading: getWorkflowLoading, workflow, loadWorkflow } = useGetWorkflow()
 const { loading: getDraftGraphLoading, nodes, edges, loadDraftGraph } = useGetDraftGraph()
 const { loading: publishWorkflowLoading, handlePublishWorkflow } = usePublishWorkflow()
@@ -254,13 +256,13 @@ const addNode = (node_type: string) => {
 
 // 工作流面板点击hooks
 onPaneClick((mouseEvent) => {
-  //   isDebug.value = false
+  isDebug.value = false
   selectedNode.value = null
 })
 
 // 工作流Edge边点击hooks
 onEdgeClick((edgeMouseEvent) => {
-  //   isDebug.value = false
+  isDebug.value = false
   selectedNode.value = null
 })
 
@@ -272,7 +274,7 @@ onNodeClick((nodeMouseEvent) => {
     // nodeInfoVisible.value = true
   }
 
-  //   isDebug.value = false
+  isDebug.value = false
 })
 
 // 工作流节点拖动停止hooks
@@ -636,7 +638,7 @@ onMounted(async () => {
                 </a-dropdown>
               </div>
               <!-- 调试与预览 -->
-              <a-button type="text" size="small" class="px-2 rounded-lg">
+              <a-button type="text" size="small" class="px-2 rounded-lg" @click="isDebug = true">
                 <template #icon>
                   <icon-play-arrow />
                 </template>
@@ -645,6 +647,11 @@ onMounted(async () => {
             </a-space>
           </div>
         </panel>
+        <!-- 调试与预览窗口 -->
+        <debug-modal
+          :workflow_id="String(route.params?.workflow_id ?? '')"
+          v-model:visible="isDebug"
+        />
       </vue-flow>
     </div>
   </div>

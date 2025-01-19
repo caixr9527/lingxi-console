@@ -91,18 +91,30 @@ export const ssePost = async (
   fetchOptions: FetchOptionType,
   onData: (data: { [key: string]: any }) => void,
 ) => {
+  // 组装基础的fetch请求配置
   const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
-
   const { credential } = useCredentialStore()
-  if (credential.access_token) {
-    options.headers.set('Authorization', `Bearer ${credential.access_token}`)
-  }
+  const access_token = credential.access_token
+  if (access_token) options.headers.set('Authorization', `Bearer ${access_token}`)
 
+  // 组装请求URL
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
+
+  // 结构body参数，并处理body对应的数据
   const { body } = fetchOptions
   if (body) options.body = JSON.stringify(body)
 
+  // 发起fetch请求并处理流式事件响应
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
+
+  // 获取响应内容类型并判断类型
+  const contentType = response.headers.get('Content-Type')
+  if (contentType?.includes('application/json')) {
+    // 接口为json输出，意味着出错，直接返回json数据
+    return await response.json()
+  }
+
+  // 否则获取流式输出数据
   return await handleStream(response, onData)
 }
 
@@ -111,15 +123,19 @@ const handleStream = (
   onData: (data: Record<string, any>) => void,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
-    // 检测网络请求
+    // 检测网络请求是否正常
     if (!response.ok) {
       reject(new Error('网络请求失败'))
       return
     }
-    // 构建reader和decoder
+    // 构建reader以及decoder
     const reader = response.body?.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
+    let event = ''
+    let data = ''
+
+    // 构建read函数用于去读取数据
     const read = () => {
       reader?.read().then((result: any) => {
         if (result.done) {
@@ -128,8 +144,7 @@ const handleStream = (
         }
         buffer += decoder.decode(result.value, { stream: true })
         const lines = buffer.split('\n')
-        let event = ''
-        let data = ''
+
         try {
           lines.forEach((line) => {
             line = line.trim()
@@ -138,6 +153,8 @@ const handleStream = (
             } else if (line.startsWith('data:')) {
               data = line.slice(5).trim()
             }
+
+            // 每个事件以空行结束，只有event和data同时存在，才表示一次流式事件的数据完整获取到了
             if (line === '') {
               if (event !== '' && data !== '') {
                 onData({
@@ -158,6 +175,7 @@ const handleStream = (
       })
     }
 
+    // 调用read函数去执行获取对应的数据
     read()
   })
 }
