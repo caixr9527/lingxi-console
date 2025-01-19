@@ -59,6 +59,33 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
 
+  let vaildateInputsEmpty = false
+  cloneInputs.forEach((item: any) => {
+    if (item.name.trim() === '') {
+      vaildateInputsEmpty = true
+    }
+    if (item.type !== 'ref' && item.content.trim() === '') {
+      vaildateInputsEmpty = true
+    }
+  })
+  if (vaildateInputsEmpty) {
+    Message.warning('输入参数名/参数值不能为空')
+    return
+  }
+
+  const cloneOutputs = cloneDeep(form.value.outputs)
+
+  let vaildateOutputsEmpty = false
+  cloneOutputs.forEach((item: any) => {
+    if (item.name.trim() === '') {
+      vaildateOutputsEmpty = true
+    }
+  })
+  if (vaildateOutputsEmpty) {
+    Message.warning('输出参数名不能为空')
+    return
+  }
+
   // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
@@ -84,7 +111,7 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
         meta: {},
       }
     }),
-    outputs: cloneDeep(form.value.outputs),
+    outputs: cloneOutputs,
   })
 }
 

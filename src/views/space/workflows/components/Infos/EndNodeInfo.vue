@@ -39,6 +39,20 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
 
   const cloneOutputs = cloneDeep(form.value.outputs)
 
+  let vaildateEmpty = false
+  cloneOutputs.forEach((item: any) => {
+    if (item.name.trim() === '') {
+      vaildateEmpty = true
+    }
+    if (item.type !== 'ref' && item.content.trim() === '') {
+      vaildateEmpty = true
+    }
+  })
+  if (vaildateEmpty) {
+    Message.warning('输入参数名/参数值不能为空')
+    return
+  }
+
   emits('updateNode', {
     id: props.node.id,
     title: form.value.title,

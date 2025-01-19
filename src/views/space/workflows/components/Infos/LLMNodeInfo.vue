@@ -38,6 +38,20 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
 
+  let vaildateEmpty = false
+  cloneInputs.forEach((item: any) => {
+    if (item.name.trim() === '') {
+      vaildateEmpty = true
+    }
+    if (item.type !== 'ref' && item.content.trim() === '') {
+      vaildateEmpty = true
+    }
+  })
+  if (vaildateEmpty) {
+    Message.warning('输入参数名/参数值不能为空')
+    return
+  }
+
   // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,

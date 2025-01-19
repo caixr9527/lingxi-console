@@ -61,6 +61,25 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
     ...cloneDeep(form.value.bodyInputs),
   ]
 
+  if (form.value.url.trim() === '') {
+    Message.warning('请求URL不能为空')
+    return
+  }
+
+  let vaildateEmpty = false
+  cloneInputs.forEach((item: any) => {
+    if (item.name.trim() === '') {
+      vaildateEmpty = true
+    }
+    if (item.type !== 'ref' && item.content.trim() === '') {
+      vaildateEmpty = true
+    }
+  })
+  if (vaildateEmpty) {
+    Message.warning('参数名/参数值不能为空')
+    return
+  }
+
   // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
