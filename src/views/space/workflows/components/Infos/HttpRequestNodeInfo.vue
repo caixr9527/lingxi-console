@@ -5,7 +5,6 @@ import { cloneDeep } from 'lodash'
 import { getReferencedVariables } from '@/utils/helper'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 
-// 1.定义自定义组件所需数据
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
   node: { type: Object as unknown as GraphNode, required: true, default: {} },
@@ -22,12 +21,12 @@ const variableTypes = [
   { label: 'BOOLEAN', value: 'boolean' },
 ]
 
-// 2.定义输入变量引用选项
+// 定义输入变量引用选项
 const inputRefOptions = computed(() => {
   return getReferencedVariables(cloneDeep(nodes.value), cloneDeep(edges.value), props.node.id)
 })
 
-// 2.定义添加表单字段函数
+// 定义添加表单字段函数
 const addFormInputField = (meta_type: string) => {
   if (meta_type === 'params') {
     form.value?.paramsInputs.push({ name: '', type: 'string', content: '', ref: '', meta_type })
@@ -39,7 +38,7 @@ const addFormInputField = (meta_type: string) => {
   Message.success('新增输入字段成功')
 }
 
-// 3.定义移除表单字段函数
+// 定义移除表单字段函数
 const removeFormInputField = (meta_type: string, idx: number) => {
   if (meta_type === 'params') {
     form.value?.paramsInputs.splice(idx, 1)
@@ -50,19 +49,19 @@ const removeFormInputField = (meta_type: string, idx: number) => {
   }
 }
 
-// 4.定义表单提交函数
+// 定义表单提交函数
 const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 4.1 检查表单是否出现错误，如果出现错误则直接结束
+  // 检查表单是否出现错误，如果出现错误则直接结束
   if (errors) return
 
-  // 4.2 深度拷贝表单数据内容
+  //  深度拷贝表单数据内容
   const cloneInputs = [
     ...cloneDeep(form.value.headersInputs),
     ...cloneDeep(form.value.paramsInputs),
     ...cloneDeep(form.value.bodyInputs),
   ]
 
-  // 4.3 数据校验通过，通过事件触发数据更新
+  // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
     title: form.value.title,
@@ -94,17 +93,17 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   })
 }
 
-// 5.监听数据，将数据映射到表单模型上
+// 监听数据，将数据映射到表单模型上
 watch(
   () => props.node,
   (newNode) => {
     const cloneInputs = cloneDeep(newNode.data.inputs).map((input: any) => {
-      // 5.1 计算引用的变量值信息
+      // 计算引用的变量值信息
       const ref =
         input.value.type === 'ref'
           ? `${input.value.content.ref_node_id}/${input.value.content.ref_var_name}`
           : ''
-      // 5.2 判断引用的变量值信息是否存在
+      // 判断引用的变量值信息是否存在
       let refExists = false
       if (input.value.type === 'ref') {
         for (const inputRefOption of inputRefOptions.value) {
