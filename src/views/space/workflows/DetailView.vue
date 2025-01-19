@@ -33,6 +33,8 @@ import CodeNodeInfo from './components/Infos/CodeNodeInfo.vue'
 import LlmNodeInfo from './components/Infos/LLMNodeInfo.vue'
 import TemplateTransformNodeInfo from './components/Infos/TemplateTransformNodeInfo.vue'
 import HttpRequestNodeInfo from './components/Infos/HttpRequestNodeInfo.vue'
+import DatasetRetrievalNodeInfo from './components/Infos/DatasetRetrievalNodeInfo.vue'
+import ToolNodeInfo from './components/Infos/ToolNodeInfo.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -129,7 +131,7 @@ const NODE_DATA_MAP: Record<string, any> = {
       {
         name: 'query',
         type: 'string',
-        value: { type: 'literal', content: '' },
+        value: { type: 'ref', content: { ref_node_id: '', ref_var_name: '' } },
       },
     ],
     outputs: [
@@ -721,6 +723,22 @@ onMounted(async () => {
         />
         <http-request-node-info
           v-if="selectedNode && selectedNode?.type === 'http_request'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <dataset-retrieval-node-info
+          v-if="selectedNode && selectedNode?.type === 'dataset_retrieval'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <tool-node-info
+          v-if="selectedNode && selectedNode?.type === 'tool'"
           :loading="updateDraftGraphLoading"
           :node="selectedNode"
           v-model:visible="nodeInfoVisible"
