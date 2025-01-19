@@ -32,6 +32,7 @@ import StartNodeInfo from './components/Infos/StartNodeInfo.vue'
 import CodeNodeInfo from './components/Infos/CodeNodeInfo.vue'
 import LlmNodeInfo from './components/Infos/LLMNodeInfo.vue'
 import TemplateTransformNodeInfo from './components/Infos/TemplateTransformNodeInfo.vue'
+import HttpRequestNodeInfo from './components/Infos/HttpRequestNodeInfo.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -712,6 +713,14 @@ onMounted(async () => {
         />
         <template-transform-node-info
           v-if="selectedNode && selectedNode?.type === 'template_transform'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+          @clear-selected-node="clearSelectedNode"
+        />
+        <http-request-node-info
+          v-if="selectedNode && selectedNode?.type === 'http_request'"
           :loading="updateDraftGraphLoading"
           :node="selectedNode"
           v-model:visible="nodeInfoVisible"
