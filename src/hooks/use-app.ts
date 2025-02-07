@@ -278,7 +278,8 @@ export const useFallbackHistoryToDraft = () => {
 
 export const useGetDraftAppConfig = (app_id: string) => {
   const loading = ref(false)
-  const draftAppConfigForm = reactive<Record<string, any>>({})
+  const draftAppConfigForm = ref<Record<string, any>>({})
+  // const draftAppConfigForm = reactive<Record<string, any>>({})
 
   const loadDraftAppConfig = async (app_id: string) => {
     try {
@@ -286,7 +287,9 @@ export const useGetDraftAppConfig = (app_id: string) => {
       const resp = await getDraftAppConfig(app_id)
       const data = resp.data
 
-      Object.assign(draftAppConfigForm, {
+      draftAppConfigForm.value = {
+        dialog_round: data.dialog_round,
+        model_config: data.model_config,
         preset_prompt: data.preset_prompt,
         long_term_memory: data.long_term_memory,
         opening_statement: data.opening_statement,
@@ -296,7 +299,7 @@ export const useGetDraftAppConfig = (app_id: string) => {
         datasets: data.datasets,
         retrieval_config: data.retrieval_config,
         tools: data.tools,
-      })
+      }
     } finally {
       loading.value = false
     }

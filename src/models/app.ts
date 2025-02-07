@@ -80,7 +80,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
 
 // 更新特定应用的草稿配置请求结构
 export type UpdateDraftAppConfigRequest = {
-  model?: { provider: string; model: string; parameters: Record<string, any> }
+  model_config?: { provider: string; model: string; parameters: Record<string, any> }
   dialog_round?: number
   preset_prompt?: string
   tools?: { type: string; provider_id: string; tool_id: string; params: Record<string, any> }[]

@@ -5,6 +5,7 @@ import { useGetDraftAppConfig, useUpdateDraftAppConfig } from '@/hooks/use-app'
 import PreViewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
+import ModelConfig from './components/ModelConfig.vue'
 const route = useRoute()
 const props = defineProps({
   app: { type: Object, default: {}, required: true },
@@ -23,6 +24,11 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
         <div class="flex items-center h-16 border-b p-4">
           <div class="text-lg text-gray-700">应用编排</div>
           <!-- LLM模型配置 -->
+          <model-config
+            :dialog_round="draftAppConfigForm.dialog_round"
+            v-model:model_config="draftAppConfigForm.model_config"
+            :app_id="String(route.params?.app_id)"
+          />
         </div>
         <!-- 底部编排区域 -->
         <div class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
