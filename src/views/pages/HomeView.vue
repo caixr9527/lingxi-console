@@ -142,6 +142,8 @@ const handleSubmit = async () => {
 
         // 更新/添加answer答案
         messages.value[0].answer += data?.thought
+        messages.value[0].latency = data?.latency
+        messages.value[0].total_token_count = data?.total_token_count
       } else {
         // 处理其他类型的事件，直接填充覆盖数据
         position += 1
@@ -229,6 +231,8 @@ onMounted(async () => {
                   :app="{ name: '辅助Agent' }"
                   :suggested_questions="item.id === message_id ? suggested_questions : []"
                   :loading="item.id === message_id && assistantAgentChatLoading"
+                  :latency="item.latency"
+                  :total_token_count="item.total_token_count"
                   message_class="bg-white"
                   @select-suggested-question="handleSubmitQuestion"
                 />
@@ -268,8 +272,8 @@ onMounted(async () => {
             开发平台
           </div>
           <div class="text-base text-gray-700">
-            说出你的创意，我可以快速帮你创建专属应用，一键轻松分享给朋友，也可以一键发布到慕课
-            LLMOps 平台、微信等多个渠道。
+            说出你的创意，我可以快速帮你创建专属应用，一键轻松分享给朋友，也可以一键发布到 LLMOps
+            平台、微信等多个渠道。
           </div>
         </div>
         <!-- 开场AI对话消息 -->
