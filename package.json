@@ -18,11 +18,13 @@
     "@vue-flow/core": "^1.42.0",
     "@vue-flow/minimap": "^1.5.1",
     "dagre": "^0.8.5",
+    "echarts": "^5.6.0",
     "highlight.js": "^11.11.1",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
+    "vue-echarts": "^7.0.3",
     "vue-router": "^4.3.3",
     "vue-virtual-scroller": "^2.0.0-beta.8"
   },
