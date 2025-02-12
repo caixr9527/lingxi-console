@@ -5,13 +5,22 @@ import SuggestedAfterAnswerAbilityItem from './abilities/SuggestedAfterAnswerAbi
 import ReviewConfigAbilityItem from './abilities/ReviewConfigAbilityItem.vue'
 import DatasetsAbilityItem from './abilities/DatasetsAbilityItem.vue'
 import ToolsAbilityItem from './abilities/ToolsAbilityItem.vue'
+import WorkflowsAbilityItem from './abilities/WorkflowsAbilityItem.vue'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   draft_app_config: { type: Object, required: true },
 })
 const emits = defineEmits(['update:draft_app_config'])
-const defaultActiveKeys = ['long_term_memory', 'opening', 'suggested_after_answer', 'review_config']
+const defaultActiveKeys = [
+  'tools',
+  'datasets',
+  'long_term_memory',
+  'opening',
+  'suggested_after_answer',
+  'review_config',
+  'workflows',
+]
 </script>
 
 <template>
@@ -27,6 +36,8 @@ const defaultActiveKeys = ['long_term_memory', 'opening', 'suggested_after_answe
         </template>
         <!-- 扩展插件组件 -->
         <tools-ability-item v-model:tools="draft_app_config.tools" :app_id="app_id" />
+        <!-- 工作流组件 -->
+        <workflows-ability-item v-model:workflows="draft_app_config.workflows" :app_id="app_id" />
         <!-- 知识库组件 -->
         <datasets-ability-item
           v-model:retrieval_config="draft_app_config.retrieval_config"
