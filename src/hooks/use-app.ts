@@ -18,8 +18,10 @@ import {
   getDebugConversationMessagesWithPage,
   getDebugConversationSummary,
   getDraftAppConfig,
+  getPublishedConfig,
   getPublishHistoriesWithPage,
   publish,
+  regenerateWebAppToken,
   stopDebugChat,
   updateApp,
   updateDebugConversationSummary,
@@ -468,4 +470,39 @@ export const useStopDebugChat = () => {
   }
 
   return { loading, handleStopDebugChat }
+}
+
+export const useGetPublishedConfig = () => {
+  const loading = ref(false)
+  const published_config = ref<Record<string, any>>({})
+
+  const loadPublishedConfig = async (app_id: string) => {
+    try {
+      loading.value = true
+      const resp = await getPublishedConfig(app_id)
+      published_config.value = resp.data
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, published_config, loadPublishedConfig }
+}
+
+export const useRegenerateWebAppToken = () => {
+  const loading = ref(false)
+  const token = ref<string>('')
+
+  const handleRegenerateWebAppToken = async (app_id: string) => {
+    try {
+      loading.value = true
+      const resp = await regenerateWebAppToken(app_id)
+      Message.success('重新生成WebApp访问链接成功')
+      token.value = resp.data.token
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, token, handleRegenerateWebAppToken }
 }

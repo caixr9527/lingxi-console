@@ -129,6 +129,11 @@ const router = createRouter({
           name: 'space-workflows-detail',
           component: () => import('@/views/space/workflows/DetailView.vue'),
         },
+        {
+          path: 'web-app/:token',
+          name: 'web-apps-index',
+          component: () => import('@/views/web-apps/IndexView.vue'),
+        },
       ],
     },
   ],
