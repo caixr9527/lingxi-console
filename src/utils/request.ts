@@ -61,6 +61,10 @@ const baseFetch = <T>(url: string, fetchOption: FetchOptionType): Promise<T> => 
           } else if (json.code === httpCode.unauthorized) {
             clearCredential()
             await router.replace({ path: '/auth/login' })
+          } else if (json.code === httpCode.notFount) {
+            await router.push({ name: 'errors-not-found' })
+          } else if (json.code === httpCode.forbidden) {
+            await router.push({ name: 'errors-forbidden' })
           } else {
             Message.error(json.message)
             reject(new Error(json.message))
