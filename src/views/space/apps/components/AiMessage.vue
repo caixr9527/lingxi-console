@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { type PropType } from 'vue'
+import { computed, type PropType } from 'vue'
 import DotFlashing from '@/components/DotFlashing.vue'
 import AgentThought from './AgentThought.vue'
+import MarkDownIt from 'markdown-it'
+import 'github-markdown-css'
 
 // 1.定义自定义组件所需数据
 const props = defineProps({
@@ -15,6 +17,10 @@ const props = defineProps({
   message_class: { type: String, default: 'bg-gray-100', required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
+const md = MarkDownIt()
+const compiledMarkdown = computed(() => {
+  return md.render(props.answer)
+})
 </script>
 
 <template>
@@ -22,22 +28,23 @@ const emits = defineEmits(['selectSuggestedQuestion'])
     <!-- 左侧图标 -->
     <a-avatar :size="30" shape="circle" class="flex-shrink-0" :image-url="props.app?.icon" />
     <!-- 右侧名称与消息 -->
-    <div class="flex flex-col items-start gap-2">
+    <div class="flex-1 flex flex-col items-start gap-2">
       <!-- 应用名称 -->
       <div class="text-gray-700 font-bold">{{ props.app?.name }}</div>
       <!-- 推理步骤 -->
       <agent-thought :agent_thoughts="props.agent_thoughts" :loading="props.loading" />
       <!-- AI消息 -->
       <div
+        v-if="props.loading && props.answer.trim() === ''"
         :class="`${props.message_class} border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all`"
       >
-        <template v-if="props.loading && props.answer.trim() === ''">
-          <dot-flashing />
-        </template>
-        <template v-else>
-          {{ props.answer }}
-        </template>
+        <dot-flashing />
       </div>
+      <div
+        v-else
+        :class="`${props.message_class} markdown-body border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all`"
+        v-html="compiledMarkdown"
+      ></div>
       <!-- 消息展示与操作 -->
       <div class="flex items-center justify-between">
         <!-- 消息数据额外展示 -->
@@ -68,4 +75,13 @@ const emits = defineEmits(['selectSuggestedQuestion'])
   </div>
 </template>
 
-<style scoped></style>
+<style>
+/* 保留 GitHub Markdown 样式，同时使用 TailwindCSS 自定义列表样式 */
+.markdown-body {
+  font-size: 14px;
+}
+
+.markdown-body pre {
+  @apply bg-gray-700 text-white;
+}
+</style>
