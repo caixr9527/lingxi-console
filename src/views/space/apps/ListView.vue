@@ -10,6 +10,7 @@ const route = useRoute()
 const props = defineProps({
   createType: { type: String, default: '', required: true },
 })
+const emits = defineEmits(['update:create-type'])
 const createOrUpdateAppModalVisible = ref(false)
 const updateAppId = ref('')
 const accountStore = useAccountStore()
@@ -17,22 +18,17 @@ const { handleCopyApp } = useCopyApp()
 const { loading: getAppsWithPageLoading, apps, paginator, loadApps } = useGetAppsWithPage()
 const { handleDeleteApp } = useDeleteApp()
 
-// 定义滚动数据分页处理器
 const handleScroll = async (event: UIEvent) => {
-  // 获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (getAppsWithPageLoading.value) return
-    await loadApps()
+    await loadApps(false, String(route.query?.search_word ?? ''))
   }
 }
 
-// 页面DOM加载完毕后执行
 onMounted(async () => {
-  // 初始化apps数据
-  await loadApps(true)
+  await loadApps(true, String(route.query?.search_word ?? ''))
 })
 
 watch(
@@ -41,13 +37,25 @@ watch(
     if (newValue === 'app') {
       updateAppId.value = ''
       createOrUpdateAppModalVisible.value = true
+      emits('update:create-type', '')
     }
   },
 )
 
 watch(
   () => route.query?.search_word,
-  async () => await loadApps(true),
+  (newValue) => loadApps(true, String(newValue)),
+)
+
+watch(
+  () => route.query?.create_type,
+  (newValue) => {
+    if (newValue === 'app') {
+      updateAppId.value = ''
+      createOrUpdateAppModalVisible.value = true
+    }
+  },
+  { immediate: true },
 )
 </script>
 
@@ -77,6 +85,10 @@ watch(
                   class="text-base text-gray-900 font-bold"
                 >
                   {{ app.name }}
+                  <icon-check-circle-fill
+                    v-if="app.status === 'published'"
+                    class="text-green-700"
+                  />
                 </router-link>
                 <div class="text-xs text-gray-500 line-clamp-1">
                   {{ app.model_config.provider }} · {{ app.model_config.model }}
@@ -105,8 +117,13 @@ watch(
                   </a-doption>
                   <a-doption @click="async () => await handleCopyApp(app.id)">创建副本</a-doption>
                   <a-doption
+                    class="text-red-700"
                     @click="
-                      async () => await handleDeleteApp(app.id, async () => await loadApps(true))
+                      () =>
+                        handleDeleteApp(
+                          app.id,
+                          async () => await loadApps(true, String(route.query?.search_word ?? '')),
+                        )
                     "
                   >
                     删除
@@ -157,7 +174,7 @@ watch(
     <create-or-update-app-modal
       v-model:visible="createOrUpdateAppModalVisible"
       v-model:app_id="updateAppId"
-      :callback="async () => await loadApps(true)"
+      :callback="() => loadApps(true, String(route.query?.search_word ?? ''))"
     />
   </a-spin>
 </template>

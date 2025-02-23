@@ -1,10 +1,4 @@
-import type {
-  CreateAppRequest,
-  GetAppsWithPageResponse,
-  GetDebugConversationMessagesWithPageResponse,
-  UpdateAppRequest,
-  UpdateDraftAppConfigRequest,
-} from '@/models/app'
+import { ref } from 'vue'
 import {
   cancelPublish,
   copyApp,
@@ -28,8 +22,14 @@ import {
   updateDraftAppConfig,
 } from '@/services/app'
 import { Message, Modal } from '@arco-design/web-vue'
-import { onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import type {
+  CreateAppRequest,
+  GetAppsWithPageResponse,
+  GetDebugConversationMessagesWithPageResponse,
+  UpdateAppRequest,
+  UpdateDraftAppConfigRequest,
+} from '@/models/app'
+import { useRouter } from 'vue-router'
 
 export const useGetApp = () => {
   const loading = ref(false)
@@ -49,7 +49,6 @@ export const useGetApp = () => {
 }
 
 export const useGetAppsWithPage = () => {
-  const route = useRoute()
   const loading = ref(false)
   const apps = ref<GetAppsWithPageResponse['data']['list']>([])
   const defaultPaginator = {
@@ -60,7 +59,7 @@ export const useGetAppsWithPage = () => {
   }
   const paginator = ref({ ...defaultPaginator })
 
-  const loadApps = async (init: boolean = false) => {
+  const loadApps = async (init: boolean = false, search_word: string = '') => {
     if (init) {
       paginator.value = defaultPaginator
     } else if (paginator.value.current_page > paginator.value.total_page) {
@@ -72,7 +71,7 @@ export const useGetAppsWithPage = () => {
       const resp = await getAppsWithPage({
         current_page: paginator.value.current_page,
         page_size: paginator.value.page_size,
-        search_word: String(route.query?.search_word ?? ''),
+        search_word: search_word,
       })
       const data = resp.data
 
@@ -117,10 +116,8 @@ export const useCreateApp = () => {
 }
 
 export const useUpdateApp = () => {
-  // 1.定义hooks所需数据
   const loading = ref(false)
 
-  // 2.定义更新数据处理器
   const handleUpdateApp = async (app_id: string, req: UpdateAppRequest) => {
     try {
       loading.value = true
@@ -217,39 +214,37 @@ export const useGetPublishHistoriesWithPage = () => {
   const loading = ref(false)
   const defaultPaginator = {
     current_page: 1,
-    page_size: 10,
+    page_size: 20,
     total_page: 0,
     total_record: 0,
   }
-  const publishHistories = reactive<Array<Record<string, any>>>([])
-  const paginator = reactive({ ...defaultPaginator })
+  const publishHistories = ref<Record<string, any>[]>([])
+  const paginator = ref(defaultPaginator)
 
   const loadPublishHistories = async (app_id: string, init: boolean = false) => {
     try {
       if (init) {
-        Object.assign(paginator, { ...defaultPaginator })
-      } else if (paginator.current_page > paginator.total_page) {
+        paginator.value = defaultPaginator
+      } else if (paginator.value.current_page > paginator.value.total_page) {
         return
       }
       loading.value = true
       const resp = await getPublishHistoriesWithPage(app_id, {
-        current_page: paginator.current_page,
-        page_size: paginator.page_size,
+        current_page: paginator.value.current_page,
+        page_size: paginator.value.page_size,
       })
       const data = resp.data
-      paginator.current_page = data.paginator.current_page
-      paginator.page_size = data.paginator.page_size
-      paginator.total_page = data.paginator.total_page
-      paginator.total_record = data.paginator.total_record
 
-      if (paginator.current_page <= paginator.total_page) {
-        paginator.current_page += 1
+      paginator.value = data.paginator
+
+      if (paginator.value.current_page <= paginator.value.total_page) {
+        paginator.value.current_page += 1
       }
 
       if (init) {
-        publishHistories.splice(0, publishHistories.length, ...data.list)
+        publishHistories.value = data.list
       } else {
-        publishHistories.push(...data.list)
+        publishHistories.value.push(...data.list)
       }
     } finally {
       loading.value = false
@@ -278,10 +273,9 @@ export const useFallbackHistoryToDraft = () => {
   return { loading, handleFallbackHistoryToDraft }
 }
 
-export const useGetDraftAppConfig = (app_id: string) => {
+export const useGetDraftAppConfig = () => {
   const loading = ref(false)
   const draftAppConfigForm = ref<Record<string, any>>({})
-  // const draftAppConfigForm = reactive<Record<string, any>>({})
 
   const loadDraftAppConfig = async (app_id: string) => {
     try {
@@ -307,8 +301,6 @@ export const useGetDraftAppConfig = (app_id: string) => {
       loading.value = false
     }
   }
-
-  onMounted(async () => await loadDraftAppConfig(app_id))
 
   return { loading, draftAppConfigForm, loadDraftAppConfig }
 }
@@ -383,7 +375,7 @@ export const useDeleteDebugConversation = () => {
   return { loading, handleDeleteDebugConversation }
 }
 
-export const useGetDebugConversationMessageWithPage = () => {
+export const useGetDebugConversationMessagesWithPage = () => {
   const loading = ref(false)
   const messages = ref<GetDebugConversationMessagesWithPageResponse['data']['list']>([])
   const created_at = ref(0)
@@ -395,9 +387,7 @@ export const useGetDebugConversationMessageWithPage = () => {
   }
   const paginator = ref({ ...defaultPaginator })
 
-  // 2.定义加载数据函数
   const loadDebugConversationMessages = async (app_id: string, init: boolean = false) => {
-    // 2.1 判断是否是初始化，如果是则先初始化分页器
     if (init) {
       paginator.value = { ...defaultPaginator }
       created_at.value = 0
@@ -405,7 +395,6 @@ export const useGetDebugConversationMessageWithPage = () => {
       return
     }
 
-    // 2.2 加载更多数据
     try {
       loading.value = true
       const resp = await getDebugConversationMessagesWithPage(app_id, {
@@ -415,15 +404,12 @@ export const useGetDebugConversationMessageWithPage = () => {
       })
       const data = resp.data
 
-      // 2.3 更新分页器
       paginator.value = data.paginator
 
-      // 2.4 判断是否存在更多数据
       if (paginator.value.current_page <= paginator.value.total_page) {
         paginator.value.current_page += 1
       }
 
-      // 2.5 追加或者覆盖数据
       if (init) {
         messages.value = data.list
       } else {

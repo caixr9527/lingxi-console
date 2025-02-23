@@ -6,7 +6,13 @@ import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
-  model_config: { type: Object, default: {}, required: true },
+  model_config: {
+    type: Object,
+    default: () => {
+      return {}
+    },
+    required: true,
+  },
   dialog_round: { type: Number, default: 3, required: true },
 })
 const emits = defineEmits(['update:model_config'])

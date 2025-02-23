@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { type GraphNode, useVueFlow } from '@vue-flow/core'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
 import { cloneDeep } from 'lodash'
 import { getReferencedVariables } from '@/utils/helper'
 import { useGetDatasetsWithPage } from '@/hooks/use-dataset'
@@ -8,10 +8,16 @@ import { Message, type ValidatedError } from '@arco-design/web-vue'
 
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
-  node: { type: Object as unknown as GraphNode, required: true, default: {} },
+  node: {
+    type: Object as any,
+    required: true,
+    default: () => {
+      return {}
+    },
+  },
   loading: { type: Boolean, required: true, default: false },
 })
-const emits = defineEmits(['update:visible', 'updateNode', 'clearSelectedNode'])
+const emits = defineEmits(['update:visible', 'updateNode'])
 const datasetsModalVisible = ref(false)
 const form = ref<Record<string, any>>({})
 const { nodes, edges } = useVueFlow()
@@ -22,45 +28,35 @@ const {
   loadDatasets,
 } = useGetDatasetsWithPage()
 
-// 定义节点可引用的变量选项
 const inputRefOptions = computed(() => {
   return getReferencedVariables(cloneDeep(nodes.value), cloneDeep(edges.value), props.node.id)
 })
 
-// 定义滚动数据分页处理器
 const handleScroll = async (event: UIEvent) => {
-  // 获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (getDatasetsWithPageLoading.value) return
     await loadDatasets()
   }
 }
 
-// 定义取消关联知识库函数
 const removeDataset = (idx: number) => {
   form.value.datasets.splice(idx, 1)
 }
 
-// 知识库选择处理器
 const handleSelectDataset = (idx: number) => {
-  // 提取对应的知识库id
-  const dataset = datasets[idx]
+  const dataset = datasets.value[idx]
 
-  // 检测id是否选中，如果是选中则删除
   if (form.value.datasets.some((activateDataset: any) => activateDataset.id === dataset.id)) {
     form.value.datasets = form.value.datasets.filter(
       (activateDataset: any) => activateDataset.id !== dataset.id,
     )
   } else {
-    // 检测已关联的知识库数量
     if (form.value.datasets.length >= 5) {
       Message.warning('关联知识库已超过5个，无法继续关联')
       return
     }
-    // 添加数据到激活知识库列表
     form.value.datasets.push({
       id: dataset.id,
       name: dataset.name,
@@ -70,16 +66,12 @@ const handleSelectDataset = (idx: number) => {
   }
 }
 
-// 定义表单提交函数
 const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 检查表单是否出现错误，如果出现错误则直接结束
   if (errors) return
 
-  // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
   const cloneDatasets = cloneDeep(form.value.datasets)
 
-  // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
     title: form.value.title,
@@ -112,7 +104,6 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   })
 }
 
-// 监听数据，将数据映射到表单模型上
 watch(
   () => props.node,
   (newNode) => {
@@ -129,13 +120,11 @@ watch(
         score: 0,
       },
       inputs: cloneInputs.map((input: any) => {
-        // 计算引用的变量值信息
         const ref =
           input.value.type === 'ref'
             ? `${input.value.content.ref_node_id}/${input.value.content.ref_var_name}`
             : ''
 
-        // 判断引用的变量值信息是否存在，如果不存在则设置为空
         let refExists = false
         if (input.value.type === 'ref') {
           for (const inputRefOption of inputRefOptions.value) {
@@ -161,6 +150,10 @@ watch(
   },
   { immediate: true },
 )
+
+onMounted(() => {
+  loadDatasets(true)
+})
 </script>
 
 <template>
@@ -187,12 +180,7 @@ watch(
         type="text"
         size="mini"
         class="!text-gray700 flex-shrink-0"
-        @click="
-          () => {
-            emits('update:visible', false)
-            emits('clearSelectedNode')
-          }
-        "
+        @click="() => emits('update:visible', false)"
       >
         <template #icon>
           <icon-close />
@@ -470,7 +458,7 @@ watch(
             <div
               v-for="(dataset, idx) in datasets"
               :key="dataset.id"
-              :class="`flex items-center gap-2 border px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-700 ${form.datasets.some((activateDataset) => activateDataset.id === dataset.id) ? 'bg-blue-50 border-blue-700' : ''}`"
+              :class="`flex items-center gap-2 border px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-700 ${form.datasets.some((activateDataset: any) => activateDataset.id === dataset.id) ? 'bg-blue-50 border-blue-700' : ''}`"
               @click="() => handleSelectDataset(idx)"
             >
               <a-avatar

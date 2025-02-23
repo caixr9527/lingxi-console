@@ -1,27 +1,44 @@
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import moment from 'moment'
 import {
+  useDeleteDocument,
   useGetDataset,
   useGetDocumentsWithPage,
-  useDeleteDocument,
   useUpdateDocumentEnabled,
 } from '@/hooks/use-dataset'
-import moment from 'moment'
-import { useRoute, useRouter } from 'vue-router'
-import UpdateDocumentNameModal from './components/UpdateDocumentNameModal.vue'
-import { ref } from 'vue'
-import HitTestingModal from './components/HitTestingModal.vue'
+import UpdateDocumentNameModal from '@/views/space/datasets/documents/components/UpdateDocumentNameModal.vue'
+import HitTestingModal from '@/views/space/datasets/documents/components/HitTestingModal.vue'
+
 const route = useRoute()
 const router = useRouter()
 const hitModalVisible = ref(false)
 const updateDocumentNameModalVisible = ref(false)
 const updateDocumentID = ref('')
-const { dataset, loadDataset } = useGetDataset(route.params?.dataset_id as string)
-const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage(
-  route.params?.dataset_id as string,
-)
-
+const { dataset, loadDataset } = useGetDataset()
+const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage()
 const { handleDelete } = useDeleteDocument()
 const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
+const req = computed(() => {
+  return {
+    current_page: Number(route.query?.current_page ?? 1),
+    page_size: Number(route.query?.page_size ?? 20),
+    search_word: String(route.query?.search_word ?? ''),
+  }
+})
+
+watch(
+  () => route.query,
+  () => {
+    loadDocuments(String(route.params?.dataset_id), req.value)
+  },
+)
+
+onMounted(() => {
+  loadDataset(String(route.params?.dataset_id))
+  loadDocuments(String(route.params?.dataset_id), req.value)
+})
 </script>
 
 <template>
@@ -38,7 +55,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
       </router-link>
       <!-- 右侧知识库信息 -->
       <div class="flex items-center gap-3">
-        <!-- 知识库图标 -->
+        <!-- 知识库的图标 -->
         <a-avatar :size="40" shape="square" class="rounded-lg" :image-url="dataset.icon" />
         <!-- 知识库信息 -->
         <div class="flex flex-col justify-between h-[40px]">
@@ -51,13 +68,13 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
           </div>
           <div v-else class="flex items-center gap-2">
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              {{ dataset.document_count }} 文档
+              {{ dataset?.document_count }} 文档
             </a-tag>
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              {{ dataset.hit_count }} 命中
+              {{ dataset?.hit_count }} 命中
             </a-tag>
             <a-tag size="small" class="rounded h-[18px] leading-[18px] bg-gray-200 text-gray-500">
-              {{ dataset.related_app_count }} 关联应用
+              {{ dataset?.related_app_count }} 关联应用
             </a-tag>
           </div>
         </div>
@@ -96,7 +113,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
       </a-space>
     </div>
     <!-- 底部表格 -->
-    <div>
+    <div class="">
       <!-- 表格内容 -->
       <a-table
         hoverable
@@ -110,9 +127,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
         }"
         :loading="loading"
         :data="documents"
-        :bordered="{
-          wrapper: false,
-        }"
+        :bordered="{ wrapper: false }"
         @page-change="
           (page: number) => {
             router.push({
@@ -231,6 +246,7 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
                         record.id,
                         value as boolean,
                         () => {
+                          // 更新对应记录的状态文字描述
                           documents[rowIndex].enabled = value
                         },
                       )
@@ -257,9 +273,9 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
                       class="!text-red-700"
                       @click="
                         () =>
-                          handleDelete(route.params?.dataset_id as string, record.id, async () => {
-                            await loadDocuments()
-                            await loadDataset(route.params?.dataset_id as string)
+                          handleDelete(String(route.params?.dataset_id), record.id, () => {
+                            loadDocuments(String(route.params?.dataset_id), req)
+                            loadDataset(String(route.params?.dataset_id))
                           })
                       "
                     >
@@ -273,17 +289,14 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
         </template>
       </a-table>
     </div>
-    <!-- 更新文档名字模态框 -->
+    <!-- 更新文档名字模态窗 -->
     <update-document-name-modal
       :document_id="updateDocumentID"
       :dataset_id="route.params?.dataset_id as string"
       v-model:visible="updateDocumentNameModalVisible"
-      :on-after-update="
-        async () => {
-          await loadDocuments()
-        }
-      "
+      :on-after-update="() => loadDocuments(String(route.params?.dataset_id ?? ''), req)"
     />
+    <!-- 召回测试模态窗 -->
     <hit-testing-modal
       v-model:visible="hitModalVisible"
       :dataset_id="route.params?.dataset_id as string"

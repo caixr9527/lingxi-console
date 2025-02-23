@@ -1,7 +1,13 @@
 <script setup lang="ts">
 // 1.定义自定义组件所需数据
 const props = defineProps({
-  account: { type: Object, default: {}, required: true },
+  account: {
+    type: Object,
+    default: () => {
+      return {}
+    },
+    required: true,
+  },
   query: { type: String, default: '', required: true },
 })
 </script>

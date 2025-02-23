@@ -29,7 +29,7 @@ watch(
     if (newValue) {
       await loadPublishHistories(String(props.app?.id), true)
     } else {
-      publishHistories.splice(0, publishHistories.length)
+      publishHistories.value.splice(0, publishHistories.value.length)
     }
   },
 )

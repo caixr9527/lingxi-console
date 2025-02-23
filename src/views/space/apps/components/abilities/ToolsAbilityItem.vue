@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type PropType, ref } from 'vue'
+import { computed, onMounted, type PropType, ref } from 'vue'
 import { type GetDraftAppConfigResponse } from '@/models/app'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 import { useGetApiTool, useGetApiToolProvidersWithPage } from '@/hooks/use-tool'
@@ -7,12 +7,11 @@ import { useGetBuiltinTool, useGetBuiltinTools, useGetCategories } from '@/hooks
 import { apiPrefix, typeMap } from '@/config'
 import { Message } from '@arco-design/web-vue'
 
-// 1.定义自定义组件所需数据
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   tools: {
     type: Array as PropType<GetDraftAppConfigResponse['data']['tools']>,
-    default: [],
+    default: () => [],
     required: true,
   },
 })
@@ -27,7 +26,7 @@ const {
   loadApiToolProviders,
 } = useGetApiToolProvidersWithPage()
 const { loading: getBuiltinToolLoading, builtin_tool, loadBuiltinTool } = useGetBuiltinTool()
-const { categories } = useGetCategories()
+const { categories, loadCategories } = useGetCategories()
 const { builtin_tools, loadBuiltinTools } = useGetBuiltinTools()
 const toolInfoModalVisible = ref(false)
 const toolInfoNavType = ref('info')
@@ -38,36 +37,33 @@ const toolsModalVisible = ref(false)
 const toolsActivateType = ref('api_tool')
 const toolsActivateCategory = ref('all')
 const computedBuiltinTools = computed(() => {
-  if (toolsActivateCategory.value === 'all') return builtin_tools
-  return builtin_tools.filter((item) => item.category === toolsActivateCategory.value)
+  if (toolsActivateCategory.value === 'all') return builtin_tools.value
+  return builtin_tools.value.filter((item: any) => item.category === toolsActivateCategory.value)
 })
 
-// 2.定义显示工具设置模态窗
 const handleShowToolInfoModal = async (idx: number) => {
-  // 2.1 获取当前选中的工具
   if (idx === -1) return
   toolInfoIdx.value = idx
   const tool = props.tools[idx]
 
-  // 2.2 检测不同的工具类型调用不同API接口
   if (tool.type === 'builtin_tool') {
     await loadBuiltinTool(tool.provider.name, tool.tool.name)
     toolInfo.value = {
       type: 'builtin_tool',
       provider: {
-        id: builtin_tool.provider.name,
-        icon: `${apiPrefix}/builtin-tools/${builtin_tool.provider.name}/icon`,
-        name: builtin_tool.provider.name,
-        label: builtin_tool.provider.label,
-        description: builtin_tool.provider.description,
+        id: builtin_tool.value.provider.name,
+        icon: `${apiPrefix}/builtin-tools/${builtin_tool.value.provider.name}/icon`,
+        name: builtin_tool.value.provider.name,
+        label: builtin_tool.value.provider.label,
+        description: builtin_tool.value.provider.description,
       },
       tool: {
-        id: builtin_tool.name,
-        name: builtin_tool.name,
-        label: builtin_tool.label,
-        description: builtin_tool.description,
-        inputs: builtin_tool.inputs,
-        params: builtin_tool.params,
+        id: builtin_tool.value.name,
+        name: builtin_tool.value.name,
+        label: builtin_tool.value.label,
+        description: builtin_tool.value.description,
+        inputs: builtin_tool.value.inputs,
+        params: builtin_tool.value.params,
       },
     }
   } else {
@@ -75,51 +71,44 @@ const handleShowToolInfoModal = async (idx: number) => {
     toolInfo.value = {
       type: 'api_tool',
       provider: {
-        id: api_tool.provider.id,
-        icon: api_tool.provider.icon,
-        name: api_tool.provider.name,
-        label: api_tool.provider.name,
-        description: api_tool.provider.description,
+        id: api_tool.value.provider.id,
+        icon: api_tool.value.provider.icon,
+        name: api_tool.value.provider.name,
+        label: api_tool.value.provider.name,
+        description: api_tool.value.provider.description,
       },
       tool: {
-        id: api_tool.name,
-        name: api_tool.name,
-        label: api_tool.name,
-        description: api_tool.description,
-        inputs: builtin_tool.inputs,
+        id: api_tool.value.name,
+        name: api_tool.value.name,
+        label: api_tool.value.name,
+        description: api_tool.value.description,
+        inputs: builtin_tool.value.inputs,
         params: [],
       },
     }
   }
 
-  // 2.3 更新工具设置表单，从草稿中获取配置，如果没有则设置默认值
   const params = tool.tool.params
   toolInfo.value.tool.params.forEach((param: any) => {
     toolInfoSettingForm.value[param.name] = params[param.name] ?? param.default
   })
 
-  // 2.3 显示模态窗
   toolInfoModalVisible.value = true
 }
 
-// 3.定义关闭工具设置模态窗
 const handleCancelToolInfoModal = () => {
   toolInfoIdx.value = -1
   toolInfoModalVisible.value = false
   toolInfoNavType.value = 'info'
 }
 
-// 4.定义提交工具设置模态窗
 const handleSubmitToolInfo = async () => {
-  // 4.1 获取当前工具信息
   const tool = props.tools[toolInfoIdx.value]
   if (tool.type === 'api_tool') {
-    // 4.2 自定义工具则直接关闭模态窗
     handleCancelToolInfoModal()
     return
   }
 
-  // 4.3 更新草稿配置
   const newTools = [...props.tools]
   newTools[toolInfoIdx.value]['tool']['params'] = toolInfoSettingForm.value
   await handleUpdateDraftAppConfig(props.app_id, {
@@ -133,22 +122,16 @@ const handleSubmitToolInfo = async () => {
     }),
   })
 
-  // 4.4 更新成功触发同步事件
   emits('update:tools', newTools)
 
-  // 4.5 关闭模态窗
   handleCancelToolInfoModal()
 }
 
-// 5.删除工具处理器
 const handleDeleteTool = async (idx: number) => {
-  // 5.1 提取props中的数据
   const newTools = [...props.tools]
 
-  // 5.2 剔除数据
   newTools.splice(idx, 1)
 
-  // 5.3 更新提交表单
   await handleUpdateDraftAppConfig(props.app_id, {
     tools: newTools.map((item) => {
       return {
@@ -160,26 +143,19 @@ const handleDeleteTool = async (idx: number) => {
     }),
   })
 
-  // 5.4 触发时间更新props
   emits('update:tools', newTools)
 }
 
-// 6.定义显示工具列表模态窗
 const handleShowToolsModal = async () => {
-  // 6.1 显示模态窗
   toolsModalVisible.value = true
 
-  // 6.2 调用API接口获取响应
   await loadApiToolProviders(true)
   await loadBuiltinTools()
 }
 
-// 7.滚动加载api工具列表
 const handleScroll = async (event: UIEvent) => {
-  // 1.获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 2.判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (getApiToolProvidersLoading.value) {
       return
@@ -188,12 +164,10 @@ const handleScroll = async (event: UIEvent) => {
   }
 }
 
-// 8.定义添加关联扩展处理器
 const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
-  // 8.1 根据不同的类型获取特定的工具信息
-  let selectTool = {}
+  let selectTool: any = {}
   if (toolsActivateType.value === 'api_tool') {
-    const apiToolProvider = api_tool_providers[provider_idx]
+    const apiToolProvider = api_tool_providers.value[provider_idx]
     const apiTool = apiToolProvider['tools'][tool_idx]
     selectTool = {
       type: 'api_tool',
@@ -238,13 +212,11 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
     }
   }
 
-  // 8.3 检测是删除还是新增
   if (
     props.tools.some((item) => {
       return item.provider.id === selectTool.provider.id && item.tool.name === selectTool.tool.name
     })
   ) {
-    // 8.4 删除关联的工具，筛选数据后更新
     const newTools = [...props.tools].filter((item) => {
       return item.provider.id !== selectTool.provider.id && item.tool.name !== selectTool.tool.name
     })
@@ -259,17 +231,14 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
       }),
     })
 
-    // 8.5 双向更新数据，不关闭模态窗
     emits('update:tools', newTools)
     return
   } else {
-    // 8.6 新增数据，检测关联插件数是否大于等于5
     if (props.tools.length >= 5) {
       Message.warning('一个Agent应用最多关联5个扩展插件')
       return
     }
 
-    // 8.7 添加数据后同步草稿配置
     const newTools = [...props.tools]
     newTools.push(selectTool)
     await handleUpdateDraftAppConfig(props.app_id, {
@@ -283,17 +252,20 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
       }),
     })
 
-    // 8.8 双向更新数据，不关闭模态窗
     emits('update:tools', newTools)
   }
 }
 
-// 9.定义是否关联工具判断函数
-const isToolSelected = (provider, tool) => {
+const isToolSelected = (provider: Record<string, any>, tool: Record<string, any>) => {
   return props.tools.some(
     (item) => item.provider.name === provider.name && item.tool.name === tool.name,
   )
 }
+
+onMounted(() => {
+  // 加载内置工具分类
+  loadCategories()
+})
 </script>
 
 <template>
@@ -531,9 +503,9 @@ const isToolSelected = (provider, tool) => {
           class="flex flex-col flex-shrink-0 bg-gray-50 w-[200px] h-full px-3 py-4 overflow-scroll scrollbar-w-none"
         >
           <!-- 标题 -->
-          <div class="text-gray-900 font-bold text-lg mb-4">添加插件</div>
+          <div class="text-gray-900 font-bold text-lg mb-4">关联插件</div>
           <!-- 添加插件按钮 -->
-          <router-link :to="{ name: 'space-tools-list' }">
+          <router-link :to="{ name: 'space-tools-list', query: { create_type: 'tool' } }">
             <a-button long type="primary" class="rounded-lg mb-5">创建自定义插件</a-button>
           </router-link>
           <!-- 工具类别导航 -->
@@ -586,12 +558,7 @@ const isToolSelected = (provider, tool) => {
             <div class="text-lg font-bold text-gray-700">
               {{ toolsActivateType === 'api_tool' ? '自定义插件' : '内置插件' }}
             </div>
-            <a-button
-              size="mini"
-              type="text"
-              class="!text-gray-700 ml-6"
-              @click="toolsModalVisible = false"
-            >
+            <a-button size="mini" type="text" class="!text-gray-700 ml-6">
               <template #icon>
                 <icon-close />
               </template>
@@ -676,7 +643,9 @@ const isToolSelected = (provider, tool) => {
                     <a-button
                       size="mini"
                       class="hidden group-hover:block rounded px-1.5 flex-shrink-0"
-                      @click="async () => await handleSelectTool(api_tool_provider_idx, tool_idx)"
+                      @click="
+                        async () => await handleSelectTool(Number(api_tool_provider_idx), tool_idx)
+                      "
                     >
                       <template #icon>
                         <icon-plus />

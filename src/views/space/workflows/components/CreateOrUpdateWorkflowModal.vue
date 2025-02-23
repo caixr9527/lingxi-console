@@ -2,9 +2,8 @@
 import { ref, watch } from 'vue'
 import { type Form, type ValidatedError } from '@arco-design/web-vue'
 import { useCreateWorkflow, useGetWorkflow, useUpdateWorkflow } from '@/hooks/use-workflow'
-import { uploadImage } from '@/services/upload-file'
+import { useUploadImage } from '@/hooks/use-upload-file'
 
-// 1.定义自定义组件所需数据
 const props = defineProps({
   workflow_id: { type: String, default: '', required: false },
   visible: { type: Boolean, required: true },
@@ -14,6 +13,7 @@ const emits = defineEmits(['update:visible', 'update:workflow_id'])
 const { loading: createWorkflowLoading, handleCreateWorkflow } = useCreateWorkflow()
 const { loading: updateWorkflowLoading, handleUpdateWorkflow } = useUpdateWorkflow()
 const { workflow, loadWorkflow } = useGetWorkflow()
+const { image_url, handleUploadImage } = useUploadImage()
 const defaultForm = {
   fileList: [] as any,
   icon: '',
@@ -24,41 +24,30 @@ const defaultForm = {
 const form = ref({ ...defaultForm })
 const formRef = ref<InstanceType<typeof Form>>()
 
-// 2.定义隐藏模态窗函数
 const hideModal = () => emits('update:visible', false)
 
-// 3.定义表单提交函数
 const saveWorkflow = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 3.1 判断表单是否出错
   if (errors) return
 
-  // 3.2 检测是保存还是新增，调用不同的API接口
   if (props.workflow_id) {
     await handleUpdateWorkflow(props.workflow_id, form.value)
   } else {
     await handleCreateWorkflow(form.value)
   }
 
-  // 3.3 完成保存操作，隐藏模态窗并调用回调函数
   emits('update:visible', false)
   props.callback && props.callback()
 }
 
-// 4.监听模态窗显示状态变化
 watch(
   () => props.visible,
   async (newValue) => {
-    // 4.1 清除表单校验信息
     formRef.value?.resetFields()
 
-    // 4.2 判断弹窗是打开还是关闭
     if (newValue) {
-      // 4.3 开启弹窗，需要检测下是更新还是创建操作
       if (props.workflow_id) {
-        // 4.4 调用接口获取工作流详情
         await loadWorkflow(props.workflow_id)
 
-        // 4.5 更新表单数据
         form.value = {
           fileList: [{ uid: '1', name: '应用图标', url: String(workflow.value?.icon) }],
           icon: String(workflow.value?.icon),
@@ -68,7 +57,6 @@ watch(
         }
       }
     } else {
-      // 4.6 关闭弹窗，需要清空表单数据
       form.value = defaultForm
       formRef.value?.resetFields()
       emits('update:workflow_id', '')
@@ -120,9 +108,9 @@ watch(
                 // 2.使用普通异步函数完成上传
                 const uploadTask = async () => {
                   try {
-                    const resp = await uploadImage(fileItem.file as File)
-                    form.icon = resp.data.image_url
-                    onSuccess(resp)
+                    await handleUploadImage(fileItem.file as File)
+                    form.icon = image_url
+                    onSuccess(image_url)
                   } catch (error) {
                     onError(error)
                   }

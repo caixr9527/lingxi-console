@@ -1,6 +1,6 @@
 import { type BasePaginatorResponse, type BaseResponse } from '@/models/base'
 
-export type GetDatasetsWithPageResp = BasePaginatorResponse<{
+export type GetDatasetsWithPageResponse = BasePaginatorResponse<{
   id: string
   name: string
   icon: string
@@ -46,14 +46,14 @@ export type GetDocumentsWithPageRequest = {
 export type GetDocumentsWithPageResponse = BasePaginatorResponse<{
   id: string
   name: string
-  charatcter_count: number
+  character_count: number
   hit_count: number
   position: number
   enabled: boolean
   disabled_at: number
   status: string
   error: string
-  update_at: number
+  updated_at: number
   created_at: number
 }>
 
@@ -141,7 +141,7 @@ export type CreateDocumentsResponse = BaseResponse<{
   }[]
 }>
 
-export type GetDocumentStatusResponse = BaseResponse<
+export type GetDocumentsStatusResponse = BaseResponse<
   Array<{
     id: string
     name: string
@@ -163,14 +163,12 @@ export type GetDocumentStatusResponse = BaseResponse<
   }>
 >
 
-// 获取指定文档的片段列表请求结构
 export type GetSegmentsWithPageRequest = {
   current_page: number
   page_size: number
   search_word: string
 }
 
-// 获取指定文档的片段列表响应结构
 export type GetSegmentsWithPageResponse = BasePaginatorResponse<{
   id: string
   dataset_id: string
@@ -189,19 +187,16 @@ export type GetSegmentsWithPageResponse = BasePaginatorResponse<{
   created_at: number
 }>
 
-// 新增文档片段请求结构
 export type CreateSegmentRequest = {
   content: string
   keywords: string[]
 }
 
-// 修改文档片段请求结构
 export type UpdateSegmentRequest = {
   content: string
   keywords: string[]
 }
 
-// 查询文档片段响应结构
 export type GetSegmentResponse = BaseResponse<{
   id: string
   document_id: string

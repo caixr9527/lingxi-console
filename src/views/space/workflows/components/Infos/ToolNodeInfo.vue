@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { type GraphNode, useVueFlow } from '@vue-flow/core'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
 import { cloneDeep } from 'lodash'
 import { getReferencedVariables } from '@/utils/helper'
 import { apiPrefix } from '@/config'
@@ -8,13 +8,18 @@ import { useGetBuiltinTool, useGetBuiltinTools, useGetCategories } from '@/hooks
 import { useGetApiTool, useGetApiToolProvidersWithPage } from '@/hooks/use-tool'
 import type { ValidatedError } from '@arco-design/web-vue'
 
-// 定义自定义组件所需数据
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
-  node: { type: Object as unknown as GraphNode, required: true, default: {} },
+  node: {
+    type: Object as any,
+    required: true,
+    default: () => {
+      return {}
+    },
+  },
   loading: { type: Boolean, required: true, default: false },
 })
-const emits = defineEmits(['update:visible', 'updateNode', 'clearSelectedNode'])
+const emits = defineEmits(['update:visible', 'updateNode'])
 const { nodes, edges } = useVueFlow()
 const {
   loading: getApiToolProvidersLoading,
@@ -25,16 +30,16 @@ const {
 const { builtin_tool, loadBuiltinTool } = useGetBuiltinTool()
 const { api_tool, loadApiTool } = useGetApiTool()
 const { builtin_tools, loadBuiltinTools } = useGetBuiltinTools()
-const { categories } = useGetCategories()
+const { categories, loadCategories } = useGetCategories()
 const form = ref<Record<string, any>>({})
 const toolsModalVisible = ref(false)
 const toolsActivateType = ref('api_tool')
 const toolsActivateCategory = ref('all')
 const computedBuiltinTools = computed(() => {
-  if (toolsActivateCategory.value === 'all') return builtin_tools
-  return builtin_tools.filter((item) => item.category === toolsActivateCategory.value)
+  if (toolsActivateCategory.value === 'all') return builtin_tools.value
+  return builtin_tools.value.filter((item: any) => item.category === toolsActivateCategory.value)
 })
-const pythonTypeMap: any = {
+const pythonTypeMap: Record<string, any> = {
   str: 'string',
   int: 'int',
   float: 'float',
@@ -46,42 +51,33 @@ const defaultToolMeta = {
   tool: { id: '', name: '', label: '', description: '', params: {} },
 }
 
-// 定义节点可引用的变量选项
 const inputRefOptions = computed(() => {
   return getReferencedVariables(cloneDeep(nodes.value), cloneDeep(edges.value), props.node.id)
 })
 
-// 定义显示工具列表模态窗
 const handleShowToolsModal = async () => {
-  // 显示模态窗
   toolsModalVisible.value = true
 
-  // 调用API接口获取响应
   await loadApiToolProviders(true)
   await loadBuiltinTools()
 }
 
-// 定义移除绑定工具的函数
 const removeBindTool = () => {
   form.value.tool = defaultToolMeta
   form.value.params = []
   form.value.inputs = []
 }
 
-// 定义是否关联工具判断函数
-const isToolSelected = (provider: any, tool: any) => {
+const isToolSelected = (provider: Record<string, any>, tool: Record<string, any>) => {
   return (
     form.value.tool?.provider?.name === provider.name && form.value.tool?.tool.name === tool.name
   )
 }
 
-// 定义工具选择处理器
 const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
-  // 根据不同的工具类型执行不同的操作
-  let selectTool: any = {}
+  let selectTool: any
   if (toolsActivateType.value === 'api_tool') {
-    // 获取api工具提供者+工具本身，并更新selectTool
-    const apiToolProvider = api_tool_providers[provider_idx]
+    const apiToolProvider = api_tool_providers.value[provider_idx]
     const apiTool = apiToolProvider['tools'][tool_idx]
     selectTool = {
       type: 'api_tool',
@@ -132,7 +128,7 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
     form.value?.tool?.provider?.id === selectTool.provider.id &&
     form.value?.tool?.tool?.name === selectTool.tool.name
   ) {
-    // 删除关联工具
+    //  删除关联工具
     form.value.tool = defaultToolMeta
     form.value.inputs = []
     form.value.params = []
@@ -144,14 +140,14 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
     if (selectTool.type === 'builtin_tool') {
       // 调用hooks获取内置工具信息，并提取inputs+params
       await loadBuiltinTool(selectTool.provider.name, selectTool.tool.name)
-      const inputs = builtin_tool.inputs
-      const params = builtin_tool.params
+      const inputs = builtin_tool.value.inputs
+      const params = builtin_tool.value.params
 
       // 更新inputs+params
       form.value.inputs = inputs.map((item: any) => {
         return {
           name: item.name,
-          type: pythonTypeMap[item.type], // todo:需要制作一个映射
+          type: pythonTypeMap[item.type],
           value_type: 'ref', // 工具调用参数默认设置为引用
           content: '',
           ref: '',
@@ -162,7 +158,7 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
       })
     } else {
       await loadApiTool(selectTool.provider.id, selectTool.tool.name)
-      const inputs = api_tool.inputs
+      const inputs = api_tool.value.inputs
 
       // 更新inputs+params
       form.value.inputs = inputs.map((item: any) => {
@@ -179,12 +175,9 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
   }
 }
 
-// 滚动加载api工具列表
 const handleScroll = async (event: UIEvent) => {
-  // 获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (getApiToolProvidersLoading.value) {
       return
@@ -193,20 +186,16 @@ const handleScroll = async (event: UIEvent) => {
   }
 }
 
-// 定义表单提交函数
 const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 检查表单是否出现错误，如果出现错误则直接结束
   if (errors) return
 
-  // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
   const cloneParams = cloneDeep(form.value.params)
-  let params: any = {}
-  cloneParams.forEach((param: any) => {
+  let params: Record<string, any> = {}
+  cloneParams.forEach((param: Record<string, any>) => {
     params[param.key] = param.value
   })
 
-  // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
     title: form.value.title,
@@ -216,7 +205,7 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
     tool_id: form.value.tool?.tool.name,
     meta: cloneDeep(form.value.tool),
     params: params, // 将列表转换成字典
-    inputs: cloneInputs.map((input: any) => {
+    inputs: cloneInputs.map((input: Record<string, any>) => {
       return {
         name: input.name,
         description: '',
@@ -239,7 +228,6 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   })
 }
 
-// 监听数据，将数据映射到表单模型上
 watch(
   () => props.node,
   (newNode) => {
@@ -256,13 +244,11 @@ watch(
         value: value,
       })), // 将字典转换成列表
       inputs: cloneInputs.map((input: any) => {
-        // 计算引用的变量值信息
         const ref =
           input.value.type === 'ref'
             ? `${input.value.content.ref_node_id}/${input.value.content.ref_var_name}`
             : ''
 
-        // 判断引用的变量值信息是否存在，如果不存在则设置为空
         let refExists = false
         if (input.value.type === 'ref') {
           for (const inputRefOption of inputRefOptions.value) {
@@ -287,6 +273,11 @@ watch(
   },
   { immediate: true },
 )
+
+onMounted(() => {
+  // 加载内置工具分类
+  loadCategories()
+})
 </script>
 
 <template>
@@ -313,12 +304,7 @@ watch(
         type="text"
         size="mini"
         class="!text-gray700 flex-shrink-0"
-        @click="
-          () => {
-            emits('update:visible', false)
-            emits('clearSelectedNode')
-          }
-        "
+        @click="() => emits('update:visible', false)"
       >
         <template #icon>
           <icon-close />
@@ -678,7 +664,7 @@ watch(
                     <a-button
                       size="mini"
                       class="hidden group-hover:block rounded px-1.5 flex-shrink-0"
-                      @click="() => handleSelectTool(api_tool_provider_idx, tool_idx)"
+                      @click="() => handleSelectTool(Number(api_tool_provider_idx), tool_idx)"
                     >
                       <template #icon>
                         <icon-plus />

@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { type Form, type ValidatedError } from '@arco-design/web-vue'
 import { useCreateApp, useGetApp, useUpdateApp } from '@/hooks/use-app'
-import { uploadImage } from '@/services/upload-file'
+import { useUploadImage } from '@/hooks/use-upload-file'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: false },
@@ -13,6 +13,7 @@ const emits = defineEmits(['update:visible', 'update:app_id'])
 const { loading: createAppLoading, handleCreateApp } = useCreateApp()
 const { loading: updateAppLoading, handleUpdateApp } = useUpdateApp()
 const { app, loadApp } = useGetApp()
+const { image_url, handleUploadImage } = useUploadImage()
 const defaultForm = {
   fileList: [] as any,
   icon: '',
@@ -99,15 +100,13 @@ watch(
             image-preview
             :custom-request="
               (option) => {
-                // 从option中提取数据
                 const { fileItem, onSuccess, onError } = option
 
-                // 使用普通异步函数完成上传
                 const uploadTask = async () => {
                   try {
-                    const resp = await uploadImage(fileItem.file as File)
-                    form.icon = resp.data.image_url
-                    onSuccess(resp)
+                    await handleUploadImage(fileItem.file as File)
+                    form.icon = image_url
+                    onSuccess(image_url)
                   } catch (error) {
                     onError(error)
                   }
@@ -133,7 +132,7 @@ watch(
         >
           <a-input v-model:model-value="form.name" placeholder="请输入应用名称" />
         </a-form-item>
-        <a-form-item field="content" label="应用描述">
+        <a-form-item field="description" label="应用描述">
           <a-textarea
             v-model:model-value="form.description"
             :auto-size="{ minRows: 8, maxRows: 8 }"

@@ -5,7 +5,13 @@ import { QueueEvent } from '@/config'
 // 1.定义自定义组件所需数据
 const props = defineProps({
   loading: { type: Boolean, default: false, required: true },
-  agent_thoughts: { type: Array as PropType<Record<string, any>[]>, default: [], required: true },
+  agent_thoughts: {
+    type: Array as PropType<Record<string, any>[]>,
+    default: () => {
+      return []
+    },
+    required: true,
+  },
 })
 const visible = ref(false)
 </script>

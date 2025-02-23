@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
 import { useRoute } from 'vue-router'
-import { useGetDraftAppConfig, useUpdateDraftAppConfig } from '@/hooks/use-app'
-import PreViewDebugHeader from './components/PreViewDebugHeader.vue'
+import { useGetDraftAppConfig } from '@/hooks/use-app'
+import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
+import PreviewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
 import ModelConfig from './components/ModelConfig.vue'
+import { onMounted } from 'vue'
+
 const route = useRoute()
 const props = defineProps({
-  app: { type: Object, default: {}, required: true },
+  app: {
+    type: Object,
+    default: () => {
+      return {}
+    },
+    required: true,
+  },
 })
-const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig(
-  String(route.params?.app_id),
-)
-const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
+const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig()
+
+onMounted(async () => {
+  await loadDraftAppConfig(String(route.params?.app_id))
+})
 </script>
 <template>
   <div class="flex-1 w-full min-h-0 bg-white">
@@ -21,7 +30,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
       <!-- 左侧应用编排 -->
       <div class="bg-gray-50 flex flex-col h-full">
         <!-- 顶部标题 -->
-        <div class="flex items-center h-16 border-b p-4">
+        <div class="flex items-center h-16 border-b p-4 gap-4">
           <div class="text-lg text-gray-700">应用编排</div>
           <!-- LLM模型配置 -->
           <model-config
@@ -41,7 +50,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
           </div>
           <!-- 右侧应用能力 -->
           <agent-app-ability
-            :draft_app_config="draftAppConfigForm"
+            v-model:draft_app_config="draftAppConfigForm"
             :app_id="String(route.params?.app_id)"
           />
         </div>
@@ -49,7 +58,7 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
       <!-- 右侧调试与会话 -->
       <div class="min-w-[404px]">
         <!-- 头部信息 -->
-        <pre-view-debug-header
+        <preview-debug-header
           :app_id="String(route.params?.app_id)"
           :long_term_memory="draftAppConfigForm.long_term_memory"
         />
@@ -57,8 +66,9 @@ const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
         <preview-debug-chat
           :suggested_after_answer="draftAppConfigForm.suggested_after_answer"
           :opening_questions="draftAppConfigForm.opening_questions"
-          :app="props.app"
           :opening_statement="draftAppConfigForm.opening_statement"
+          :app="props.app"
+          :app_id="props.app?.id"
         />
       </div>
     </div>

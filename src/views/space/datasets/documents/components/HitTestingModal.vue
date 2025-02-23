@@ -1,99 +1,68 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
 import moment from 'moment'
-import { getDatasetQueries, hit } from '@/services/dataset'
+import { ref, watch } from 'vue'
 import { Message } from '@arco-design/web-vue'
+import { useGetDatasetQueries, useHit } from '@/hooks/use-dataset'
+import type { HitRequest } from '@/models/dataset'
 
-// 1.定义组件接收数据以及事件
 const props = defineProps({
   visible: { type: Boolean, required: true },
   dataset_id: { type: String, required: true },
 })
 const emits = defineEmits(['update:visible'])
-
-// 2.最近查询相关的内容
-const queriesLoading = ref(false)
-const queries = reactive<Array<any>>([])
-const loadQueries = async () => {
-  try {
-    queriesLoading.value = true
-    const resp = await getDatasetQueries(props.dataset_id)
-    const data = resp.data
-
-    queries.splice(0, queries.length, ...data)
-  } finally {
-    queriesLoading.value = false
-  }
-}
-
-// 3.知识库检索设置相关
 const retrievalSettingModalVisible = ref(false)
-const defaultRetrievalSetting = {
-  retrieval_strategy: 'semantic',
-  k: 5,
-  score: 0.5,
-}
-const retrievalSettingForm = reactive({ ...defaultRetrievalSetting })
-const hideRetrievalSettingModal = () => {
-  // 复原检索策略
-  Object.assign(retrievalSettingForm, { ...hitTestingForm })
+const defaultRetrievalSetting = { retrieval_strategy: 'semantic', k: 5, score: 0.5 }
+const retrievalSettingForm = ref<Record<string, any>>(defaultRetrievalSetting)
+const hitTestingSegments = ref<any[]>([])
+const hitTestingForm = ref<Record<string, any>>({ query: '', ...defaultRetrievalSetting })
+const { loading: getDatasetQueriesLoading, queries, loadDatasetQueries } = useGetDatasetQueries()
+const { loading: hitLoading, hits, handleHit } = useHit()
 
-  // 隐藏模态窗
+const hideRetrievalSettingModal = () => {
+  retrievalSettingForm.value = hitTestingForm.value
+
   retrievalSettingModalVisible.value = false
 }
+
 const saveRetrievalSetting = () => {
   // 重置检索查询片段列表
-  hitTestingSegments.splice(0, hitTestingSegments.length)
+  hitTestingSegments.value = []
 
   // 更新检索策略
-  Object.assign(hitTestingForm, { query: hitTestingForm.query, ...retrievalSettingForm })
+  hitTestingForm.value = { query: hitTestingForm.value.query, ...retrievalSettingForm.value }
 
   // 隐藏模态窗
   retrievalSettingModalVisible.value = false
 }
 
-// 4.召回设置相关
-const hitTestingLoading = ref(false)
-const hitTestingSegments = reactive<Array<any>>([])
-const hitTestingForm = reactive({
-  query: '',
-  ...defaultRetrievalSetting,
-})
 const hideHitTestingModal = () => emits('update:visible', false)
 const handleHitTesting = async () => {
-  // 检索的源文本是否为空
-  if (hitTestingForm.query.trim() === '') {
+  // 判断检索的源文本是否为空
+  if (hitTestingForm.value.query.trim() === '') {
     Message.error('检索源文本不能为空')
     return
   }
 
-  try {
-    hitTestingLoading.value = true
-    const resp = await hit(props.dataset_id, hitTestingForm)
-    const data = resp.data
+  // 调用处理器执行召回测试
+  await handleHit(props.dataset_id, hitTestingForm.value as HitRequest)
+  hitTestingSegments.value = hits.value
 
-    hitTestingSegments.splice(0, hitTestingSegments.length, ...data)
-
-    await loadQueries()
-  } finally {
-    hitTestingLoading.value = false
-  }
+  // 重新更新知识库最近查询
+  await loadDatasetQueries(props.dataset_id)
 }
 
-// 5.监听数据变化
 watch(
   () => props.visible,
   async (newValue) => {
     if (newValue) {
       // 模态窗开启，加载最近查询
-      await loadQueries()
+      await loadDatasetQueries(props.dataset_id)
     } else {
       // 模态窗关闭，清空最近查询、召回记录、初始化检索配置
-      queries.splice(0, queries.length)
-      hitTestingSegments.splice(0, hitTestingSegments.length)
-
-      Object.assign(hitTestingForm, { query: '', ...defaultRetrievalSetting })
-      Object.assign(retrievalSettingForm, { ...defaultRetrievalSetting })
+      queries.value = []
+      hitTestingSegments.value = []
+      hitTestingForm.value = { query: '', ...defaultRetrievalSetting }
+      retrievalSettingForm.value = defaultRetrievalSetting
     }
   },
 )
@@ -164,7 +133,7 @@ watch(
                     {{ hitTestingForm.query.length }}/200
                   </a-tag>
                   <a-button
-                    :loading="hitTestingLoading"
+                    :loading="hitLoading"
                     type="primary"
                     size="small"
                     class="rounded-lg"
@@ -179,7 +148,7 @@ watch(
             <div class="">
               <div class="text-gray-700 font-bold mb-4">最近查询</div>
               <a-table
-                :loading="queriesLoading"
+                :loading="getDatasetQueriesLoading"
                 :pagination="false"
                 size="small"
                 :bordered="{ wrapper: false }"
@@ -224,7 +193,7 @@ watch(
           <a-divider direction="vertical" />
           <!-- 右侧召回列表 -->
           <div class="w-1/2">
-            <a-spin :loading="hitTestingLoading" class="w-full">
+            <a-spin :loading="hitLoading" class="w-full">
               <!-- 有数据的状态 -->
               <a-row v-if="hitTestingSegments.length > 0" :gutter="[16, 16]">
                 <a-col v-for="segment in hitTestingSegments" :key="segment.id" :span="12">
