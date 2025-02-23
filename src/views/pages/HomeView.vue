@@ -14,10 +14,9 @@ import { useAccountStore } from '@/stores/account'
 import AssistantAgentBackground from '@/assets/images/assistant-agent-background.png'
 import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
-import HumanMessage from '@/views/space/apps/components/HumanMessage.vue'
-import AiMessage from '@/views/space/apps/components/AiMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
 
-// 定义页面所需数据
 const query = ref('')
 const task_id = ref('')
 const message_id = ref('')

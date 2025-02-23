@@ -19,8 +19,8 @@ import {
   useUpdateConversationIsPinned,
 } from '@/hooks/use-conversation'
 import UpdateNameModal from './components/UpdateNameModal.vue'
-import AiMessage from '@/views/space/apps/components/AiMessage.vue'
-import HumanMessage from '@/views/space/apps/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { QueueEvent } from '@/config'
 

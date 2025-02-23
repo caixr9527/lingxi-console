@@ -12,8 +12,8 @@ import {
 } from '@/hooks/use-app'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { useAccountStore } from '@/stores/account'
-import HumanMessage from './HumanMessage.vue'
-import AiMessage from './AiMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
 import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
 

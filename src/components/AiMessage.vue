@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, type PropType } from 'vue'
+import MarkdownIt from 'markdown-it'
 import DotFlashing from '@/components/DotFlashing.vue'
 import AgentThought from './AgentThought.vue'
-import MarkDownIt from 'markdown-it'
 import 'github-markdown-css'
 
 const props = defineProps({
@@ -19,22 +19,14 @@ const props = defineProps({
   total_token_count: { type: Number, default: 0, required: false },
   agent_thoughts: {
     type: Array as PropType<Record<string, any>[]>,
-    default: () => {
-      return []
-    },
+    default: () => [],
     required: true,
   },
-  suggested_questions: {
-    type: Array as PropType<string[]>,
-    default: () => {
-      return []
-    },
-    required: false,
-  },
-  message_class: { type: String, default: 'bg-gray-100', required: false },
+  suggested_questions: { type: Array as PropType<string[]>, default: () => [], required: false },
+  message_class: { type: String, default: '!bg-gray-100', required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
-const md = MarkDownIt()
+const md = MarkdownIt()
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
 })
@@ -43,7 +35,16 @@ const compiledMarkdown = computed(() => {
 <template>
   <div class="flex gap-2">
     <!-- 左侧图标 -->
-    <a-avatar :size="30" shape="circle" class="flex-shrink-0" :image-url="props.app?.icon" />
+    <a-avatar
+      v-if="props.app?.icon"
+      :size="30"
+      shape="circle"
+      class="flex-shrink-0"
+      :image-url="props.app?.icon"
+    />
+    <a-avatar v-else :size="30" shape="circle" class="flex-shrink-0 bg-blue-700">
+      <icon-apps />
+    </a-avatar>
     <!-- 右侧名称与消息 -->
     <div class="flex-1 flex flex-col items-start gap-2">
       <!-- 应用名称 -->
@@ -82,7 +83,7 @@ const compiledMarkdown = computed(() => {
         <div
           v-for="(suggested_question, idx) in props.suggested_questions"
           :key="idx"
-          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
+          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
           @click="() => emits('selectSuggestedQuestion', suggested_question)"
         >
           {{ suggested_question }}
@@ -92,13 +93,4 @@ const compiledMarkdown = computed(() => {
   </div>
 </template>
 
-<style>
-/* 保留 GitHub Markdown 样式，同时使用 TailwindCSS 自定义列表样式 */
-.markdown-body {
-  font-size: 14px;
-}
-
-.markdown-body pre {
-  @apply bg-gray-700 text-white;
-}
-</style>
+<style scoped></style>

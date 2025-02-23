@@ -37,7 +37,7 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
 <template>
   <div class="">
     <!-- 顶部标题 -->
-    <div class="text-gray-900 font-bold text-2xl leading-8">慕课LLMOps AppBuilder</div>
+    <div class="text-gray-900 font-bold text-2xl leading-8">LLMOps AppBuilder</div>
     <p class="text-base leading-6 text-gray-600">高效开发你的AI原生应用</p>
     <!-- 错误提示占位符 -->
     <div class="h-8 text-red-700 leading-8 line-clamp-1">{{ errorMessage }}</div>
