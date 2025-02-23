@@ -43,7 +43,7 @@ const instance = ref<any>(null)
 const isDebug = ref(false)
 const nodeInfoVisible = ref(false)
 const { loading: getWorkflowLoading, workflow, loadWorkflow } = useGetWorkflow()
-const { loading: getDraftGraphLoading, nodes, edges, loadDraftGraph } = useGetDraftGraph()
+const { nodes, edges, loadDraftGraph } = useGetDraftGraph()
 const { loading: publishWorkflowLoading, handlePublishWorkflow } = usePublishWorkflow()
 const { handleCancelPublish } = useCancelPublishWorkflow()
 const {
@@ -675,7 +675,17 @@ onMounted(async () => {
                 </a-dropdown>
               </div>
               <!-- 调试与预览 -->
-              <a-button type="text" size="small" class="px-2 rounded-lg" @click="isDebug = true">
+              <a-button
+                type="text"
+                size="small"
+                class="px-2 rounded-lg"
+                @click="
+                  () => {
+                    selectedNode = null
+                    isDebug = true
+                  }
+                "
+              >
                 <template #icon>
                   <icon-play-arrow />
                 </template>

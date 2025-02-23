@@ -61,14 +61,14 @@ const handleCancel = () => {
     updateDatasetID = ''
     formRef.value?.resetFields()
 
-    // 2.隐藏表单模态窗
+    // 隐藏表单模态窗
     emits('update:create-type', '')
   })
 }
 
-// 5.定义提交模态窗处理器
+// 定义提交模态窗处理器
 const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 1.如果出错则直接抛出
+  // 如果出错则直接抛出
   if (errors) return
 
   await saveDataset(updateDatasetID)

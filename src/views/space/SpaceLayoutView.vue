@@ -117,7 +117,7 @@ watch(
       </div>
     </div>
     <!-- 中间内容 -->
-    <router-view :create-type="createType" @update-create-type="updateCreateType" />
+    <router-view v-model:create-type="createType" />
   </div>
 </template>
 <style scoped></style>

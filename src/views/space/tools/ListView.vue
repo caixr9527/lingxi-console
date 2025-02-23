@@ -46,14 +46,10 @@ const {
   loadApiToolProviders,
 } = useGetApiToolProvidersWithPage()
 const { handleDelete: handleDeleteApiToolProvider } = useDeleteApiToolProvider()
-const {
-  loading: updateApiToolProviderLoading,
-  handleUpdateApiToolProvider, //
-} = useUpdateApiToolProvider()
-const {
-  loading: createApiToolProviderLoading,
-  handleCreateApiToolProvider, //
-} = useCreateApiToolProvider()
+const { loading: updateApiToolProviderLoading, handleUpdateApiToolProvider } =
+  useUpdateApiToolProvider()
+const { loading: createApiToolProviderLoading, handleCreateApiToolProvider } =
+  useCreateApiToolProvider()
 const { handleValidateOpenAPISchema } = useValidateOpenAPISchema()
 const formRef = ref<InstanceType<typeof Form>>()
 const showIdx = ref<number>(-1)
