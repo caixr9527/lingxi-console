@@ -36,6 +36,7 @@ import HttpRequestNodeInfo from './components/Infos/HttpRequestNodeInfo.vue'
 import DatasetRetrievalNodeInfo from './components/Infos/DatasetRetrievalNodeInfo.vue'
 import ToolNodeInfo from './components/Infos/ToolNodeInfo.vue'
 import EndNodeInfo from './components/Infos/EndNodeInfo.vue'
+import { v4 } from 'uuid'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -257,7 +258,7 @@ const addNode = (node_type: string) => {
   const node_data = NODE_DATA_MAP[node_type]
 
   nodes.value.push({
-    id: crypto.randomUUID(),
+    id: v4(),
     type: node_type,
     position: { x: xAverage, y: yAverage },
     data: {
@@ -355,7 +356,7 @@ onConnect((connection) => {
   // 将数据添加到edges
   edges.value.push({
     ...connection,
-    id: crypto.randomUUID(),
+    id: v4(),
     source_type: source_node?.type,
     target_type: target_node?.type,
     animated: true,
