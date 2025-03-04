@@ -18,7 +18,7 @@ COPY . .
 ENV VITE_API_PREFIX=/api
 
 # 构建/编译项目
-RUN yarn build
+RUN yarn build-only
 
 # 二阶段使用 Nginx 来部署 Vue 静态页面
 FROM nginx:alpine as production
