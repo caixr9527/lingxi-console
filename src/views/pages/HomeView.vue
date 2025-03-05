@@ -16,8 +16,12 @@ import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
+import { uploadImage } from '@/services/upload-file'
 
 const query = ref('')
+const image_urls = ref<string[]>([])
+const fileInput = ref<any>(null)
+const uploadFileLoading = ref(false)
 const task_id = ref('')
 const message_id = ref('')
 const scroller = ref<any>(null)
@@ -81,6 +85,7 @@ const handleSubmit = async () => {
     id: '',
     conversation_id: '',
     query: query.value,
+    image_urls: image_urls.value,
     answer: '',
     total_token_count: 0,
     latency: 0,
@@ -91,10 +96,12 @@ const handleSubmit = async () => {
   // 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
+  const humanInmageUrls = image_urls.value
   query.value = ''
+  image_urls.value = []
 
   // 调用hooks发起请求
-  await handleAssistantAgentChat(humanQuery, (event_response) => {
+  await handleAssistantAgentChat(humanQuery, humanInmageUrls, (event_response) => {
     // 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
@@ -196,6 +203,31 @@ const handleSubmitQuestion = async (question: string) => {
   // 触发handleSubmit函数
   await handleSubmit()
 }
+const triggerFileInput = () => {
+  if (image_urls.value.length >= 5) {
+    Message.error('对话上传图片数量不能超过5张')
+    return
+  }
+
+  fileInput.value.click()
+}
+
+const handleFileChange = async (event: Event) => {
+  if (uploadFileLoading.value) return
+
+  const input = event.target as HTMLInputElement
+  const selectedFile = input.files?.[0]
+  if (selectedFile) {
+    try {
+      uploadFileLoading.value = true
+      const resp = await uploadImage(selectedFile)
+      image_urls.value.push(resp.data.image_url)
+      Message.success('上传图片成功')
+    } finally {
+      uploadFileLoading.value = false
+    }
+  }
+}
 
 // 页面DOM加载完毕时初始化数据
 onMounted(async () => {
@@ -219,7 +251,7 @@ onMounted(async () => {
       <!-- 历史对话列表 -->
       <div
         v-if="messages.length > 0"
-        class="flex flex-col px-6 h-[calc(100%-100px)] min-h-[calc(100vh-100px)]"
+        :class="`flex flex-col px-6 ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
       >
         <dynamic-scroller
           ref="scroller"
@@ -231,7 +263,11 @@ onMounted(async () => {
           <template v-slot="{ item, active }">
             <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
               <div class="flex flex-col gap-6 py-6">
-                <human-message :query="item.query" :account="accountStore.account" />
+                <human-message
+                  :query="item.query"
+                  :image_urls="item.image_urls"
+                  :account="accountStore.account"
+                />
                 <ai-message
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
@@ -267,7 +303,7 @@ onMounted(async () => {
       <!-- 对话列表为空时展示的对话开场白 -->
       <div
         v-else
-        class="flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none h-[calc(100%-100px)] min-h-[calc(100vh-100px)]"
+        :class="`flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
       >
         <div class="mb-9">
           <div class="text-[40px] font-bold text-gray-700 mt-[52px] mb-4">
@@ -358,26 +394,64 @@ onMounted(async () => {
           </a-button>
           <!-- 输入框组件 -->
           <div
-            class="bg-white h-[50px] flex items-center gap-2 px-4 flex-1 border border-gray-200 rounded-full"
+            :class="`bg-white ${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
           >
-            <input
-              v-model="query"
-              type="text"
-              class="flex-1 outline-0"
-              placeholder="发送消息或创建AI应用..."
-              @keyup.enter="handleSubmit"
-            />
-            <a-button
-              :loading="assistantAgentChatLoading"
-              type="text"
-              shape="circle"
-              class="!text-gray-700"
-              @click="handleSubmit"
-            >
-              <template #icon>
-                <icon-send :size="16" />
-              </template>
-            </a-button>
+            <!-- 图片列表 -->
+            <div v-if="image_urls.length > 0" class="flex items-center gap-2">
+              <div
+                v-for="(image_url, idx) in image_urls"
+                :key="image_url"
+                class="w-10 h-10 relative rounded-lg overflow-hidden group cursor-pointer"
+              >
+                <a-avatar shape="square" :image-url="image_url" />
+                <div
+                  class="hidden group-hover:flex items-center justify-center bg-gray-700/50 w-10 h-10 absolute top-0"
+                >
+                  <icon-close class="text-white" @click="() => image_urls.splice(idx, 1)" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="query"
+                type="text"
+                class="flex-1 outline-0"
+                placeholder="发送消息或创建AI应用..."
+                @keyup.enter="handleSubmit"
+              />
+              <!-- 上传图片输入框 -->
+              <input
+                type="file"
+                ref="fileInput"
+                accept="image/*"
+                @change="handleFileChange"
+                class="hidden"
+              />
+              <a-button
+                :loading="uploadFileLoading"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="triggerFileInput"
+              >
+                <template #icon>
+                  <icon-plus />
+                </template>
+              </a-button>
+              <a-button
+                :loading="assistantAgentChatLoading"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="handleSubmit"
+              >
+                <template #icon>
+                  <icon-send :size="16" />
+                </template>
+              </a-button>
+            </div>
           </div>
         </div>
         <!-- 底部提示信息 -->

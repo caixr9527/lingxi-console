@@ -8,9 +8,10 @@ import type {
 // 与辅助Agent进行对话
 export const assistantAgentChat = (
   query: string,
+  image_urls: string[] = [],
   onData: (event_response: Record<string, any>) => void,
 ) => {
-  return ssePost(`/assistant-agent/chat`, { body: { query } }, onData)
+  return ssePost(`/assistant-agent/chat`, { body: { query, image_urls } }, onData)
 }
 
 // 停止与辅助Agent进行对话

@@ -430,11 +430,12 @@ export const useDebugChat = () => {
   const handleDebugChat = async (
     app_id: string,
     query: string,
+    image_urls: string[] = [],
     onData: (event_response: Record<string, any>) => void,
   ) => {
     try {
       loading.value = true
-      await debugChat(app_id, query, onData)
+      await debugChat(app_id, query, image_urls, onData)
     } finally {
       loading.value = false
     }

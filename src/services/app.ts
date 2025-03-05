@@ -69,9 +69,10 @@ export const updateDebugConversationSummary = (app_id: string, summary: string) 
 export const debugChat = (
   app_id: string,
   query: string,
+  image_urls: string[],
   onData: (event_response: Record<string, any>) => void,
 ) => {
-  return ssePost(`/apps/${app_id}/conversations`, { body: { query } }, onData)
+  return ssePost(`/apps/${app_id}/conversations`, { body: { query, image_urls } }, onData)
 }
 
 // 停止某次应用的调试会话

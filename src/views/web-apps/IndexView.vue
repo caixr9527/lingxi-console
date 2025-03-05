@@ -23,6 +23,7 @@ import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { QueueEvent } from '@/config'
+import { uploadImage } from '@/services/upload-file'
 
 const route = useRoute()
 const updateConversationNameModalVisible = ref(false)
@@ -30,6 +31,9 @@ const updateConversationNameId = ref('')
 const newConversation = ref<any>(null)
 const selectedConversation = ref('')
 const query = ref('')
+const image_urls = ref<string[]>([])
+const fileInput = ref<any>(null)
+const uploadFileLoading = ref(false)
 const message_id = ref('')
 const task_id = ref('')
 const scroller = ref<any>(null)
@@ -48,7 +52,12 @@ const { handleUpdateConversationIsPinned } = useUpdateConversationIsPinned()
 const { loading: webAppChatLoading, handleWebAppChat } = useWebAppChat()
 const { loading: stopWebAppChatLoading, handleStopWebAppChat } = useStopWebAppChat()
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
-
+const can_image_input = computed(() => {
+  if (web_app.value) {
+    return web_app.value?.app_config?.features?.includes('image_input')
+  }
+  return false
+})
 // 定义会话计算属性，动态展示当前选中会话
 const conversation = computed(() => {
   // 判断是否选中新会话，如果是则直接返回新会话数据
@@ -190,6 +199,7 @@ const handleSubmit = async () => {
     id: '',
     conversation_id: '',
     query: query.value,
+    image_urls: image_urls.value,
     answer: '',
     total_token_count: 0,
     latency: 0,
@@ -200,13 +210,16 @@ const handleSubmit = async () => {
   // 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
+  const humanImageUrls = image_urls.value
   query.value = ''
+  image_urls.value = []
 
   // 调用hooks发起请求
   const req = {
     conversation_id:
       selectedConversation.value === 'new_conversation' ? '' : selectedConversation.value,
     query: humanQuery,
+    image_urls: humanImageUrls,
   }
   await handleWebAppChat(String(route.params?.token), req, (event_response) => {
     // 提取流式事件响应数据以及事件名称
@@ -335,6 +348,38 @@ const handleSubmitQuestion = async (question: string) => {
 
   // 触发handleSubmit函数
   await handleSubmit()
+}
+
+const triggerFileInput = () => {
+  // 检测上传的图片数量是否超过5
+  if (image_urls.value.length >= 5) {
+    Message.error('对话上传图片数量不能超过5张')
+    return
+  }
+
+  // 满足条件触发上传
+  fileInput.value.click()
+}
+
+// 定义文件变化监听器
+const handleFileChange = async (event: Event) => {
+  // 判断是否在上传中
+  if (uploadFileLoading.value) return
+
+  // 获取当前选中的图片
+  const input = event.target as HTMLInputElement
+  const selectedFile = input.files?.[0]
+  if (selectedFile) {
+    try {
+      // 调用API接口上传图片
+      uploadFileLoading.value = true
+      const resp = await uploadImage(selectedFile)
+      image_urls.value.push(resp.data.image_url)
+      Message.success('上传图片成功')
+    } finally {
+      uploadFileLoading.value = false
+    }
+  }
 }
 
 // 监听选择会话变化
@@ -520,7 +565,11 @@ onMounted(async () => {
           <template v-slot="{ item, active }">
             <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
               <div class="flex flex-col gap-6 py-6">
-                <human-message :query="item.query" :account="accountStore.account" />
+                <human-message
+                  :query="item.query"
+                  :image_urls="item.image_urls"
+                  :account="accountStore.account"
+                />
                 <ai-message
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
@@ -583,26 +632,64 @@ onMounted(async () => {
         <div class="px-6 flex items-center gap-4">
           <!-- 输入框组件 -->
           <div
-            class="h-[50px] flex items-center gap-2 px-4 flex-1 border border-gray-200 rounded-full"
+            :class="`${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
           >
-            <input
-              v-model="query"
-              type="text"
-              class="flex-1 outline-0"
-              @keyup.enter="handleSubmit"
-              :placeholder="`给 &quot;${web_app?.name ?? '&quot;聊天机器人&quot;'}&quot; 发送消息`"
-            />
-            <a-button
-              :loading="webAppChatLoading"
-              type="text"
-              shape="circle"
-              class="!text-gray-700"
-              @click="handleSubmit"
-            >
-              <template #icon>
-                <icon-send :size="16" />
-              </template>
-            </a-button>
+            <!-- 图片列表 -->
+            <div v-if="image_urls.length > 0 && can_image_input" class="flex items-center gap-2">
+              <div
+                v-for="(image_url, idx) in image_urls"
+                :key="image_url"
+                class="w-10 h-10 relative rounded-lg overflow-hidden group cursor-pointer"
+              >
+                <a-avatar shape="square" :image-url="image_url" />
+                <div
+                  class="hidden group-hover:flex items-center justify-center bg-gray-700/50 w-10 h-10 absolute top-0"
+                >
+                  <icon-close class="text-white" @click="() => image_urls.splice(idx, 1)" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="query"
+                type="text"
+                class="flex-1 outline-0"
+                @keyup.enter="handleSubmit"
+                :placeholder="`给 &quot;${web_app?.name ?? '&quot;聊天机器人&quot;'}&quot; 发送消息`"
+              />
+              <!-- 上传图片输入框 -->
+              <input
+                type="file"
+                ref="fileInput"
+                accept="image/*"
+                @change="handleFileChange"
+                class="hidden"
+              />
+              <a-button
+                v-if="can_image_input"
+                :loading="uploadFileLoading"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="triggerFileInput"
+              >
+                <template #icon>
+                  <icon-plus />
+                </template>
+              </a-button>
+              <a-button
+                :loading="webAppChatLoading"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="handleSubmit"
+              >
+                <template #icon>
+                  <icon-send :size="16" />
+                </template>
+              </a-button>
+            </div>
           </div>
         </div>
         <!-- 底部提示信息 -->

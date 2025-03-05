@@ -15,11 +15,12 @@ export const useAssistantAgentChat = () => {
   // 定义辅助Agent会话处理器
   const handleAssistantAgentChat = async (
     query: string,
+    image_urls: string[] = [],
     onData: (event_response: Record<string, any>) => void,
   ) => {
     try {
       loading.value = true
-      await assistantAgentChat(query, onData)
+      await assistantAgentChat(query, image_urls, onData)
     } finally {
       loading.value = false
     }

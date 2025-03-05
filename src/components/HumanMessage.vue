@@ -8,6 +8,7 @@ const props = defineProps({
     required: true,
   },
   query: { type: String, default: '', required: true },
+  image_urls: { type: Array, default: () => [] },
 })
 </script>
 
@@ -21,6 +22,7 @@ const props = defineProps({
       <div class="text-gray-700 font-bold">{{ props.account?.name }}</div>
       <!-- 人类消息 -->
       <div class="bg-blue-100 border border-blue-200 text-gray-700 px-4 py-3 rounded-2xl break-all">
+        <a-image v-for="(image_url, idx) in props.image_urls" :key="idx" :src="String(image_url)" />
         {{ props.query }}
       </div>
     </div>
