@@ -7,9 +7,9 @@ import LoginForm from './components/LoginForm.vue'
   <!-- 页面容器 -->
   <div class="flex h-screen bg-white">
     <!-- 顶部logo -->
-    <div class="fixed top-6 left-[22px] inline-flex items-center">
-      <div class="bg-gray-100 h-8 leading-8 lpx-2 z-50">LLMOps AppBuilder</div>
-    </div>
+    <!-- <div class="fixed top-6 inline-flex items-center">
+      <icon-logo class="h-16 z-50" />
+    </div> -->
     <!-- 左侧banner -->
     <banner />
     <!-- 右侧表单 -->
@@ -19,7 +19,7 @@ import LoginForm from './components/LoginForm.vue'
       <!-- 底部footer -->
       <div class="absolute right-0 bottom-0 w-full">
         <footer class="flex items-center justify-center h-10 text-gray-600 text-center">
-          LLMOps AppBuilder
+          不懂就问-AI AppBuilder
         </footer>
       </div>
     </div>

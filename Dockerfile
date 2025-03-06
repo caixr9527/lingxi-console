@@ -16,6 +16,8 @@ COPY . .
 
 # 配置环境变量
 ENV VITE_API_PREFIX=/api
+ENV VITE_TITLE=不懂就问-AI,应用开发平台
+ENV VITE_DESCRIPTION="If you don't understand, just ask"
 
 # 构建/编译项目
 RUN yarn build-only
