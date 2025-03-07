@@ -7,7 +7,7 @@ import { useGetCurrentUser } from '@/hooks/use-account'
 import { useCredentialStore } from '@/stores/credential'
 import { useAccountStore } from '@/stores/account'
 import SettingModal from '@/views/layouts/components/SettingModal.vue'
-
+import IconLogo from '@/components/icons/IconLogo.vue'
 const settingModalVisible = ref(false)
 const router = useRouter()
 const credentialStore = useCredentialStore()
@@ -38,10 +38,12 @@ onMounted(async () => {
         <!-- 上半部分 -->
         <div class="">
           <!-- 顶部Logo -->
-          <router-link
-            to="/home"
-            class="block h-9 w-[110px] mb-5 bg-gray-200 hover:bg-gray-300 transition-all rounded-lg"
-          />
+          <router-link to="/home" class="block h-9 w-full mb-5 hover transition-all rounded-lg">
+            <div class="text-gray-700 hover:text-gray-900 flex items-center justify-center">
+              <icon-logo class="h-full w-[40px]" />
+              <p>不懂就问-AI应用开发平台</p>
+            </div>
+          </router-link>
           <!-- 创建AI应用按钮 -->
           <router-link :to="{ name: 'space-apps-list', query: { create_type: 'app' } }">
             <a-button type="primary" long class="rounded-lg mb-4">
