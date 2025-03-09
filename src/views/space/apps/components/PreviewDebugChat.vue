@@ -202,6 +202,10 @@ const handleSubmit = async () => {
     await handleGenerateSuggestedQuestions(message_id.value)
     setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
   }
+
+  if (props.text_to_speech.enable && props.text_to_speech.auto_play && message_id.value) {
+    startAudioStream(message_id.value)
+  }
 }
 
 const handleStop = async () => {
@@ -306,6 +310,8 @@ onMounted(async () => {
                 :account="accountStore.account"
               />
               <ai-message
+                :message_id="item.id"
+                :enable_text_to_speech="props.text_to_speech.enable"
                 :agent_thoughts="item.agent_thoughts"
                 :answer="item.answer"
                 :app="props.app"
@@ -314,7 +320,6 @@ onMounted(async () => {
                 :latency="item.latency"
                 :total_token_count="item.total_token_count"
                 @select-suggested-question="handleSubmitQuestion"
-                :message_id="item.id"
               />
             </div>
           </dynamic-scroller-item>

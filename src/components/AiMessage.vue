@@ -2,9 +2,11 @@
 import { computed, type PropType } from 'vue'
 import MarkdownIt from 'markdown-it'
 import DotFlashing from '@/components/DotFlashing.vue'
+import { useAudioPlayer } from '@/hooks/use-audio'
 import AgentThought from './AgentThought.vue'
 import 'github-markdown-css'
 
+const { textToAudioLoading, isPlaying, startAudioStream, stopAudioStream } = useAudioPlayer()
 const props = defineProps({
   app: {
     type: Object,
@@ -13,6 +15,8 @@ const props = defineProps({
     },
     required: true,
   },
+  enable_text_to_speech: { type: Boolean, default: false, required: false },
+  message_id: { type: String, default: '', required: false },
   answer: { type: String, default: '', required: true },
   loading: { type: Boolean, default: false, required: false },
   latency: { type: Number, default: 0, required: false },
@@ -33,7 +37,7 @@ const compiledMarkdown = computed(() => {
 </script>
 
 <template>
-  <div class="flex gap-2">
+  <div class="flex gap-2 group">
     <!-- 左侧图标 -->
     <a-avatar
       v-if="props.app?.icon"
@@ -64,7 +68,7 @@ const compiledMarkdown = computed(() => {
         v-html="compiledMarkdown"
       ></div>
       <!-- 消息展示与操作 -->
-      <div class="flex items-center justify-between">
+      <div class="w-full flex items-center justify-between">
         <!-- 消息数据额外展示 -->
         <a-space class="text-xs">
           <template #split>
@@ -76,7 +80,24 @@ const compiledMarkdown = computed(() => {
           </div>
           <div class="text-gray-500">{{ props.total_token_count }} Tokens</div>
         </a-space>
-        <!-- 操作 -->
+        <!-- 播放音频&暂停播放 -->
+        <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
+          <template v-if="textToAudioLoading">
+            <icon-loading class="hidden group-hover:block text-gray-500" />
+          </template>
+          <template v-else>
+            <icon-pause
+              v-if="isPlaying"
+              class="hidden group-hover:block text-blue-700 cursor-pointer hover:text-blue-700"
+              @click="() => stopAudioStream()"
+            />
+            <icon-play-circle
+              v-else
+              class="hidden group-hover:block text-gray-400 cursor-pointer hover:text-gray-700"
+              @click="() => startAudioStream(props.message_id)"
+            />
+          </template>
+        </div>
       </div>
       <!-- 建议问题列表 -->
       <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">

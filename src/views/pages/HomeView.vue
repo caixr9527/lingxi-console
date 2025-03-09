@@ -307,6 +307,8 @@ onMounted(async () => {
                   :account="accountStore.account"
                 />
                 <ai-message
+                  :message_id="item.id"
+                  :enable_text_to_speech="false"
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
                   :app="{ name: '辅助Agent' }"

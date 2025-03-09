@@ -94,6 +94,8 @@ export const useAudioPlayer = () => {
       // 如果事件为tts_message表示音频流式事件响应
       if (event === 'tts_message') {
         appendSourceBuffer(data?.audio)
+      } else {
+        isPlaying.value = false
       }
     })
   }

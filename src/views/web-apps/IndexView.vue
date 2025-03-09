@@ -205,6 +205,7 @@ const handleSubmit = async () => {
   suggested_questions.value = []
   message_id.value = ''
   task_id.value = ''
+  stopAudioStream()
   const selectedConversationTmp = cloneDeep(selectedConversation.value)
 
   // 往消息列表中添加基础人类消息
@@ -332,6 +333,14 @@ const handleSubmit = async () => {
     if (web_app.value?.app_config?.suggested_after_answer.enable && message_id.value) {
       await handleGenerateSuggestedQuestions(message_id.value)
       setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
+    }
+    // 判断是否自动播放
+    if (
+      web_app.value?.app_config?.text_to_speech.enable &&
+      web_app.value?.app_config?.text_to_speech.auto_play &&
+      message_id.value
+    ) {
+      startAudioStream(message_id.value)
     }
   }
 }
@@ -618,6 +627,8 @@ onMounted(async () => {
                   :account="accountStore.account"
                 />
                 <ai-message
+                  :message_id="item.id"
+                  :enable_text_to_speech="web_app?.app_config?.text_to_speech?.enable"
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
                   :app="{ name: web_app.name, icon: web_app.icon }"
