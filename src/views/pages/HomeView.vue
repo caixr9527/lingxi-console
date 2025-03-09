@@ -17,11 +17,16 @@ import { QueueEvent } from '@/config'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { uploadImage } from '@/services/upload-file'
+import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
+import AudioRecorder from 'js-audio-recorder'
 
 const query = ref('')
 const image_urls = ref<string[]>([])
 const fileInput = ref<any>(null)
 const uploadFileLoading = ref(false)
+const isRecording = ref(false) // 是否正在录音
+const audioBlob = ref<any>(null) // 录音后音频的blob
+let recorder: any = null // RecordRTC实例
 const task_id = ref('')
 const message_id = ref('')
 const scroller = ref<any>(null)
@@ -43,7 +48,7 @@ const {
   loading: deleteAssistantAgentConversationLoading,
   handleDeleteAssistantAgentConversation, //
 } = useDeleteAssistantAgentConversation()
-
+const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const saveScrollHeight = () => {
   scrollHeight.value = scroller.value.$el.scrollHeight
 }
@@ -225,6 +230,39 @@ const handleFileChange = async (event: Event) => {
       Message.success('上传图片成功')
     } finally {
       uploadFileLoading.value = false
+    }
+  }
+}
+
+const handleStartRecord = async () => {
+  //  创建AudioRecorder
+  recorder = new AudioRecorder()
+
+  // 开始录音并记录录音状态
+  try {
+    isRecording.value = true
+    await recorder.start()
+    Message.success('开始录音')
+  } catch (error: any) {
+    Message.error(`录音失败: ${error}`)
+    isRecording.value = false
+  }
+}
+
+const handleStopRecord = async () => {
+  if (recorder) {
+    try {
+      // 等待录音停止并获取录音数据
+      await recorder.stop()
+      audioBlob.value = recorder.getWAVBlob()
+
+      // 调用语音转文本处理器并将文本填充到query中
+      await handleAudioToText(audioBlob.value)
+      query.value = text.value
+    } catch (error: any) {
+      Message.error(`录音失败: ${error}`)
+    } finally {
+      isRecording.value = false // 标记为停止录音
     }
   }
 }
@@ -439,6 +477,35 @@ onMounted(async () => {
                   <icon-plus />
                 </template>
               </a-button>
+              <!-- 语音转文本加载按钮 -->
+              <template v-if="audioToTextLoading">
+                <a-button size="mini" type="text" shape="circle">
+                  <template #icon>
+                    <icon-loading />
+                  </template>
+                </a-button>
+              </template>
+              <template v-else>
+                <!-- 开始音频录制按钮 -->
+                <a-button
+                  v-if="!isRecording"
+                  size="mini"
+                  type="text"
+                  shape="circle"
+                  class="!text-gray-700"
+                  @click="handleStartRecord"
+                >
+                  <template #icon>
+                    <icon-voice />
+                  </template>
+                </a-button>
+                <!-- 结束音频录制按钮 -->
+                <a-button v-else size="mini" type="text" shape="circle" @click="handleStopRecord">
+                  <template #icon>
+                    <icon-pause />
+                  </template>
+                </a-button>
+              </template>
               <a-button
                 :loading="assistantAgentChatLoading"
                 size="mini"

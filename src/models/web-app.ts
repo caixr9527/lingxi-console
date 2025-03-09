@@ -12,6 +12,9 @@ export type GetWebAppResponse = BaseResponse<{
     suggested_after_answer: {
       enable: boolean
     }
+    features: string[]
+    speech_to_text: Record<string, any>
+    text_to_speech: Record<string, any>
   }
 }>
 

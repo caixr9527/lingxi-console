@@ -24,6 +24,8 @@ import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
+import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
+import AudioRecorder from 'js-audio-recorder'
 
 const route = useRoute()
 const updateConversationNameModalVisible = ref(false)
@@ -34,6 +36,9 @@ const query = ref('')
 const image_urls = ref<string[]>([])
 const fileInput = ref<any>(null)
 const uploadFileLoading = ref(false)
+const isRecording = ref(false) // 是否正在录音
+const audioBlob = ref<any>(null) // 录音后音频的blob
+let recorder: any = null // RecordRTC实例
 const message_id = ref('')
 const task_id = ref('')
 const scroller = ref<any>(null)
@@ -58,6 +63,14 @@ const can_image_input = computed(() => {
   }
   return false
 })
+const can_speech_to_text = computed(() => {
+  if (web_app.value) {
+    return web_app.value?.app_config?.speech_to_text?.enable
+  }
+  return false
+})
+const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
+const { startAudioStream, stopAudioStream } = useAudioPlayer()
 // 定义会话计算属性，动态展示当前选中会话
 const conversation = computed(() => {
   // 判断是否选中新会话，如果是则直接返回新会话数据
@@ -404,6 +417,40 @@ watch(
   { immediate: true },
 )
 
+const handleStartRecord = async () => {
+  // 创建AudioRecorder
+  recorder = new AudioRecorder()
+
+  // 开始录音并记录录音状态
+  try {
+    isRecording.value = true
+    await recorder.start()
+    Message.success('开始录音')
+  } catch (error: any) {
+    Message.error(`录音失败: ${error}`)
+    isRecording.value = false
+  }
+}
+
+const handleStopRecord = async () => {
+  if (recorder) {
+    try {
+      // 等待录音停止并获取录音数据
+      await recorder.stop()
+      audioBlob.value = recorder.getWAVBlob()
+
+      // 调用语音转文本处理器并将文本填充到query中
+      await handleAudioToText(audioBlob.value)
+      Message.success('语音转文本成功')
+      query.value = text.value
+    } catch (error: any) {
+      Message.error(`录音失败: ${error}`)
+    } finally {
+      isRecording.value = false // 标记为停止录音
+    }
+  }
+}
+
 // 页面挂在完毕请求数据
 onMounted(async () => {
   // 提取WebApp凭证标识
@@ -678,6 +725,36 @@ onMounted(async () => {
                   <icon-plus />
                 </template>
               </a-button>
+              <!-- 语音转文本加载按钮 -->
+              <template v-if="!can_speech_to_text"></template>
+              <template v-else-if="audioToTextLoading">
+                <a-button size="mini" type="text" shape="circle">
+                  <template #icon>
+                    <icon-loading />
+                  </template>
+                </a-button>
+              </template>
+              <template v-else>
+                <!-- 开始音频录制按钮 -->
+                <a-button
+                  v-if="!isRecording"
+                  size="mini"
+                  type="text"
+                  shape="circle"
+                  class="!text-gray-700"
+                  @click="handleStartRecord"
+                >
+                  <template #icon>
+                    <icon-voice />
+                  </template>
+                </a-button>
+                <!-- 结束音频录制按钮 -->
+                <a-button v-else size="mini" type="text" shape="circle" @click="handleStopRecord">
+                  <template #icon>
+                    <icon-pause />
+                  </template>
+                </a-button>
+              </template>
               <a-button
                 :loading="webAppChatLoading"
                 type="text"

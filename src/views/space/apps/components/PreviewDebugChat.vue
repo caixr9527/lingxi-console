@@ -17,6 +17,8 @@ import AiMessage from '@/components/AiMessage.vue'
 import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
+import AudioRecorder from 'js-audio-recorder'
+import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 
 const route = useRoute()
 const props = defineProps({
@@ -36,11 +38,32 @@ const props = defineProps({
   },
   opening_statement: { type: String, default: '', required: true },
   opening_questions: { type: Array as PropType<string[]>, default: () => [], required: true },
+  text_to_speech: {
+    type: Object,
+    default: () => {
+      return {
+        enable: false,
+        auto_play: false,
+        voice: 'echo',
+      }
+    },
+    required: false,
+  },
+  speech_to_text: {
+    type: Object,
+    default: () => {
+      return { enable: false }
+    },
+    required: false,
+  },
 })
 const query = ref('')
 const image_urls = ref<string[]>([])
 const fileInput = ref<any>(null)
 const uploadFileLoading = ref(false)
+const isRecording = ref(false) // 是否正在录音
+const audioBlob = ref<any>(null) // 录音后音频的blob
+let recorder: any = null // RecordRTC实例
 const message_id = ref('')
 const task_id = ref('')
 const scroller = ref<any>(null)
@@ -56,6 +79,9 @@ const {
 const { loading: debugChatLoading, handleDebugChat } = useDebugChat()
 const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat()
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
+const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
+const { startAudioStream, stopAudioStream } = useAudioPlayer()
+
 const saveScrollHeight = () => {
   scrollHeight.value = scroller.value.$el.scrollHeight
 }
@@ -213,7 +239,39 @@ const handleFileChange = async (event: Event) => {
     }
   }
 }
+const handleStartRecord = async () => {
+  // 创建AudioRecorder
+  recorder = new AudioRecorder()
 
+  // 开始录音并记录录音状态
+  try {
+    isRecording.value = true
+    await recorder.start()
+    Message.success('开始录音')
+  } catch (error: any) {
+    Message.error(`录音失败: ${error}`)
+    isRecording.value = false
+  }
+}
+
+const handleStopRecord = async () => {
+  if (recorder) {
+    try {
+      // 等待录音停止并获取录音数据
+      await recorder.stop()
+      audioBlob.value = recorder.getWAVBlob()
+
+      // 调用语音转文本处理器并将文本填充到query中
+      await handleAudioToText(audioBlob.value)
+      Message.success('语音转文本成功')
+      query.value = text.value
+    } catch (error: any) {
+      Message.error(`录音失败: ${error}`)
+    } finally {
+      isRecording.value = false // 标记为停止录音
+    }
+  }
+}
 onMounted(async () => {
   await loadDebugConversationMessages(String(route.params?.app_id), true)
   await nextTick(() => {
@@ -376,7 +434,36 @@ onMounted(async () => {
                 <icon-plus />
               </template>
             </a-button>
-
+            <!-- 语音转文本加载按钮 -->
+            <template v-if="!speech_to_text.enable"></template>
+            <template v-else-if="audioToTextLoading">
+              <a-button size="mini" type="text" shape="circle">
+                <template #icon>
+                  <icon-loading />
+                </template>
+              </a-button>
+            </template>
+            <template v-else>
+              <!-- 开始音频录制按钮 -->
+              <a-button
+                v-if="!isRecording"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="handleStartRecord"
+              >
+                <template #icon>
+                  <icon-voice />
+                </template>
+              </a-button>
+              <!-- 结束音频录制按钮 -->
+              <a-button v-else size="mini" type="text" shape="circle" @click="handleStopRecord">
+                <template #icon>
+                  <icon-pause />
+                </template>
+              </a-button>
+            </template>
             <a-button
               :loading="debugChatLoading"
               type="text"

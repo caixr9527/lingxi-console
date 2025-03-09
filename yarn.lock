@@ -1834,6 +1834,11 @@ jiti@^1.21.0:
   resolved "https://mirrors.cloud.tencent.com/npm/jiti/-/jiti-1.21.6.tgz"
   integrity sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==
 
+js-audio-recorder@^1.0.7:
+  version "1.0.7"
+  resolved "https://mirrors.cloud.tencent.com/npm/js-audio-recorder/-/js-audio-recorder-1.0.7.tgz#01501cb9eb143d57994b42bd5ae97974fda18908"
+  integrity sha512-JiDODCElVHGrFyjGYwYyNi7zCbKk9va9C77w+zCPMmi4C6ix7zsX2h3ddHugmo4dOTOTCym9++b/wVW9nC0IaA==
+
 js-beautify@^1.14.9:
   version "1.15.1"
   resolved "https://mirrors.cloud.tencent.com/npm/js-beautify/-/js-beautify-1.15.1.tgz"
