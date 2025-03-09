@@ -14,15 +14,25 @@ const props = defineProps({
   draft_app_config: { type: Object, required: true },
 })
 const emits = defineEmits(['update:draft_app_config'])
-const defaultActiveKeys: any[] = []
+const defaultActiveKeys: any[] = [
+  'tools',
+  'workflows',
+  'datasets',
+  'long_term_memory',
+  'opening',
+  'suggested_after_answer',
+  'review_config',
+  'speech_to_text',
+  'text_to_speech',
+]
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc[100vh-141px]]">
+  <div class="flex flex-col h-[calc(100vh-141px)]">
     <!-- 应用能力标题 -->
     <div class="p-4 text-gray-700 font-bold">应用能力</div>
     <!-- 应用能力列表 -->
-    <div class="flex-1 overfolw-scroll scrollbar-w-none">
+    <div class="flex-1 overflow-scroll scrollbar-w-none">
       <a-collapse :bordered="false" :default-active-key="defaultActiveKeys">
         <template #expand-icon="{ active }">
           <icon-down v-if="active" />
