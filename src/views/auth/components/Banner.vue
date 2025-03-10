@@ -1,7 +1,14 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import bannerImage from '@/assets/images/login-banner.png'
+import logoImage from '@/assets/images/logo-banner.png'
+import aiImage from '@/assets/images/ai-banner.png'
 const carousels = [
+  {
+    slogan: '一站式AI编排平台',
+    subSlogan: '提供灵活高效的应用开发体验',
+    image: logoImage,
+  },
   {
     slogan: '开箱即用的高质量AI编排目标',
     subSlogan: '丰富的应用插件，覆盖大多数典型业务场景',
@@ -10,7 +17,7 @@ const carousels = [
   {
     slogan: '零代码5分钟编排原生AI应用',
     subSlogan: '高效开发你的AI原生应用',
-    image: bannerImage,
+    image: aiImage,
   },
 ]
 </script>
