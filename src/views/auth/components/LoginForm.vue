@@ -40,7 +40,7 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
     <div class="text-gray-900 font-bold text-2xl leading-8">
       <p>不懂就问-AI应用开发平台</p>
     </div>
-    <p class="text-base leading-6 text-gray-600">高效开发你的AI原生应用</p>
+    <!-- <p class="text-base leading-6 text-gray-600">高效开发你的AI原生应用</p> -->
     <!-- 错误提示占位符 -->
     <div class="h-8 text-red-700 leading-8 line-clamp-1">{{ errorMessage }}</div>
     <!-- 登录表单 -->

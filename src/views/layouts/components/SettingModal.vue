@@ -8,7 +8,8 @@ import {
   useUpdatePassword,
 } from '@/hooks/use-account'
 import { useUploadImage } from '@/hooks/use-upload-file'
-
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const props = defineProps({
   visible: { type: Boolean, required: true },
 })
@@ -204,6 +205,7 @@ watch(
                   @click="
                     async () => {
                       await handleUpdatePassword(accountForm.password)
+                      await router.push({ name: 'auth-login' })
 
                       accountForm.password = ''
                       updatePassword = false
