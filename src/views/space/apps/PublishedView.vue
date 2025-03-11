@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGetPublishedConfig, useRegenerateWebAppToken } from '@/hooks/use-app'
+import { useGetWechatConfig, useUpdateWechatConfig } from '@/hooks/use-platform'
 
 const route = useRoute()
 const router = useRouter()
+const wechatConfigModalVisible = ref(false)
+const wechatConfigForm = ref({
+  wechat_app_id: '',
+  wechat_app_secret: '',
+  wechat_token: '',
+})
+
 const {
   loading: getPublishedConfigLoading,
   published_config,
@@ -15,6 +23,8 @@ const {
   token,
   handleRegenerateWebAppToken,
 } = useRegenerateWebAppToken()
+const { loading: getWechatConfigLoading, wechat_config, loadWechatConfig } = useGetWechatConfig()
+const { loading: updateWechatConfigLoading, handleUpdateWechatConfig } = useUpdateWechatConfig()
 const webAppUrl = computed(() => {
   if (published_config.value?.web_app?.status === 'published') {
     return getFullPath('web-apps-index', {
@@ -32,8 +42,42 @@ const getFullPath = (name: string, params = {}, query = {}) => {
   return window.location.origin + href
 }
 
+const handleShowWechatConfigModal = async () => {
+  // 调用api接口获取微信配置
+  await loadWechatConfig(String(route.params?.app_id))
+
+  // 更新表单配置
+  wechatConfigForm.value = {
+    wechat_app_id: wechat_config.value.wechat_app_id,
+    wechat_app_secret: wechat_config.value.wechat_app_secret,
+    wechat_token: wechat_config.value.wechat_token,
+  }
+
+  wechatConfigModalVisible.value = true
+}
+
+const handleCancelWechatConfigModal = () => {
+  wechatConfigModalVisible.value = false
+}
+
+// 定义提交微信配置模态窗处理器
+const handleSubmitWechatConfigModal = async () => {
+  // 调用hooks完成数据上传
+  await handleUpdateWechatConfig(String(route.params?.app_id), {
+    wechat_app_id: wechatConfigForm.value.wechat_app_id,
+    wechat_app_secret: wechatConfigForm.value.wechat_app_secret,
+    wechat_token: wechatConfigForm.value.wechat_token,
+  })
+
+  handleCancelWechatConfigModal()
+
+  // 重新调用获取微信公众号配置接口
+  await loadWechatConfig(String(route.params?.app_id))
+}
+
 onMounted(() => {
   loadPublishedConfig(String(route.params?.app_id))
+  loadWechatConfig(String(route.params?.app_id))
 })
 </script>
 
@@ -125,9 +169,141 @@ onMounted(() => {
               </div>
             </td>
           </tr>
+          <tr class="border-b">
+            <td class="py-3 px-4 w-2/3">
+              <div class="flex items-center gap-2">
+                <a-avatar :size="36" shape="square" class="bg-green-100">
+                  <icon-wechat :size="18" class="text-green-700" />
+                </a-avatar>
+                <div class="flex flex-col">
+                  <div class="text-gray-700 font-semibold">微信公众号（订阅号、服务号）</div>
+                  <div class="text-gray-500">
+                    接入微信公众号，自动回复用户消息，助理高效私域运营。
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 w-1/12">
+              <a-tag v-if="wechat_config?.status !== 'configured'" color="gray" bordered>
+                <template #icon>
+                  <icon-minus-circle />
+                </template>
+                未配置
+              </a-tag>
+              <a-tag v-else color="blue" bordered>
+                <template #icon>
+                  <icon-check-circle-fill />
+                </template>
+                已配置
+              </a-tag>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-3">
+                <!-- 立即配置 -->
+                <a-button
+                  :loading="getWechatConfigLoading"
+                  type="primary"
+                  class="rounded-lg px-2"
+                  @click="handleShowWechatConfigModal"
+                >
+                  <template #icon>
+                    <icon-settings />
+                  </template>
+                  立即配置
+                </a-button>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </a-spin>
+    <!-- 微信公众号配置模态窗 -->
+    <a-modal
+      :visible="wechatConfigModalVisible"
+      hide-title
+      :footer="false"
+      modal-class="rounded-xl w-[600px]"
+      @cancel="handleCancelWechatConfigModal"
+    >
+      <!-- 顶部标题 -->
+      <div class="flex items-center justify-between">
+        <div class="text-lg font-bold text-gray-700">微信公众号配置</div>
+        <a-button
+          type="text"
+          class="!text-gray-700"
+          size="small"
+          @click="handleCancelWechatConfigModal"
+        >
+          <template #icon>
+            <icon-close />
+          </template>
+        </a-button>
+      </div>
+      <!-- 中间表单 -->
+      <div class="py-4">
+        <div class="flex flex-col gap-5">
+          <!-- 服务器ip -->
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1 text-gray-700">
+                服务器ip
+                <div class="text-red-700">*</div>
+              </div>
+            </div>
+            <div class="text-gray-500">{{ wechat_config?.ip || '0.0.0.0' }}</div>
+          </div>
+          <!-- 服务器地址 -->
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1 text-gray-700">
+                服务器地址(URL)
+                <div class="text-red-700">*</div>
+              </div>
+            </div>
+            <div class="text-gray-500">{{ wechat_config?.url }}</div>
+          </div>
+          <!-- 开发者ID(AppID) -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-1 text-gray-700">开发者ID(AppID)</div>
+            <a-input
+              v-model:model-value="wechatConfigForm.wechat_app_id"
+              placeholder="请填写微信开发者ID"
+            />
+          </div>
+          <!-- 开发者秘钥(AppSecret) -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-1 text-gray-700">开发者秘钥(AppSecret)</div>
+            <a-input
+              v-model:model-value="wechatConfigForm.wechat_app_secret"
+              placeholder="请填写微信开发者秘钥"
+            />
+          </div>
+          <!-- 令牌(Token) -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-1 text-gray-700">令牌(Token)</div>
+            <a-input
+              v-model:model-value="wechatConfigForm.wechat_token"
+              placeholder="请填写微信公众号令牌"
+            />
+          </div>
+        </div>
+      </div>
+      <!-- 底部按钮 -->
+      <div class="flex items-center justify-between">
+        <div class=""></div>
+        <a-space :size="16">
+          <a-button class="rounded-lg" @click="handleCancelWechatConfigModal">取消</a-button>
+          <a-button
+            :loading="updateWechatConfigLoading"
+            type="primary"
+            class="rounded-lg"
+            @click="handleSubmitWechatConfigModal"
+          >
+            保存
+          </a-button>
+        </a-space>
+      </div>
+    </a-modal>
   </div>
 </template>
 

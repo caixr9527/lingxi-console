@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Banner from './components/Banner.vue'
 import LoginForm from './components/LoginForm.vue'
+import IconGithub from '@/components/icons/IconGithub.vue'
 </script>
 
 <template>
@@ -20,6 +21,9 @@ import LoginForm from './components/LoginForm.vue'
       <div class="absolute right-0 bottom-0 w-full">
         <footer class="flex items-center justify-center h-10 text-gray-600 text-center">
           <a-space>
+            <a href="https://github.com/caixr9527" target="_blank">
+              <icon-github class="w-[20px] h-[20px]" />
+            </a>
             <div>不懂就问-AI应用开发平台</div>
             <a href="https://beian.miit.gov.cn/" target="_blank">闽ICP备2024044910号-3</a>
           </a-space>
