@@ -609,7 +609,7 @@ onMounted(async () => {
       <!-- 底部对话消息列表 -->
       <div
         v-if="messages.length > 0"
-        class="flex flex-col px-6 w-[600px] mx-auto h-[calc(100vh-170px)]"
+        class="flex flex-col px-6 w-full mx-auto h-[calc(100vh-170px)]"
       >
         <dynamic-scroller
           ref="scroller"
@@ -685,7 +685,7 @@ onMounted(async () => {
         </div>
       </div>
       <!-- 对话输入框 -->
-      <div class="w-[600px] mx-auto flex flex-col flex-shrink-0">
+      <div class="w-[800px] mx-auto flex flex-col flex-shrink-0">
         <!-- 顶部输入框 -->
         <div class="px-6 flex items-center gap-4">
           <!-- 输入框组件 -->
