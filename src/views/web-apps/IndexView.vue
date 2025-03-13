@@ -609,7 +609,7 @@ onMounted(async () => {
       <!-- 底部对话消息列表 -->
       <div
         v-if="messages.length > 0"
-        class="flex flex-col px-6 w-full mx-auto h-[calc(100vh-170px)]"
+        class="flex flex-col px-6 w-[800px] mx-auto h-[calc(100vh-170px)]"
       >
         <dynamic-scroller
           ref="scroller"
@@ -637,7 +637,7 @@ onMounted(async () => {
                   :latency="item.latency"
                   :total_token_count="item.total_token_count"
                   @select-suggested-question="handleSubmitQuestion"
-                  message_class="max-w-[513px]"
+                  message_class="max-w-[700px]"
                 />
               </div>
             </dynamic-scroller-item>

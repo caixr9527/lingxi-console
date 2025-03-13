@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCredentialStore } from '@/stores/credential'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import { usePasswordLogin } from '@/hooks/use-auth'
@@ -9,6 +9,7 @@ import { useProvider } from '@/hooks/use-oauth'
 const errorMessage = ref('')
 const loginForm = ref({ email: '', password: '' })
 const credentialStore = useCredentialStore()
+const route = useRoute()
 const router = useRouter()
 const { loading: passwordLoginLoading, authorization, handlePasswordLogin } = usePasswordLogin()
 const { loading: providerLoading, redirect_url, handleProvider } = useProvider()
@@ -27,7 +28,7 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
     await handlePasswordLogin(loginForm.value.email, loginForm.value.password)
     Message.success('登录成功，正在跳转')
     credentialStore.update(authorization.value)
-    await router.replace({ path: '/home' })
+    await router.replace({ path: String(route.query.redirect) || '/home' })
   } catch (error: any) {
     errorMessage.value = error.message
     loginForm.value.password = ''

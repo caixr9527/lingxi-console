@@ -150,7 +150,7 @@ const router = createRouter({
 })
 router.beforeEach(async (to, from) => {
   if (!auth.isLogin() && !['auth-authorize', 'auth-login'].includes(to.name as string)) {
-    return { path: '/auth/login' }
+    return { path: '/auth/login', query: { redirect: to.fullPath } }
   }
 })
 export default router
