@@ -107,7 +107,7 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
         id: builtinToolProvider.name,
         name: builtinToolProvider.name,
         label: builtinToolProvider.label,
-        icon: `${apiPrefix}/builtin-tools/${builtinToolProvider.name}/icon`,
+        icon: `/builtin-tools/${builtinToolProvider.name}/icon`,
         description: builtinToolProvider.description,
       },
       tool: {
@@ -351,7 +351,7 @@ onMounted(() => {
                 :size="36"
                 shape="square"
                 class="rounded flex-shrink-0"
-                :image-url="form?.tool?.provider?.icon"
+                :image-url="`${apiPrefix}/${form?.tool?.provider?.icon}`"
               />
               <!-- 名称与描述信息 -->
               <div class="flex flex-col flex-1 gap-1 h-9">
