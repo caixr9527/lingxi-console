@@ -1,4 +1,7 @@
 export const apiPrefix: string = import.meta.env.VITE_API_PREFIX
+export const icpCode: string = import.meta.env.VITE_ICP_CODE
+export const gaCode: string = import.meta.env.VITE_GA_CODE
+export const title: string = import.meta.env.VITE_TITLE
 
 export const httpCode = {
   success: 'success',

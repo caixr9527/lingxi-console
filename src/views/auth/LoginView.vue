@@ -2,6 +2,8 @@
 import Banner from './components/Banner.vue'
 import LoginForm from './components/LoginForm.vue'
 import IconGithub from '@/components/icons/IconGithub.vue'
+import gaImage from '@/assets/images/ga.png'
+import { icpCode, gaCode, title } from '@/config'
 </script>
 
 <template>
@@ -22,10 +24,14 @@ import IconGithub from '@/components/icons/IconGithub.vue'
         <footer class="flex items-center justify-center h-10 text-gray-600 text-center">
           <a-space>
             <a href="https://github.com/caixr9527" target="_blank">
-              <icon-github class="w-[20px] h-[20px]" />
+              <icon-github class="w-[18px] h-[18px]" />
             </a>
-            <div>不懂就问-AI应用开发平台</div>
-            <a href="https://beian.miit.gov.cn/" target="_blank">闽ICP备2024044910号-3</a>
+            <div>{{ title }}</div>
+            <a href="https://beian.miit.gov.cn/" target="_blank">{{icpCode}}</a>
+            <img class="w-[18px] h-[18px]" :src="gaImage"/>
+            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=35021102002267" rel="noreferrer" target="_blank">
+              {{ gaCode }}
+            </a>
           </a-space>
         </footer>
       </div>
