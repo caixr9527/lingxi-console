@@ -29,6 +29,7 @@ const audioBlob = ref<any>(null) // 录音后音频的blob
 let recorder: any = null // RecordRTC实例
 const task_id = ref('')
 const message_id = ref('')
+const message_event = ref('')
 const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const accountStore = useAccountStore()
@@ -121,6 +122,10 @@ const handleSubmit = async () => {
       messages.value[0].conversation_id = data?.conversation_id
     }
 
+    if (event === QueueEvent.agentEnd) {
+      message_event.value = event
+    }
+
     // 循环处理得到的事件，记录除ping之外的事件
     if (event !== QueueEvent.ping) {
       // 除了agent_message数据为叠加，其他均为覆盖
@@ -160,7 +165,7 @@ const handleSubmit = async () => {
         messages.value[0].answer = data?.observation
       } else if (event === QueueEvent.timeout) {
         // 事件为timeout，则人工提示超时信息
-        messages.value[0].answer = '当前Agent执行已超时，无法得到答案，请重试'
+        messages.value[0].answer = '服务器繁忙,请稍后重试'
       } else {
         // 处理其他类型的事件，直接填充覆盖数据
         position += 1
@@ -185,7 +190,7 @@ const handleSubmit = async () => {
   })
 
   // 发起API请求获取建议问题列表
-  if (message_id.value) {
+  if (message_id.value && message_event.value === QueueEvent.agentEnd) {
     await handleGenerateSuggestedQuestions(message_id.value)
     setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
   }
