@@ -22,7 +22,7 @@ export const getApp = (app_id: string) => {
 
 // 在个人空间下新增应用
 export const createApp = (req: CreateAppRequest) => {
-  return post<BaseResponse<{ id: string }>>(`/apps`)
+  return post<BaseResponse<{ id: string }>>(`/apps`, { body: req })
 }
 
 // 修改指定应用
