@@ -82,7 +82,7 @@ watch(
                     name: 'space-apps-detail',
                     params: { app_id: app.id },
                   }"
-                  class="text-base text-gray-900 font-bold"
+                  class="text-base text-gray-900 font-bold line-clamp-1"
                 >
                   {{ app.name }}
                   <icon-check-circle-fill
@@ -142,8 +142,9 @@ watch(
               <icon-user />
             </a-avatar>
             <div class="text-xs text-gray-400">
-              {{ accountStore.account.name }} · 最近编辑
-              {{ moment(app.created_at * 1000).format('MM-DD HH:mm') }}
+              最近编辑
+              {{ moment(app.created_at * 1000).format('MM-DD HH:mm') }} ·
+              {{ app.status === 'published' ? '已发布' : '未发布' }}
             </div>
           </div>
         </a-card>

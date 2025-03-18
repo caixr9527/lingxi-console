@@ -28,6 +28,7 @@ const props = defineProps({
   },
   suggested_questions: { type: Array as PropType<string[]>, default: () => [], required: false },
   message_class: { type: String, default: '!bg-gray-100', required: false },
+  enable_agent_thought: { type: Boolean, default: false, required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
 const md = MarkdownIt()
@@ -54,7 +55,11 @@ const compiledMarkdown = computed(() => {
       <!-- 应用名称 -->
       <div class="text-gray-700 font-bold">{{ props.app?.name }}</div>
       <!-- 推理步骤 -->
-      <agent-thought :agent_thoughts="props.agent_thoughts" :loading="props.loading" />
+      <agent-thought
+        v-if="enable_agent_thought"
+        :agent_thoughts="props.agent_thoughts"
+        :loading="props.loading"
+      />
       <!-- AI消息 -->
       <div
         v-if="props.loading && props.answer.trim() === ''"
