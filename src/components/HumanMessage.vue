@@ -9,11 +9,12 @@ const props = defineProps({
   },
   query: { type: String, default: '', required: true },
   image_urls: { type: Array, default: () => [] },
+  enable_user_info: { type: Boolean, default: false, required: false},
 })
 </script>
 
 <template>
-  <div class="flex gap-2">
+  <div v-if="enable_user_info" class="flex gap-2">
     <!-- 左侧头像 -->
     <a-avatar :size="30" shape="circle" class="flex-shrink-0" :image-url="props.account?.avatar" />
     <!-- 右侧昵称与消息 -->
@@ -26,6 +27,10 @@ const props = defineProps({
         {{ props.query }}
       </div>
     </div>
+  </div>
+  <div v-else class="bg-blue-100 border border-blue-200 text-gray-700 px-4 py-3 rounded-2xl break-all ml-auto">
+    <a-image v-for="(image_url, idx) in props.image_urls" :key="idx" :src="String(image_url)" />
+    {{ props.query }}
   </div>
 </template>
 

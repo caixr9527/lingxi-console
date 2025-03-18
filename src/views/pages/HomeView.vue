@@ -305,6 +305,7 @@ onMounted(async () => {
                   :query="item.query"
                   :image_urls="item.image_urls"
                   :account="accountStore.account"
+                  :enable_user_info="false"
                 />
                 <ai-message
                   :message_id="item.id"

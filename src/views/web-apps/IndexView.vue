@@ -599,6 +599,23 @@ onMounted(async () => {
           </a-empty>
         </div>
       </div>
+      <div
+        class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
+      >
+        <!-- 头像 -->
+        <a-avatar
+          :size="32"
+          class="text-sm bg-blue-700"
+          :image-url="accountStore.account.avatar"
+        >
+          {{ accountStore.account.name[0] }}
+        </a-avatar>
+        <!-- 个人信息 -->
+        <div class="flex flex-col">
+          <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
+          <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
+        </div>
+      </div>
     </div>
     <!-- 右侧对话窗口 -->
     <div class="flex-1 min-h-screen bg-white">
@@ -625,6 +642,7 @@ onMounted(async () => {
                   :query="item.query"
                   :image_urls="item.image_urls"
                   :account="accountStore.account"
+                  :enable_user_info="false"
                 />
                 <ai-message
                   :message_id="item.id"
