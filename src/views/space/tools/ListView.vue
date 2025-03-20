@@ -348,7 +348,7 @@ watch(
               v-model:file-list="form.fileList"
               image-preview
               :custom-request="
-                (option) => {
+                (option: any) => {
                   const uploadTask = async () => {
                     const { fileItem, onSuccess, onError } = option
                     await handleUploadImage(fileItem.file as File)
@@ -362,7 +362,7 @@ watch(
                 }
               "
               :on-before-remove="
-                async (fileItem) => {
+                async (_fileItem: any) => {
                   form.icon = ''
                   return true
                 }
