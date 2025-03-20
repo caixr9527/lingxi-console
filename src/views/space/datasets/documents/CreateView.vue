@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import type { CreateDocumentsRequest } from '@/models/dataset'
-import { createDocuments, getDocumentStatus } from '@/services/dataset'
-import { uploadFile } from '@/services/upload-file'
-import { unescapeString } from '@/utils/helper'
-import { Message } from '@arco-design/web-vue'
-import { onUnmounted, reactive, ref } from 'vue'
+import { onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { type Form, Message } from '@arco-design/web-vue'
+import { useCreateDocuments, useGetDocumentsStatus } from '@/hooks/use-dataset'
+import { useUploadFile } from '@/hooks/use-upload-file'
+import { unescapeString } from '@/utils/helper'
+import type { CreateDocumentsRequest } from '@/models/dataset'
 
-let timer: any = null
+let timer: any = 0
 let batch = ''
 let fetchCount = 0
 const route = useRoute()
+const {
+  loading: createDocumentsLoading,
+  create_documents_result,
+  handleCreateDocuments,
+} = useCreateDocuments()
+const { upload_file, handleUploadFile } = useUploadFile()
+const { documents_status_result, loadDocumentsStatus } = useGetDocumentsStatus()
 const currentStep = ref(1)
-
-const createDocumentsForm = reactive({
+const createDocumentsForm = ref<Record<string, any>>({
   file_list: [],
   process_type: 'automatic',
   rule: {
@@ -23,67 +29,65 @@ const createDocumentsForm = reactive({
     pre_process_rules: [],
   },
 })
-const customRuleFormRef = ref<any>()
-const createDocumentsLoading = ref(false)
-const documents = reactive<Array<any>>([])
+const customRuleFormRef = ref<InstanceType<typeof Form>>()
+const documents = ref<Array<any>>([])
 
 const nextStep = async () => {
   if (currentStep.value === 1) {
-    // 检查文件是否上传
-    if (createDocumentsForm.file_list.length === 0) {
-      Message.error('请上传文件')
+    if (createDocumentsForm.value.file_list.length === 0) {
+      Message.error('请上传需要添加到知识库的文件')
       return
     }
-    const isUpload = createDocumentsForm.file_list.every(
-      (fileItem: any) => fileItem.response?.data?.id,
+
+    const isUploaded = createDocumentsForm.value.file_list.every(
+      (fileItem: any) => fileItem.response?.id,
     )
-    if (!isUpload) {
-      Message.warning('文件正在上传中，请稍等...')
+    if (!isUploaded) {
+      Message.warning('文件正在上传中，请稍等')
       return
     }
+
     currentStep.value++
   } else {
-    if (createDocumentsForm.process_type === 'custom') {
+    if (createDocumentsForm.value.process_type === 'custom') {
       const errors = await customRuleFormRef.value?.validate()
       if (errors) return
     }
+
     try {
-      createDocumentsLoading.value = true
-      const req = {
-        upload_file_ids: createDocumentsForm.file_list.map(
-          (fileItem: any) => fileItem?.response?.data?.id,
+      const req: Record<string, any> = {
+        upload_file_ids: createDocumentsForm.value.file_list.map(
+          (fileItem: any) => fileItem?.response?.id,
         ),
-        process_type: createDocumentsForm.process_type,
-        rule: {},
+        process_type: createDocumentsForm.value.process_type,
       }
 
-      if (createDocumentsForm.process_type == 'custom') {
+      if (createDocumentsForm.value.process_type === 'custom') {
         req.rule = {
           pre_process_rules: [
             {
               id: 'remove_extra_space',
-              enabled: createDocumentsForm.rule.pre_process_rules.includes('remove_extra_space'),
+              enabled:
+                createDocumentsForm.value.rule.pre_process_rules.includes('remove_extra_space'),
             },
             {
               id: 'remove_url_and_email',
-              enabled: createDocumentsForm.rule.pre_process_rules.includes('remove_url_and_email'),
+              enabled:
+                createDocumentsForm.value.rule.pre_process_rules.includes('remove_url_and_email'),
             },
           ],
           segment: {
-            separators: createDocumentsForm.rule.separators.map((separator) =>
+            separators: createDocumentsForm.value.rule.separators.map((separator: any) =>
               unescapeString(separator),
             ),
-            chunk_size: createDocumentsForm.rule.chunk_size,
-            chunk_overlap: createDocumentsForm.rule.chunk_overlap,
+            chunk_size: createDocumentsForm.value.rule.chunk_size,
+            chunk_overlap: createDocumentsForm.value.rule.chunk_overlap,
           },
         }
       }
 
-      const resp = await createDocuments(
-        route.params?.dataset_id as string,
-        req as CreateDocumentsRequest,
-      )
-      batch = resp.data.batch
+      await handleCreateDocuments(String(route.params?.dataset_id), req as CreateDocumentsRequest)
+      batch = create_documents_result.value.batch
 
       await fetchDocumentsStatus()
       startTimer()
@@ -97,13 +101,13 @@ const nextStep = async () => {
 
 const fetchDocumentsStatus = async () => {
   fetchCount++
-  const resp = await getDocumentStatus(route.params?.dataset_id as string, batch)
-  const data = resp.data
-  documents.splice(0, documents.length, ...data)
+  await loadDocumentsStatus(String(route.params?.dataset_id), batch)
+
+  documents.value = documents_status_result.value
 
   if (fetchCount >= 30) stopTimer()
 
-  const isCompleted = data.every(
+  const isCompleted = documents_status_result.value.every(
     (document) => document.status === 'completed' || document.status === 'error',
   )
   if (isCompleted) stopTimer()
@@ -114,7 +118,7 @@ const startTimer = () => (timer = setInterval(fetchDocumentsStatus, 5000))
 const stopTimer = () => {
   if (timer) {
     clearInterval(timer)
-    timer = null
+    timer = 0
   }
 }
 
@@ -125,6 +129,7 @@ onUnmounted(() => stopTimer())
   <div class="p-6">
     <!-- 回退按钮与标题 -->
     <div class="flex items-center mb-6 gap-4">
+      <!-- 左侧回退按钮 -->
       <router-link
         :to="{
           name: 'space-datasets-documents-list',
@@ -158,18 +163,29 @@ onUnmounted(() => stopTimer())
           accept=".doc,.docx,.pdf,.txt,.md,.markdown"
           :limit="10"
           multiple
-          tip="支持PDF、TXT、DOC、DOCX、MD，最多可上传10个文件，每个文件大小不超过10MB"
+          tip="支持PDF、TXT、DOC、DOCX、MD，最多可上传10个文件，每个文件的大小不超过10MB"
           :custom-request="
-            async (option) => {
-              const { fileItem, onSuccess } = option
-              const resp = await uploadFile(fileItem.file)
-              onSuccess(resp)
+            (option) => {
+              const { fileItem, onSuccess, onError } = option
+
+              const uploadTask = async () => {
+                try {
+                  await handleUploadFile(fileItem.file as File)
+                  onSuccess(upload_file)
+                } catch (error) {
+                  onError(error)
+                }
+              }
+
+              uploadTask()
+
+              return { abort: () => {} }
             }
           "
         />
       </div>
       <!-- 分段设置页面 -->
-      <div v-if="currentStep === 2" class="">
+      <div v-else-if="currentStep === 2" class="">
         <!-- 自动分段与清洗 -->
         <div
           :class="`px-5 py-4 bg-white rounded-lg border cursor-pointer mb-4 hover:border-blue-700 ${createDocumentsForm.process_type === 'automatic' ? 'border-blue-700' : ''}`"
@@ -180,13 +196,13 @@ onUnmounted(() => stopTimer())
         </div>
         <!-- 自定义 -->
         <div
-          :class="`px-5 py-4 bg-white rounded-lg border cursor-pointer mb-4 hover:border-blue-700 ${createDocumentsForm.process_type === 'custom' ? 'border-blue-700' : ''}`"
+          :class="`px-5 py-4 bg-white rounded-lg border cursor-pointer hover:border-blue-700 ${createDocumentsForm.process_type === 'custom' ? 'border-blue-700' : ''}`"
           @click="createDocumentsForm.process_type = 'custom'"
         >
           <div class="font-bold text-gray-700 mb-2">自定义</div>
           <div class="text-gray-500">自定义分段规则、分段长度与预处理规则</div>
           <!-- 自定义表单 -->
-          <div v-if="createDocumentsForm.process_type === 'custom'">
+          <div v-if="createDocumentsForm.process_type === 'custom'" class="">
             <a-divider />
             <!-- 表单选项 -->
             <a-form :model="createDocumentsForm.rule" ref="customRuleFormRef" layout="vertical">
@@ -199,7 +215,7 @@ onUnmounted(() => stopTimer())
               >
                 <a-input-tag
                   v-model:model-value="createDocumentsForm.rule.separators"
-                  placeholder="请输入分段标识符，按下enter结束"
+                  placeholder="请输入分段标识符，按下Enter结束"
                 />
               </a-form-item>
               <a-form-item
@@ -215,7 +231,7 @@ onUnmounted(() => stopTimer())
                   :max="1000"
                   :step="1"
                   :default-value="500"
-                  placeholder="请输入100-1000"
+                  placeholder="请输入100-1000的数字"
                 />
               </a-form-item>
               <a-form-item
@@ -223,7 +239,7 @@ onUnmounted(() => stopTimer())
                 label="块重叠数"
                 required
                 asterisk-position="end"
-                :rules="[{ required: true, message: '块重叠数不能为空' }]"
+                :rules="[{ required: true, message: '块重叠大小不能为空' }]"
               >
                 <a-input-number
                   v-model:model-value="createDocumentsForm.rule.chunk_overlap"
@@ -231,7 +247,7 @@ onUnmounted(() => stopTimer())
                   :max="500"
                   :step="1"
                   :default-value="50"
-                  placeholder="请输入0-500"
+                  placeholder="请输入0-500的数字"
                 />
               </a-form-item>
               <a-form-item field="pre_process_rules" label="文本预处理规则">
@@ -242,7 +258,7 @@ onUnmounted(() => stopTimer())
                   <a-checkbox value="remove_extra_space">
                     替换掉连续的空格、换行符和制表符
                   </a-checkbox>
-                  <a-checkbox value="remove_url_and_email"> 删除所有URL和电子邮件 </a-checkbox>
+                  <a-checkbox value="remove_url_and_email">删除所有 URL 和电子邮件</a-checkbox>
                 </a-checkbox-group>
               </a-form-item>
             </a-form>
@@ -250,9 +266,9 @@ onUnmounted(() => stopTimer())
         </div>
       </div>
       <!-- 数据处理页面 -->
-      <div v-if="currentStep === 3" class="">
+      <div v-else class="">
         <!-- 数据处理状态提示 -->
-        <div class="text-gray-900 mb-4 text-base">数据正在处理中</div>
+        <div class="text-gray-900 mb-4 text-base">服务器正在处理中</div>
         <!-- 处理中的文档列表 -->
         <div class="flex flex-col gap-2">
           <div
@@ -265,15 +281,15 @@ onUnmounted(() => stopTimer())
               <a-avatar shape="square" class="bg-blue-700" :size="32">
                 <icon-file />
               </a-avatar>
-              <div>
+              <div class="">
                 <div class="text-gray-700">{{ document.name }}</div>
                 <div class="text-gray-500">{{ (document.size / 1024).toFixed(2) }}kb</div>
               </div>
             </div>
             <!-- 处理的百分比 -->
             <div v-if="document.segment_count === 0" class="text-gray-500">0.00%</div>
-            <div v-else-if="document.status === 'error'">处理出错</div>
-            <div v-else-if="document.status === 'completed'">处理完成</div>
+            <div v-else-if="document.status === 'error'" class="">处理出错</div>
+            <div v-else-if="document.status === 'completed'" class="">处理完成</div>
             <div v-else class="text-gray-500">
               {{ ((document.completed_segment_count / document.segment_count) * 100).toFixed(2) }}%
             </div>
@@ -282,7 +298,7 @@ onUnmounted(() => stopTimer())
       </div>
     </div>
     <!-- 按钮：涵盖上一步和下一步 -->
-    <div class="flex items-center justify-between ps-[48px]">
+    <div class="flex items-center justify-between px-[48px]">
       <div class=""></div>
       <div class="flex items-center gap-2">
         <a-button
@@ -307,7 +323,7 @@ onUnmounted(() => stopTimer())
         </a-button>
         <!-- 数据处理页面显示的内容 -->
         <div v-if="currentStep === 3" class="flex items-center gap-2">
-          <div class="text-gray-500">点击确定不影响数据处理，处理完毕后可进行引用</div>
+          <div class="text-gray-500">点击确认不影响数据处理，处理完毕后可进行引用</div>
           <router-link
             :to="{
               name: 'space-datasets-documents-list',

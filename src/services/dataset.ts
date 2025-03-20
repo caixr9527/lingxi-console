@@ -6,9 +6,9 @@ import {
   type CreateSegmentRequest,
   type GetDatasetQueriesResponse,
   type GetDatasetResponse,
-  type GetDatasetsWithPageResp,
+  type GetDatasetsWithPageResponse,
   type GetDocumentResponse,
-  type GetDocumentStatusResponse,
+  type GetDocumentsStatusResponse,
   type GetDocumentsWithPageRequest,
   type GetDocumentsWithPageResponse,
   type GetSegmentResponse,
@@ -19,14 +19,14 @@ import {
   type UpdateDatasetRequest,
   type UpdateSegmentRequest,
 } from '@/models/dataset'
-import type { BaseResponse } from '@/models/base'
+import { type BaseResponse } from '@/models/base'
 
 export const getDatasetsWithPage = (
   current_page: number = 1,
   page_size: number = 20,
   search_word: string = '',
 ) => {
-  return get<GetDatasetsWithPageResp>(`/datasets`, {
+  return get<GetDatasetsWithPageResponse>(`/datasets`, {
     params: { current_page, page_size, search_word },
   })
 }
@@ -104,11 +104,10 @@ export const createDocuments = (dataset_id: string, req: CreateDocumentsRequest)
   })
 }
 
-export const getDocumentStatus = (dataset_id: string, batch: string) => {
-  return get<GetDocumentStatusResponse>(`/datasets/${dataset_id}/documents/batch/${batch}`)
+export const getDocumentsStatus = (dataset_id: string, batch: string) => {
+  return get<GetDocumentsStatusResponse>(`/datasets/${dataset_id}/documents/batch/${batch}`)
 }
 
-// 获取指定的文档片段列表
 export const getSegmentsWithPage = (
   dataset_id: string,
   document_id: string,
@@ -122,7 +121,6 @@ export const getSegmentsWithPage = (
   )
 }
 
-// 新增文档片段信息
 export const createSegment = (
   dataset_id: string,
   document_id: string,
@@ -133,14 +131,12 @@ export const createSegment = (
   })
 }
 
-// 删除指定文档片段信息
 export const deleteSegment = (dataset_id: string, document_id: string, segment_id: string) => {
   return post<BaseResponse<any>>(
     `/datasets/${dataset_id}/documents/${document_id}/segments/${segment_id}/delete`,
   )
 }
 
-// 修改文档片段内容
 export const updateSegment = (
   dataset_id: string,
   document_id: string,
@@ -153,7 +149,6 @@ export const updateSegment = (
   )
 }
 
-// 更新文档片段的启用状态
 export const updateSegmentEnabled = (
   dataset_id: string,
   document_id: string,
@@ -166,7 +161,6 @@ export const updateSegmentEnabled = (
   )
 }
 
-// 查询文档片段详情
 export const getSegment = (dataset_id: string, document_id: string, segment_id: string) => {
   return get<GetSegmentResponse>(
     `/datasets/${dataset_id}/documents/${document_id}/segments/${segment_id}`,

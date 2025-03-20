@@ -1,19 +1,15 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useAccountStore } from '@/stores/account'
-import { useCredentialStore } from '@/stores/credential'
-import { logout } from '@/services/auth'
-import router from '@/router'
 import {
-  getCurrentUser,
-  updateAvatar,
-  updateName as updateNameService,
-  updatePassword as updatePasswordService,
-} from '@/services/account'
-import { uploadImage } from '@/services/upload-file'
-import { Message } from '@arco-design/web-vue'
-
-// 1.定义自定义组件所需数据
+  useGetCurrentUser,
+  useUpdateAvatar,
+  useUpdateName,
+  useUpdatePassword,
+} from '@/hooks/use-account'
+import { useUploadImage } from '@/hooks/use-upload-file'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const props = defineProps({
   visible: { type: Boolean, required: true },
 })
@@ -21,48 +17,41 @@ const emits = defineEmits(['update:visible'])
 const updateName = ref(false)
 const updatePassword = ref(false)
 const accountStore = useAccountStore()
-const credentialStore = useCredentialStore()
-const accountForm = reactive<{
-  fileList: any[]
-  name: string
-  avatar: string
-  password: string
-  email: string
-}>({
-  fileList: [{ uid: 1, name: '账号头像', url: accountStore.account.avatar }],
+const { current_user, loadCurrentUser } = useGetCurrentUser()
+const { handleUpdateAvatar } = useUpdateAvatar()
+const { handleUpdateName } = useUpdateName()
+const { handleUpdatePassword } = useUpdatePassword()
+const { image_url, handleUploadImage } = useUploadImage()
+const accountForm = ref({
+  fileList: [{ uid: '1', name: '账号头像', url: accountStore.account.avatar }],
   name: accountStore.account.name,
   avatar: accountStore.account.avatar,
   password: '',
   email: accountStore.account.email,
 })
 
-// 2.更新当前账号信息
 const updateAccount = async () => {
-  const resp = await getCurrentUser()
-  accountStore.update(resp.data)
+  await loadCurrentUser()
+  accountStore.update(current_user.value)
 }
 
-// 3.关闭模态窗处理器
 const handleCancel = () => emits('update:visible', false)
 
-// 4.监听模态窗关闭事件
 watch(
   () => props.visible,
   (newValue) => {
     if (!newValue) {
-      // 如果为关闭模态窗则重置表单，并关闭所有输入框
       updatePassword.value = false
       updateName.value = false
     }
 
-    // 无论是开启还是关闭模态窗，均赋初始值，可以确保首次加载的时候数据正确展示
-    Object.assign(accountForm, {
-      fileList: [{ uid: 1, name: '账号头像', url: accountStore.account.avatar }],
+    accountForm.value = {
+      fileList: [{ uid: '1', name: '账号头像', url: accountStore.account.avatar }],
       name: accountStore.account.name,
       avatar: accountStore.account.avatar,
       password: '',
       email: accountStore.account.email,
-    })
+    }
   },
 )
 </script>
@@ -114,19 +103,21 @@ watch(
               :limit="1"
               image-preview
               :custom-request="
-                async (option) => {
-                  // 1.提取数据并发起请求获取响应内容
-                  const { fileItem, onSuccess } = option
-                  const upload_resp = await uploadImage(fileItem.file as File)
-                  accountForm.avatar = upload_resp.data.image_url
-                  onSuccess(upload_resp)
+                (option) => {
+                  const uploadTask = async () => {
+                    const { fileItem, onSuccess } = option
+                    await handleUploadImage(fileItem.file as File)
+                    accountForm.avatar = image_url
+                    onSuccess(image_url)
 
-                  // 2.更新账号头像
-                  const update_resp = await updateAvatar(accountForm.avatar as string)
-                  Message.success(update_resp.message)
+                    await handleUpdateAvatar(String(accountForm.avatar))
 
-                  // 3.更新账号信息
-                  await updateAccount()
+                    await updateAccount()
+                  }
+
+                  uploadTask()
+
+                  return {}
                 }
               "
             />
@@ -164,8 +155,7 @@ watch(
                   @click="
                     async () => {
                       // 发起请求更新账号名称
-                      const resp = await updateNameService(accountForm.name)
-                      Message.success(resp.message)
+                      await handleUpdateName(accountForm.name)
 
                       // 成功更新则重新获取账号数据并隐藏输入框
                       await updateAccount()
@@ -214,19 +204,11 @@ watch(
                   class="rounded-lg"
                   @click="
                     async () => {
-                      // 发起请求更新账号密码
-                      const resp = await updatePasswordService(accountForm.password)
-                      Message.success(resp.message)
+                      await handleUpdatePassword(accountForm.password)
+                      await router.push({ name: 'auth-login' })
 
-                      // 隐藏输入框并将输入框值清空
                       accountForm.password = ''
                       updatePassword = false
-                      await logout()
-
-                      credentialStore.clear()
-                      accountStore.clear()
-
-                      await router.replace({ name: 'auth-login' })
                     }
                   "
                 >

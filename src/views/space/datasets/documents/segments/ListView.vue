@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import moment from 'moment'
 import {
@@ -10,35 +10,51 @@ import {
 } from '@/hooks/use-dataset'
 import CreateOrUpdateSegmentModal from './components/CreateOrUpdateSegmentModal.vue'
 
-// 1.定义页面所需的基础数据
 const route = useRoute()
 const router = useRouter()
 const createOrUpdateModalVisible = ref(false)
 const updateSegmentID = ref('')
-const { document } = useGetDocument(
-  route.params?.dataset_id as string,
-  route.params?.document_id as string,
-)
-const { loading, segments, paginator, loadSegments } = useGetSegmentsWithPage(
-  route.params?.dataset_id as string,
-  route.params?.document_id as string,
-)
+const { document, loadDocument } = useGetDocument()
+const { loading, segments, paginator, loadSegments } = useGetSegmentsWithPage()
 const { handleDelete } = useDeleteSegment()
 const { handleUpdate: handleUpdateSegmentEnabled } = useUpdateSegmentEnabled()
 
-// 2.滚动数据分页处理器
 const handleScroll = async (event: UIEvent) => {
-  // 1.获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 2.判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (loading.value) {
       return
     }
-    await loadSegments()
+    await loadSegments(
+      String(route.params?.dataset_id),
+      String(route.params?.document_id),
+      false,
+      String(route.query?.search_word ?? ''),
+    )
   }
 }
+
+watch(
+  () => route.query?.search_word,
+  (newValue) =>
+    loadSegments(
+      String(route.params?.dataset_id),
+      String(route.params?.document_id),
+      true,
+      String(newValue),
+    ),
+)
+
+onMounted(() => {
+  loadDocument(String(route.params?.dataset_id), String(route.params?.document_id))
+  loadSegments(
+    String(route.params?.dataset_id),
+    String(route.params?.document_id),
+    true,
+    String(route.query?.search_word ?? ''),
+  )
+})
 </script>
 
 <template>
@@ -218,7 +234,13 @@ const handleScroll = async (event: UIEvent) => {
                       route.params?.dataset_id as string,
                       route.params?.document_id as string,
                       segment.id,
-                      () => loadSegments(true),
+                      () =>
+                        loadSegments(
+                          String(route.params?.dataset_id),
+                          String(route.params?.document_id),
+                          true,
+                          String(route.query?.search_word ?? ''),
+                        ),
                     )
                 "
               >
@@ -258,7 +280,15 @@ const handleScroll = async (event: UIEvent) => {
       :dataset_id="route.params?.dataset_id as string"
       :document_id="route.params?.document_id as string"
       :segment_id="updateSegmentID"
-      :callback="() => loadSegments(true)"
+      :callback="
+        () =>
+          loadSegments(
+            String(route.params?.dataset_id),
+            String(route.params?.document_id),
+            true,
+            String(route.query?.search_word ?? ''),
+          )
+      "
     />
   </div>
 </template>

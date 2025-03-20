@@ -27,7 +27,7 @@ const router = createRouter({
             {
               path: 'apps',
               name: 'space-apps-list',
-              component: () => import('@/views/space/apps/ListsView.vue'),
+              component: () => import('@/views/space/apps/ListView.vue'),
             },
             {
               path: 'tools',
@@ -124,13 +124,33 @@ const router = createRouter({
             },
           ],
         },
+        {
+          path: 'space/workflows/:workflow_id',
+          name: 'space-workflows-detail',
+          component: () => import('@/views/space/workflows/DetailView.vue'),
+        },
+        {
+          path: 'web-app/:token',
+          name: 'web-apps-index',
+          component: () => import('@/views/web-apps/IndexView.vue'),
+        },
+        {
+          path: '/errors/404',
+          name: 'errors-not-found',
+          component: () => import('@/views/errors/NotFoundView.vue'),
+        },
+        {
+          path: '/errors/403',
+          name: 'errors-forbidden',
+          component: () => import('@/views/errors/ForbiddenView.vue'),
+        },
       ],
     },
   ],
 })
 router.beforeEach(async (to, from) => {
   if (!auth.isLogin() && !['auth-authorize', 'auth-login'].includes(to.name as string)) {
-    return { path: '/auth/login' }
+    return { path: '/auth/login', query: { redirect: to.fullPath } }
   }
 })
 export default router

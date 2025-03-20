@@ -1,52 +1,58 @@
 <script setup lang="ts">
+import { computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import moment from 'moment'
+import type { ValidatedError } from '@arco-design/web-vue'
 import {
-  useGetDatasetWithPage,
+  useCreateOrUpdateDataset,
   useDeleteDataset,
-  useCrateOrUpdateDataset,
+  useGetDataset,
+  useGetDatasetsWithPage,
 } from '@/hooks/use-dataset'
-import { getDataset } from '@/services/dataset'
-import { uploadImage } from '@/services/upload-file'
-let updateDatasetID = ''
+import { useUploadImage } from '@/hooks/use-upload-file'
+
+const route = useRoute()
 const props = defineProps({
-  createType: {
-    type: String,
-    required: true,
-  },
+  createType: { type: String, required: true },
 })
-const emits = defineEmits(['update-create-type'])
-const { loading, datasets, paginator, loadDatasets } = useGetDatasetWithPage()
-const { handleDelete } = useDeleteDataset()
+const emits = defineEmits(['update:create-type'])
+let updateDatasetID = ''
+const { dataset, loadDataset } = useGetDataset()
+const { loading, datasets, paginator, loadDatasets } = useGetDatasetsWithPage()
+const { image_url, handleUploadImage } = useUploadImage()
 const {
-  loading: sumbitLoading,
+  loading: submitLoading,
   form,
   formRef,
   saveDataset,
   showUpdateModal,
   updateShowUpdateModal,
-} = useCrateOrUpdateDataset()
+} = useCreateOrUpdateDataset()
+const { handleDelete } = useDeleteDataset()
+const search_word = computed(() => {
+  return String(route.query?.search_word ?? '')
+})
 
-const handleScroll = async (event: any) => {
-  const { scrollTop, scrollHeight, clientHeight } = event.target
+const handleScroll = async (event: UIEvent) => {
+  const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
+
   if (scrollTop + clientHeight >= scrollHeight - 10) {
-    if (loading.value) {
-      return
-    }
-    await loadDatasets()
+    if (loading.value) return
+    await loadDatasets(false, search_word.value)
   }
 }
 
 const handleUpdate = (dataset_id: string) => {
   updateShowUpdateModal(true, async () => {
-    const resp = await getDataset(dataset_id)
-    const data = resp.data
+    // 调用api获取知识库详情
+    await loadDataset(dataset_id)
     updateDatasetID = dataset_id
 
     formRef.value?.resetFields()
-    form.fileList = [{ uid: '1', name: '知识库图标', url: data.icon }]
-    form.name = data.name
-    form.icon = data.icon
-    form.description = data.description
+    form.value.fileList = [{ uid: '1', name: '知识库图标', url: dataset.value.icon }]
+    form.value.icon = dataset.value.icon
+    form.value.name = dataset.value.name
+    form.value.description = dataset.value.description
   })
 }
 
@@ -54,13 +60,15 @@ const handleCancel = () => {
   updateShowUpdateModal(false, async () => {
     updateDatasetID = ''
     formRef.value?.resetFields()
-    form.fileList = []
-    console.log('handleCancel')
-    emits('update-create-type', '')
+
+    // 隐藏表单模态窗
+    emits('update:create-type', '')
   })
 }
 
-const handleSubmit = async ({ errors }: any) => {
+// 定义提交模态窗处理器
+const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
+  // 如果出错则直接抛出
   if (errors) return
 
   await saveDataset(updateDatasetID)
@@ -68,6 +76,15 @@ const handleSubmit = async ({ errors }: any) => {
   handleCancel()
   await loadDatasets(true)
 }
+
+watch(
+  () => route.query?.search_word,
+  (newValue) => loadDatasets(true, String(newValue)),
+)
+
+onMounted(() => {
+  loadDatasets(true, search_word.value)
+})
 </script>
 <template>
   <a-spin
@@ -77,7 +94,7 @@ const handleSubmit = async ({ errors }: any) => {
   >
     <!-- 底部知识库列表 -->
     <a-row :gutter="[20, 20]" class="flex-1">
-      <!-- 有数据 -->
+      <!-- 有数据的UI状态 -->
       <a-col v-for="dataset in datasets" :key="dataset.id" :span="6">
         <a-card hoverable class="cursor-pointer rounded-lg">
           <!-- 顶部知识库名称 -->
@@ -93,11 +110,11 @@ const handleSubmit = async ({ errors }: any) => {
                     params: { dataset_id: dataset.id },
                   }"
                   class="text-base text-gray-900 font-bold"
-                  >{{ dataset.name }}</router-link
-                >
+                  >{{ dataset.name }}
+                </router-link>
                 <div class="text-xs text-gray-500 line-clamp-1">
-                  {{ dataset.document_count }} 文档 -
-                  {{ Math.round(dataset.character_count / 1000) }} 千字符 -
+                  {{ dataset.document_count }} 文档 ·
+                  {{ Math.round(dataset.character_count / 1000) }} 千字符 ·
                   {{ dataset.related_app_count }} 关联应用
                 </div>
               </div>
@@ -112,35 +129,31 @@ const handleSubmit = async ({ errors }: any) => {
                   <a-doption @click="() => handleUpdate(dataset.id)">设置</a-doption>
                   <a-doption
                     class="!text-red-500"
-                    @click="
-                      () => {
-                        handleDelete(dataset.id, () => {
-                          loadDatasets(true)
-                        })
-                      }
-                    "
-                    >删除</a-doption
+                    @click="() => handleDelete(dataset.id, () => loadDatasets(true))"
                   >
+                    删除
+                  </a-doption>
                 </template>
               </a-dropdown>
             </div>
           </div>
-          <!-- 知识库描述信息 -->
-          <div class="leading-[18px] text-gray-500 h-[72px] line-clamp-4 mb-2">
+          <!-- 知识库的描述信息 -->
+          <div class="leading-[18px] text-gray-500 h-[72px] line-clamp-4 mb-2 break-all">
             {{ dataset.description }}
           </div>
-          <!-- 知识库的发布信息 -->
+          <!-- 知识库的归属者信息 -->
           <div class="flex items-center gap-1.5">
             <a-avatar :size="18" class="bg-blue-700">
               <icon-user />
             </a-avatar>
             <div class="text-xs text-gray-400">
-              最近编辑 {{ moment(dataset.created_at).format('MM-DD HH:mm') }}
+              · 最近编辑
+              {{ moment(dataset.updated_at * 1000).format('MM-DD HH:mm') }}
             </div>
           </div>
         </a-card>
       </a-col>
-      <!-- 无数据 -->
+      <!-- 没数据的UI状态 -->
       <a-col v-if="datasets.length === 0" :span="24">
         <a-empty
           description="没有可用的知识库"
@@ -153,26 +166,25 @@ const handleSubmit = async ({ errors }: any) => {
       <!-- 加载数据中 -->
       <a-col v-if="paginator.current_page <= paginator.total_page" :span="24" align="center">
         <a-space class="my-4">
-          <a-spin>
-            <div class="text-gray-400">加载中</div>
-          </a-spin>
+          <a-spin />
+          <div class="text-gray-400">加载中</div>
         </a-space>
       </a-col>
-      <!-- 加载数据完成 -->
+      <!-- 数据加载完成 -->
       <a-col v-else :span="24" align="center">
-        <div class="text-gary-400 my-4">数据已加载完成</div>
+        <div class="text-gray-400 my-4">数据已加载完成</div>
       </a-col>
     </a-row>
-    <!-- 新建/修改模态框 -->
+    <!-- 新建/修改模态窗 -->
     <a-modal
-      :width="630"
+      :width="520"
       :visible="props.createType === 'dataset' || showUpdateModal"
       hide-title
       :footer="false"
       modal-class="rounded-xl"
       @cancel="handleCancel"
     >
-      <!-- 标题 -->
+      <!-- 顶部标题 -->
       <div class="flex items-center justify-between">
         <div class="text-lg font-bold text-gray-700">
           {{ props.createType === 'dataset' ? '新建' : '更新' }}知识库
@@ -187,7 +199,7 @@ const handleSubmit = async ({ errors }: any) => {
       <div class="pt-6">
         <a-form ref="formRef" :model="form" @submit="handleSubmit" layout="vertical">
           <a-form-item
-            field="icon"
+            field="fileList"
             hide-label
             :rules="[{ required: true, message: '知识库图标不能为空' }]"
           >
@@ -199,15 +211,27 @@ const handleSubmit = async ({ errors }: any) => {
               v-model:file-list="form.fileList"
               image-preview
               :custom-request="
-                async (option: any) => {
+                (option) => {
+                  // 1.从option中获取数据
                   const { fileItem, onSuccess, onError } = option
-                  const resp = await uploadImage(fileItem.file)
-                  form.icon = resp.data.image_url
-                  onSuccess(resp)
+
+                  // 2.使用普通异步函数完成上传
+                  const uploadTask = async () => {
+                    try {
+                      await handleUploadImage(fileItem.file as File)
+                      form.icon = image_url
+                      onSuccess(image_url)
+                    } catch (error) {
+                      onError(error)
+                    }
+                  }
+                  uploadTask()
+
+                  return { abort: () => {} }
                 }
               "
               :on-before-remove="
-                () => {
+                async () => {
                   form.icon = ''
                   return true
                 }
@@ -227,11 +251,11 @@ const handleSubmit = async ({ errors }: any) => {
               :max-length="60"
             />
           </a-form-item>
-          <a-form-item field="description" label="知识库内容描述" asterisk-position="end">
+          <a-form-item field="description" label="知识库描述" asterisk-position="end">
             <a-textarea
               v-model="form.description"
               :auto-size="{ minRows: 4, maxRows: 6 }"
-              placeholder="请输入知识库内容描述"
+              placeholder="请输入知识库内容的描述"
             />
           </a-form-item>
           <!-- 底部按钮 -->
@@ -240,12 +264,13 @@ const handleSubmit = async ({ errors }: any) => {
             <a-space :size="16">
               <a-button class="rounded-lg" @click="handleCancel">取消</a-button>
               <a-button
-                :loading="sumbitLoading"
+                :loading="submitLoading"
                 type="primary"
                 html-type="submit"
                 class="rounded-lg"
-                >保存</a-button
               >
+                保存
+              </a-button>
             </a-space>
           </div>
         </a-form>
@@ -253,4 +278,5 @@ const handleSubmit = async ({ errors }: any) => {
     </a-modal>
   </a-spin>
 </template>
+
 <style scoped></style>

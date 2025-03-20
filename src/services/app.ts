@@ -2,10 +2,15 @@ import { get, post, ssePost } from '@/utils/request'
 import type {
   CreateAppRequest,
   GetAppResponse,
+  GetAppsWithPageRequest,
+  GetAppsWithPageResponse,
   GetDebugConversationMessagesWithPageRequest,
   GetDebugConversationMessagesWithPageResponse,
   GetDraftAppConfigResponse,
+  GetPublishedConfigResponse,
   GetPublishHistoriesWithPageResponse,
+  RegenerateWebAppTokenResponse,
+  UpdateAppRequest,
   UpdateDraftAppConfigRequest,
 } from '@/models/app'
 import type { BasePaginatorRequest, BaseResponse } from '@/models/base' // 获取应用基础信息
@@ -17,7 +22,27 @@ export const getApp = (app_id: string) => {
 
 // 在个人空间下新增应用
 export const createApp = (req: CreateAppRequest) => {
-  return post<BaseResponse<{ id: string }>>(`/apps`)
+  return post<BaseResponse<{ id: string }>>(`/apps`, { body: req })
+}
+
+// 修改指定应用
+export const updateApp = (app_id: string, req: UpdateAppRequest) => {
+  return post<BaseResponse<any>>(`/apps/${app_id}`, { body: req })
+}
+
+// 删除指定应用
+export const deleteApp = (app_id: string) => {
+  return post<BaseResponse<any>>(`/apps/${app_id}/delete`)
+}
+
+// 拷贝指定的应用
+export const copyApp = (app_id: string) => {
+  return post<BaseResponse<{ id: string }>>(`/apps/${app_id}/copy`)
+}
+
+// 获取应用分页列表数据
+export const getAppsWithPage = (req: GetAppsWithPageRequest) => {
+  return get<GetAppsWithPageResponse>(`/apps`, { params: req })
 }
 
 // 获取特定应用的草稿配置信息
@@ -44,9 +69,10 @@ export const updateDebugConversationSummary = (app_id: string, summary: string) 
 export const debugChat = (
   app_id: string,
   query: string,
+  image_urls: string[],
   onData: (event_response: Record<string, any>) => void,
 ) => {
-  return ssePost(`/apps/${app_id}/conversations`, { body: { query } }, onData)
+  return ssePost(`/apps/${app_id}/conversations`, { body: { query, image_urls } }, onData)
 }
 
 // 停止某次应用的调试会话
@@ -92,4 +118,16 @@ export const fallbackHistoryToDraft = (app_id: string, app_config_version_id: st
   return post<BaseResponse<any>>(`/apps/${app_id}/fallback-history`, {
     body: { app_config_version_id },
   })
+}
+
+// 获取指定应用的发布配置信息
+export const getPublishedConfig = (app_id: string) => {
+  return get<GetPublishedConfigResponse>(`/apps/${app_id}/published-config`)
+}
+
+// 重新生成 WebApp 的凭证标识
+export const regenerateWebAppToken = (app_id: string) => {
+  return post<RegenerateWebAppTokenResponse>(
+    `/apps/${app_id}/published-config/regenerate-web-app-token`,
+  )
 }

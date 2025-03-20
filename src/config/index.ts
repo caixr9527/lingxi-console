@@ -1,4 +1,7 @@
-export const apiPrefix: string = 'http://127.0.0.1:5000'
+export const apiPrefix: string = import.meta.env.VITE_API_PREFIX
+export const icpCode: string = import.meta.env.VITE_ICP_CODE
+export const gaCode: string = import.meta.env.VITE_GA_CODE
+export const title: string = import.meta.env.VITE_TITLE
 
 export const httpCode = {
   success: 'success',
@@ -22,7 +25,7 @@ export const QueueEvent = {
   agentMessage: 'agent_message',
   agentAction: 'agent_action',
   datasetRetrieval: 'dataset_retrieval',
-  agentEnd: 'agent_ent',
+  agentEnd: 'agent_end',
   stop: 'stop',
   error: 'error',
   timeout: 'timeout',

@@ -20,6 +20,28 @@ export type GetAppResponse = BaseResponse<{
 // 新增应用请求结构
 export type CreateAppRequest = { name: string; icon: string; description: string }
 
+// 更新应用请求结构
+export type UpdateAppRequest = { name: string; icon: string; description: string }
+
+// 获取应用分页列表数据请求
+export type GetAppsWithPageRequest = BasePaginatorRequest & { search_word: string }
+
+// 获取应用分页列表数据响应
+export type GetAppsWithPageResponse = BasePaginatorResponse<{
+  id: string
+  name: string
+  icon: string
+  description: string
+  preset_prompt: string
+  model_config: {
+    provider: string
+    model: string
+  }
+  status: string
+  updated_at: number
+  created_at: number
+}>
+
 // 获取特定应用的草稿配置响应结构
 export type GetDraftAppConfigResponse = BaseResponse<{
   id: string
@@ -58,7 +80,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
 
 // 更新特定应用的草稿配置请求结构
 export type UpdateDraftAppConfigRequest = {
-  model?: { provider: string; model: string; parameters: Record<string, any> }
+  model_config?: { provider: string; model: string; parameters: Record<string, any> }
   dialog_round?: number
   preset_prompt?: string
   tools?: { type: string; provider_id: string; tool_id: string; params: Record<string, any> }[]
@@ -84,6 +106,7 @@ export type GetDebugConversationMessagesWithPageResponse = BasePaginatorResponse
   id: string
   conversation_id: string
   query: string
+  image_urls: string[]
   answer: string
   total_token_count: number
   latency: number
@@ -112,3 +135,16 @@ export type GetPublishHistoriesWithPageResponse = BasePaginatorResponse<{
 export type GetDebugConversationMessagesWithPageRequest = BasePaginatorRequest & {
   created_at?: number
 }
+
+// 获取应用发布配置响应结构
+export type GetPublishedConfigResponse = BaseResponse<{
+  web_app: {
+    token: string
+    status: string
+  }
+}>
+
+// 重新生成WebApp凭证标识响应结构
+export type RegenerateWebAppTokenResponse = BaseResponse<{
+  token: string
+}>

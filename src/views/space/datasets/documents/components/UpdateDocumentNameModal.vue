@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
-import { type Form, Message, type ValidatedError } from '@arco-design/web-vue'
-import { getDocument, updateDocumentName } from '@/services/dataset'
+import { ref, watch } from 'vue'
+import { type Form, type ValidatedError } from '@arco-design/web-vue'
+import { useGetDocument, useUpdateDocumentName } from '@/hooks/use-dataset'
 
-// 1.定义组件所需要使用的数据
 const props = defineProps({
   visible: { type: Boolean, required: true },
   dataset_id: { type: String, required: true },
@@ -11,52 +10,40 @@ const props = defineProps({
   onAfterUpdate: {
     type: Function,
     required: false,
-    default: () => {},
+    default: () => {
+      return {}
+    },
   },
 })
 const emits = defineEmits(['update:visible'])
-const loading = ref(false)
-const form = reactive({ name: '' })
+const { document, loadDocument } = useGetDocument()
+const { loading: updateDocumentNameLoading, handleUpdateDocumentName } = useUpdateDocumentName()
+const form = ref({ name: '' })
 const formRef = ref<InstanceType<typeof Form>>()
 
-// 2.定义关闭模态窗函数，执行关闭模态窗并重置表单操作
 const hideModal = () => {
   emits('update:visible', false)
   formRef.value?.resetFields()
 }
 
-// 3.定义表单提交函数
 const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | undefined }) => {
-  // 3.1 判断数据校验是否成功
   if (errors) return
 
-  // 3.2 调用api接口发起请求
-  try {
-    // 3.3 将loading设置为true并调用接口
-    loading.value = true
-    const resp = await updateDocumentName(props.dataset_id, props.document_id, form.name)
-    Message.success(resp.message)
+  await handleUpdateDocumentName(props.dataset_id, props.document_id, form.value.name)
 
-    // 3.4 隐藏模态窗并重置表单
-    hideModal()
+  hideModal()
 
-    // 3.5 调用完成后的回调函数
-    props.onAfterUpdate()
-  } finally {
-    loading.value = false
-  }
+  props.onAfterUpdate()
 }
 
-// 4.监听visible，当模态窗开启的时候，我们需要调用接口获取数据并填充到表单中
 watch(
   () => props.visible,
   async (newValue: boolean) => {
     if (newValue) {
-      const resp = await getDocument(props.dataset_id, props.document_id)
-      const data = resp.data
+      await loadDocument(props.dataset_id, props.document_id)
 
       formRef.value?.resetFields()
-      form.name = data.name
+      form.value.name = document.value.name
     }
   },
 )
@@ -101,7 +88,12 @@ watch(
           <div class=""></div>
           <a-space :size="16">
             <a-button class="rounded-lg" @click="hideModal">取消</a-button>
-            <a-button :loading="loading" type="primary" html-type="submit" class="rounded-lg">
+            <a-button
+              :loading="updateDocumentNameLoading"
+              type="primary"
+              html-type="submit"
+              class="rounded-lg"
+            >
               保存
             </a-button>
           </a-space>

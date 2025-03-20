@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { Message, Modal } from '@arco-design/web-vue'
+import type { BasePaginatorRequest } from '@/models/base'
 import {
   type CreateApiKeyRequest,
   type GetApiKeysWithPageResponse,
@@ -12,11 +13,8 @@ import {
   updateApiKey,
   updateApiKeyIsActive,
 } from '@/services/api-key'
-import { Message, Modal } from '@arco-design/web-vue'
 
 export const useGetApiKeysWithPage = () => {
-  // 1.定义hooks所需数据
-  const route = useRoute()
   const loading = ref(false)
   const api_keys = ref<GetApiKeysWithPageResponse['data']['list']>([])
   const defaultPaginator = {
@@ -27,26 +25,24 @@ export const useGetApiKeysWithPage = () => {
   }
   const paginator = ref({ ...defaultPaginator })
 
-  // 2.定义加载数据函数
-  const loadApiKeys = async (init: boolean = false) => {
-    // 2.1 判断是否超过总页数，如果是则返回
+  const loadApiKeys = async (
+    init: boolean = false,
+    req: BasePaginatorRequest = {
+      current_page: 1,
+      page_size: 20,
+    },
+  ) => {
     if (!init && paginator.value.current_page > paginator.value.total_page) {
       return
     }
 
-    // 2.2 加载更多数据
     try {
       loading.value = true
-      const resp = await getApiKeysWithPage({
-        current_page: (route.query?.current_page || 1) as number,
-        page_size: (route.query?.page_size || 20) as number,
-      })
+      const resp = await getApiKeysWithPage(req)
       const data = resp.data
 
-      // 2.3 更新分页器
       paginator.value = data.paginator
 
-      // 2.4 对于表格式+分页器实现的分页，可以直接填充数据进行替换
       api_keys.value = data.list
     } finally {
       loading.value = false
@@ -65,11 +61,9 @@ export const useDeleteApiKey = () => {
       hideCancel: false,
       onOk: async () => {
         try {
-          // 1.点击确定后向API接口发起请求
           const resp = await deleteApiKey(api_key_id)
           Message.success(resp.message)
         } finally {
-          // 2.调用callback函数指定回调功能
           callback && callback()
         }
       },
@@ -80,10 +74,8 @@ export const useDeleteApiKey = () => {
 }
 
 export const useUpdateApiKey = () => {
-  // 1.定义hooks所需数据
   const loading = ref(false)
 
-  // 2.定义更新处理器
   const handleUpdateApiKey = async (api_key_id: string, req: UpdateApiKeyRequest) => {
     try {
       loading.value = true
@@ -98,10 +90,8 @@ export const useUpdateApiKey = () => {
 }
 
 export const useUpdateApiKeyIsActive = () => {
-  // 1.定义hooks所需数据
   const loading = ref(false)
 
-  // 2.定义更新处理器
   const handleUpdateApiKeyIsActive = async (
     api_key_id: string,
     is_active: boolean,
@@ -121,10 +111,8 @@ export const useUpdateApiKeyIsActive = () => {
 }
 
 export const useCreateApiKey = () => {
-  // 1.定义hooks所需数据
   const loading = ref(false)
 
-  // 2.定义更新处理器
   const handleCreateApiKey = async (req: CreateApiKeyRequest) => {
     try {
       loading.value = true

@@ -3,14 +3,18 @@ import { useRoute } from 'vue-router'
 import moment from 'moment'
 import { useGetApp, usePublish, useCancelPublish } from '@/hooks/use-app'
 import PublishHistoryDrawer from '@/views/space/apps/components/PublishHistoryDrawer.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const route = useRoute()
 const publishHistoryDrawerVisible = ref(false)
 
-const { loading, app, loadApp } = useGetApp(String(route.params?.app_id))
+const { loading, app, loadApp } = useGetApp()
 const { loading: publishLoading, handlePublish } = usePublish()
 const { handleCancelPublish } = useCancelPublish()
+
+onMounted(async () => {
+  await loadApp(String(route.params?.app_id))
+})
 </script>
 
 <template>

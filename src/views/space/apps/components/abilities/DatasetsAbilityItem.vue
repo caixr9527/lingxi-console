@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { nextTick, type PropType, ref, watch } from 'vue'
+import { nextTick, onMounted, type PropType, ref, watch } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 import { useGetDatasetsWithPage } from '@/hooks/use-dataset'
 import { cloneDeep, isEqual } from 'lodash'
 import { Message } from '@arco-design/web-vue'
 
-// 定义自定义组件所需数据
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
-  retrieval_config: { type: Object, default: {}, required: true },
+  retrieval_config: {
+    type: Object,
+    default: () => {
+      return {}
+    },
+    required: true,
+  },
   datasets: {
     type: Array as PropType<
       {
@@ -18,7 +23,7 @@ const props = defineProps({
         description: string
       }[]
     >,
-    default: [],
+    default: () => [],
     required: true,
   },
 })
@@ -35,65 +40,49 @@ const retrievalConfigForm = ref<Record<string, any>>({})
 const originRetrievalConfigForm = ref<Record<string, any>>({})
 const isRetrievalConfigInit = ref(false)
 
-// 定义滚动数据分页处理器
 const handleScroll = async (event: UIEvent) => {
-  // 获取滚动距离、可滚动的最大距离、客户端/浏览器窗口的高度
   const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement
 
-  // 判断是否滑动到底部
   if (scrollTop + clientHeight >= scrollHeight - 10) {
     if (loading.value) return
     await loadDatasets()
   }
 }
 
-// 定义判断知识库数据是否发生变化函数
 const isDatasetsModified = () => {
   return isEqual(activateDatasets.value, originDatasets.value)
 }
 
-// 定义判断检索设置是否发生变化函数
 const isRetrievalConfigFormModified = () => {
   return isEqual(retrievalConfigForm.value, originRetrievalConfigForm.value)
 }
 
-// 定义取消模态窗处理器
 const handleCancelDatasetsModal = () => {
-  // 隐藏模态窗
   datasetsModalVisible.value = false
 
-  // 还原初始值
   activateDatasets.value = originDatasets.value
   isDatasetsInit.value = false
 }
 
-// 定义取消检索设置模态窗处理器
 const handleCancelRetrievalConfigModal = () => {
-  // 隐藏模态窗
   retrievalConfigModalVisible.value = false
 
-  // 还原初始值
   retrievalConfigForm.value = originRetrievalConfigForm.value
   isRetrievalConfigInit.value = false
 }
 
-// 知识库选择处理器
 const handleSelectDataset = (idx: number) => {
-  // 提取对应的知识库id
-  const dataset = apiDatasets[idx]
+  const dataset = apiDatasets.value[idx]
 
-  // 检测id是否选中，如果是选中则删除
   if (activateDatasets.value.some((activateDataset) => activateDataset.id === dataset.id)) {
     activateDatasets.value = activateDatasets.value.filter(
       (activateDataset) => activateDataset.id !== dataset.id,
     )
   } else {
-    // 检测已关联的知识库数量
     if (activateDatasets.value.length >= 5) {
       Message.warning('关联知识库已超过5个，无法继续关联')
       return
     }
-    // 添加数据到激活知识库列表
     activateDatasets.value.push({
       id: dataset.id,
       name: dataset.name,
@@ -103,58 +92,36 @@ const handleSelectDataset = (idx: number) => {
   }
 }
 
-// 提交更新关联知识库
 const handleSubmitDatasets = async () => {
-  try {
-    // 处理数据并完成API接口提交
-    await handleUpdateDraftAppConfig(props.app_id, {
-      datasets: activateDatasets.value.map((activateDataset) => activateDataset.id),
-    })
+  await handleUpdateDraftAppConfig(props.app_id, {
+    datasets: activateDatasets.value.map((activateDataset) => activateDataset.id),
+  })
 
-    // 接口更新更新成功，同步表单信息
-    originDatasets.value = activateDatasets.value
-    await nextTick()
+  originDatasets.value = activateDatasets.value
+  await nextTick()
 
-    // 双向同步更新props中的数据
-    emits('update:datasets', activateDatasets.value)
+  emits('update:datasets', activateDatasets.value)
 
-    // 隐藏模态窗
-    handleCancelDatasetsModal()
-  } catch (e) {
-    /* empty */
-  }
+  handleCancelDatasetsModal()
 }
 
-// 提交更新检索配置
 const handleSubmitRetrievalConfig = async () => {
-  try {
-    // 处理数据并完成API接口提交
-    await handleUpdateDraftAppConfig(props.app_id, {
-      retrieval_config: retrievalConfigForm.value as any,
-    })
+  await handleUpdateDraftAppConfig(props.app_id, {
+    retrieval_config: retrievalConfigForm.value as any,
+  })
 
-    // 接口更新更新成功，同步表单信息
-    originRetrievalConfigForm.value = retrievalConfigForm.value
+  originRetrievalConfigForm.value = retrievalConfigForm.value
 
-    // 双向同步更新props中的数据
-    emits('update:retrieval_config', retrievalConfigForm.value)
+  emits('update:retrieval_config', retrievalConfigForm.value)
 
-    // 隐藏模态窗
-    handleCancelRetrievalConfigModal()
-  } catch (e) {
-    /* empty */
-  }
+  handleCancelRetrievalConfigModal()
 }
 
-// 监听草稿配置关联的知识库列表
 watch(
   () => props.datasets,
   (newValue) => {
-    // 检测数据是否初始化
     if (!isDatasetsInit.value || !isDatasetsModified()) {
-      // 判断草稿配置是否已传递配置
       if (newValue && newValue.length > 0) {
-        // 赋初始值
         const initData = props.datasets.map((dataset) => {
           return {
             id: dataset.id,
@@ -166,7 +133,6 @@ watch(
         activateDatasets.value = cloneDeep(initData)
         originDatasets.value = cloneDeep(initData)
 
-        // 修改初始化状态
         isDatasetsInit.value = true
       }
     }
@@ -174,18 +140,14 @@ watch(
   { immediate: true, deep: true },
 )
 
-// 监听检索配置
 watch(
   () => props.retrieval_config,
   (newValue) => {
-    // 检测是否是否更新并且未初始化
     if (!isRetrievalConfigInit.value || !isRetrievalConfigFormModified()) {
       if (newValue && Object.keys(newValue).length > 0) {
-        // 更新表单数据和备份数据
         retrievalConfigForm.value = { ...newValue }
         originRetrievalConfigForm.value = { ...newValue }
 
-        // 标记为已初始化
         isRetrievalConfigInit.value = true
       }
     }
@@ -193,19 +155,19 @@ watch(
   { immediate: true, deep: true },
 )
 
-// 监听知识库模态窗显示or隐藏
 watch(
   () => datasetsModalVisible.value,
   async (newValue) => {
-    // 显示状态，重新加载数据，获取最新的知识库列表
     if (newValue) {
       await loadDatasets(true)
     } else {
-      // 隐藏状态，清空数据
-      apiDatasets.splice(0, apiDatasets.length)
+      apiDatasets.value.splice(0, apiDatasets.value.length)
     }
   },
 )
+onMounted(() => {
+  loadDatasets(true)
+})
 </script>
 
 <template>
