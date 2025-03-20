@@ -148,7 +148,7 @@ onMounted(() => {
             </a-avatar>
             <div class="text-xs text-gray-400">
               · 最近编辑
-              {{ moment(dataset.created_at * 1000).format('MM-DD HH:mm') }}
+              {{ moment(dataset.updated_at * 1000).format('MM-DD HH:mm') }}
             </div>
           </div>
         </a-card>

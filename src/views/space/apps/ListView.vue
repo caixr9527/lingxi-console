@@ -143,7 +143,7 @@ watch(
             </a-avatar>
             <div class="text-xs text-gray-400">
               最近编辑
-              {{ moment(app.created_at * 1000).format('MM-DD HH:mm') }} ·
+              {{ moment(app.updated_at * 1000).format('MM-DD HH:mm') }} ·
               {{ app.status === 'published' ? '已发布' : '未发布' }}
             </div>
           </div>
