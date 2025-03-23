@@ -313,6 +313,7 @@ onMounted(async () => {
                   :enable_user_info="false"
                 />
                 <ai-message
+                  :enable_token_cost="true"
                   :enable_agent_thought="true"
                   :message_id="item.id"
                   :enable_text_to_speech="false"
