@@ -109,14 +109,16 @@ const compiledMarkdown = computed(() => {
       </div>
       <!-- 建议问题列表 -->
       <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
-        <div
-          v-for="(suggested_question, idx) in props.suggested_questions"
-          :key="idx"
-          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
-          @click="() => emits('selectSuggestedQuestion', suggested_question)"
-        >
-          {{ suggested_question }}
-        </div>
+        <a-space>
+          <div
+            v-for="(suggested_question, idx) in props.suggested_questions"
+            :key="idx"
+            class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
+            @click="() => emits('selectSuggestedQuestion', suggested_question)"
+          >
+            {{ suggested_question }}
+          </div>
+        </a-space>
       </div>
     </div>
   </div>
