@@ -29,6 +29,7 @@ const props = defineProps({
   suggested_questions: { type: Array as PropType<string[]>, default: () => [], required: false },
   message_class: { type: String, default: '!bg-gray-100', required: false },
   enable_agent_thought: { type: Boolean, default: false, required: false },
+  enable_token_cost: { type: Boolean, default: false, required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
 const md = MarkdownIt()
@@ -83,7 +84,9 @@ const compiledMarkdown = computed(() => {
             <icon-check />
             {{ props.latency.toFixed(2) }}s
           </div>
-          <div class="text-gray-500">{{ props.total_token_count }} Tokens</div>
+          <div v-if="enable_token_cost" class="text-gray-500">
+            {{ props.total_token_count }} Tokens
+          </div>
         </a-space>
         <!-- 播放音频&暂停播放 -->
         <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
@@ -106,14 +109,16 @@ const compiledMarkdown = computed(() => {
       </div>
       <!-- 建议问题列表 -->
       <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
-        <div
-          v-for="(suggested_question, idx) in props.suggested_questions"
-          :key="idx"
-          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
-          @click="() => emits('selectSuggestedQuestion', suggested_question)"
-        >
-          {{ suggested_question }}
-        </div>
+        <a-space>
+          <div
+            v-for="(suggested_question, idx) in props.suggested_questions"
+            :key="idx"
+            class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
+            @click="() => emits('selectSuggestedQuestion', suggested_question)"
+          >
+            {{ suggested_question }}
+          </div>
+        </a-space>
       </div>
     </div>
   </div>

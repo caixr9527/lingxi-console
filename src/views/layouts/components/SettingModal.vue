@@ -205,7 +205,7 @@ watch(
                   @click="
                     async () => {
                       await handleUpdatePassword(accountForm.password)
-                      await router.push({ name: 'auth-login' })
+                      await router.push({ name: 'auth-login', query: { redirect: '/home' } })
 
                       accountForm.password = ''
                       updatePassword = false

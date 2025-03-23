@@ -2,6 +2,8 @@ import { apiPrefix, httpCode } from '@/config'
 import { Message } from '@arco-design/web-vue'
 import { useCredentialStore } from '@/stores/credential'
 import router from '@/router'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 const TIME_OUT = 60 * 1000
 const baseFetchOptions = {
   method: 'GET',
@@ -60,7 +62,7 @@ const baseFetch = <T>(url: string, fetchOption: FetchOptionType): Promise<T> => 
             resolve(json)
           } else if (json.code === httpCode.unauthorized) {
             clearCredential()
-            await router.replace({ path: '/auth/login' })
+            await router.replace({ path: '/auth/login', query: { redirect: route.fullPath } })
           } else if (json.code === httpCode.notFount) {
             await router.push({ name: 'errors-not-found' })
           } else if (json.code === httpCode.forbidden) {
