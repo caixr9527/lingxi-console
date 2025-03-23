@@ -292,10 +292,18 @@ onMounted(() => {
           <div class="flex items-center gap-2">
             <!-- 图标 -->
             <a-avatar
+              v-if="tool.type === 'builtin_tool'"
               :size="36"
               shape="square"
               class="rounded flex-shrink-0"
               :image-url="`${apiPrefix}/${tool.provider.icon}`"
+            />
+            <a-avatar
+              v-else-if="tool.type === 'api_tool'"
+              :size="36"
+              shape="square"
+              class="rounded flex-shrink-0"
+              :image-url="`${tool.provider.icon}`"
             />
             <!-- 名称与描述信息 -->
             <div class="flex flex-col gap-1 h-9">
