@@ -200,7 +200,7 @@ watch(
             </a-avatar>
             <div class="text-xs text-gray-400">
               · 编辑时间
-              {{ moment(provider.updated_at * 1000).format('MM-DD HH:mm') }}
+              {{ moment(provider.updated_at).format('MM-DD HH:mm') }}
             </div>
           </div>
         </a-card>
