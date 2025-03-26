@@ -460,10 +460,16 @@ onMounted(async () => {
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <input
+              <!-- <input
                 v-model="query"
                 type="text"
                 class="flex-1 outline-0"
+                placeholder="发送消息或创建AI应用..."
+                @keyup.enter="handleSubmit"
+              /> -->
+              <textarea
+                v-model="query"
+                class="flex-1 outline-0 resize-none h-full w-full"
                 placeholder="发送消息或创建AI应用..."
                 @keyup.enter="handleSubmit"
               />
