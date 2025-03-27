@@ -612,11 +612,7 @@ onMounted(async () => {
         class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
       >
         <!-- 头像 -->
-        <a-avatar
-          :size="32"
-          class="text-sm bg-blue-700"
-          :image-url="accountStore.account.avatar"
-        >
+        <a-avatar :size="32" class="text-sm bg-blue-700" :image-url="accountStore.account.avatar">
           {{ accountStore.account.name[0] }}
         </a-avatar>
         <!-- 个人信息 -->
@@ -629,13 +625,13 @@ onMounted(async () => {
     <!-- 右侧对话窗口 -->
     <div class="flex-1 min-h-screen bg-white">
       <!-- 顶部会话名称 -->
-      <div class="h-16 leading-[64px] text-base font-semibold px-6 border-b">
+      <div class="flex h-16 leading-[64px] justify-center text-base font-semibold px-6 border-none">
         {{ conversation?.name }}
       </div>
       <!-- 底部对话消息列表 -->
       <div
         v-if="messages.length > 0"
-        class="flex flex-col px-6 w-[800px] mx-auto h-[calc(100vh-170px)]"
+        class="flex flex-col px-6 w-[800px] mx-auto h-[calc(100vh-220px)]"
       >
         <dynamic-scroller
           ref="scroller"
@@ -683,7 +679,7 @@ onMounted(async () => {
       <!-- 对话列表为空时展示的对话开场白 -->
       <div
         v-else
-        class="flex flex-col p-6 gap-2 items-center justify-center w-[600px] mx-auto h-[calc(100%-170px)] min-h-[calc(100vh-170px)]"
+        class="flex flex-col p-6 gap-2 items-center justify-center w-[600px] mx-auto h-[calc(100%-220px)] min-h-[calc(100vh-220px)]"
       >
         <!-- 应用图标与名称 -->
         <div class="flex flex-col items-center gap-2">
@@ -699,16 +695,18 @@ onMounted(async () => {
         </div>
         <!-- 开场白建议问题 -->
         <div class="flex items-center flex-wrap gap-2 w-full">
-          <div
-            v-for="(opening_question, idx) in web_app?.app_config?.opening_questions.filter(
-              (item: any) => item.trim() !== '',
-            )"
-            :key="idx"
-            class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
-            @click="async () => await handleSubmitQuestion(opening_question)"
-          >
-            {{ opening_question }}
-          </div>
+          <a-space>
+            <div
+              v-for="(opening_question, idx) in web_app?.app_config?.opening_questions.filter(
+                (item: any) => item.trim() !== '',
+              )"
+              :key="idx"
+              class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
+              @click="async () => await handleSubmitQuestion(opening_question)"
+            >
+              {{ opening_question }}
+            </div>
+          </a-space>
         </div>
       </div>
       <!-- 对话输入框 -->
@@ -717,7 +715,7 @@ onMounted(async () => {
         <div class="px-6 flex items-center gap-4">
           <!-- 输入框组件 -->
           <div
-            :class="`${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
+            :class="`${image_urls.length > 0 ? 'h-[150px]' : 'h-[100px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
           >
             <!-- 图片列表 -->
             <div v-if="image_urls.length > 0 && can_image_input" class="flex items-center gap-2">
@@ -735,12 +733,15 @@ onMounted(async () => {
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <input
+              <textarea
                 v-model="query"
-                type="text"
-                class="flex-1 outline-0"
-                @keyup.enter="handleSubmit"
+                class="flex-1 outline-0 resize-none h-[80px] w-full"
                 :placeholder="`给 &quot;${web_app?.name ?? '&quot;聊天机器人&quot;'}&quot; 发送消息`"
+                @keyup.enter="handleSubmit"
+                :auto-size="{
+                  minRows: 3,
+                  maxRows: 5,
+                }"
               />
               <!-- 上传图片输入框 -->
               <input
