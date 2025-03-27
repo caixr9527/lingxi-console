@@ -9,7 +9,7 @@ const props = defineProps({
   },
   query: { type: String, default: '', required: true },
   image_urls: { type: Array, default: () => [] },
-  enable_user_info: { type: Boolean, default: false, required: false},
+  enable_user_info: { type: Boolean, default: false, required: false },
 })
 </script>
 
@@ -28,7 +28,10 @@ const props = defineProps({
       </div>
     </div>
   </div>
-  <div v-else class="bg-blue-100 border border-blue-200 text-gray-700 px-4 py-3 rounded-2xl break-all ml-auto">
+  <div
+    v-else
+    class="bg-blue-100 border border-blue-200 text-gray-700 px-4 py-3 rounded-2xl break-all ml-auto"
+  >
     <a-image v-for="(image_url, idx) in props.image_urls" :key="idx" :src="String(image_url)" />
     {{ props.query }}
   </div>

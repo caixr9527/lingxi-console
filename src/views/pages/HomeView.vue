@@ -294,7 +294,7 @@ onMounted(async () => {
       <!-- 历史对话列表 -->
       <div
         v-if="messages.length > 0"
-        :class="`flex flex-col px-6 ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
+        :class="`flex flex-col px-6 ${image_urls.length > 0 ? 'h-[calc(100%-200px)] min-h-[calc(100vh-200px)]' : 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]'}`"
       >
         <dynamic-scroller
           ref="scroller"
@@ -351,7 +351,7 @@ onMounted(async () => {
       <!-- 对话列表为空时展示的对话开场白 -->
       <div
         v-else
-        :class="`flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
+        :class="`flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none ${image_urls.length > 0 ? 'h-[calc(100%-200px)] min-h-[calc(100vh-200px)]' : 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]'}`"
       >
         <div class="mb-9">
           <div class="text-[40px] font-bold text-gray-700 mt-[52px] mb-4">
@@ -401,14 +401,16 @@ onMounted(async () => {
             </div>
             <!-- 开场白建议问题 -->
             <div class="flex flex-col gap-2">
-              <div
-                v-for="(opening_question, idx) in opening_questions"
-                :key="idx"
-                class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
-                @click="async () => await handleSubmitQuestion(opening_question)"
-              >
-                {{ opening_question }}
-              </div>
+              <a-space>
+                <div
+                  v-for="(opening_question, idx) in opening_questions"
+                  :key="idx"
+                  class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
+                  @click="async () => await handleSubmitQuestion(opening_question)"
+                >
+                  {{ opening_question }}
+                </div>
+              </a-space>
             </div>
           </div>
         </div>
@@ -442,7 +444,7 @@ onMounted(async () => {
           </a-button>
           <!-- 输入框组件 -->
           <div
-            :class="`bg-white ${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
+            :class="`bg-white ${image_urls.length > 0 ? 'h-[150px]' : 'h-[100px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
           >
             <!-- 图片列表 -->
             <div v-if="image_urls.length > 0" class="flex items-center gap-2">
@@ -460,18 +462,15 @@ onMounted(async () => {
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <!-- <input
-                v-model="query"
-                type="text"
-                class="flex-1 outline-0"
-                placeholder="发送消息或创建AI应用..."
-                @keyup.enter="handleSubmit"
-              /> -->
               <textarea
                 v-model="query"
-                class="flex-1 outline-0 resize-none h-full w-full"
+                class="flex-1 outline-0 resize-none h-[80px] w-full"
                 placeholder="发送消息或创建AI应用..."
                 @keyup.enter="handleSubmit"
+                :auto-size="{
+                  minRows: 2,
+                  maxRows: 5,
+                }"
               />
               <!-- 上传图片输入框 -->
               <input
