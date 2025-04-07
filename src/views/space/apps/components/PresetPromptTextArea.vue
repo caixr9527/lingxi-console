@@ -106,7 +106,7 @@ const handleSubmit = async () => {
         :max-length="2000"
         show-word-limit
         :model-value="props.preset_prompt"
-        @update:model-value="(value) => emits('update:preset_prompt', value)"
+        @update:model-value="(value: any) => emits('update:preset_prompt', value)"
         @blur="
           async () => {
             await handleUpdateDraftAppConfig(props.app_id, {

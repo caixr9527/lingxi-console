@@ -99,7 +99,7 @@ watch(
             v-model:file-list="form.fileList"
             image-preview
             :custom-request="
-              (option) => {
+              (option: { fileItem: any; onSuccess: any; onError: any }) => {
                 const { fileItem, onSuccess, onError } = option
 
                 const uploadTask = async () => {
