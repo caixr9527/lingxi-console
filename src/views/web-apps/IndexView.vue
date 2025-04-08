@@ -7,6 +7,7 @@ import { useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash'
 import { Message } from '@arco-design/web-vue'
 import { useAccountStore } from '@/stores/account'
+import { useGetConversationName } from '@/hooks/use-conversation'
 import {
   useGetAppConversations,
   useGetWebApp,
@@ -46,6 +47,7 @@ const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const accountStore = useAccountStore()
 const { loading: getWebAppLoading, web_app, loadWebApp } = useGetWebApp()
+const { name: conversationName, loadConversationName } = useGetConversationName()
 const {
   loading: getWebAppConversationsLoading,
   pinned_conversations,
@@ -154,6 +156,7 @@ const deleteConversation = async (idx: number, origin_is_pinned: boolean) => {
     } else {
       unpinned_conversations.value.splice(idx, 1)
     }
+    messages.value = []
   })
 }
 
@@ -322,9 +325,12 @@ const handleSubmit = async () => {
   if (messages.value.length > 0) {
     if (selectedConversationTmp === 'new_conversation') {
       // 将newConversation填充到会话列表中
+      if (message_event.value === QueueEvent.agentEnd) {
+        await loadConversationName(messages.value[0].conversation_id)
+      }
       unpinned_conversations.value.unshift({
         id: messages.value[0].conversation_id,
-        name: 'New Conversation',
+        name: conversationName.value === '' ? 'New Conversation' : conversationName.value,
         summary: '',
         created_at: messages.value[0].created_at,
       })
