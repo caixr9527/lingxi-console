@@ -4,6 +4,8 @@ import MarkdownIt from 'markdown-it'
 import DotFlashing from '@/components/DotFlashing.vue'
 import { useAudioPlayer } from '@/hooks/use-audio'
 import AgentThought from './AgentThought.vue'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github-dark.css'
 import 'github-markdown-css'
 
 const { textToAudioLoading, isPlaying, startAudioStream, stopAudioStream } = useAudioPlayer()
@@ -33,6 +35,24 @@ const props = defineProps({
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
 const md = MarkdownIt()
+md.set({
+  highlight: function (str, lang) {
+    // 指定语言时使用对应高亮
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`;
+      } catch (__) {}
+    }
+    
+    // 未指定语言时自动检测
+    try {
+      return `<pre class="hljs"><code>${hljs.highlightAuto(str).value}</code></pre>`;
+    } catch (__) {}
+    
+    // 保底处理
+    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
+  }
+})
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
 })
