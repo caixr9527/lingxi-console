@@ -3,7 +3,7 @@
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { cloneDeep } from 'lodash'
 import { Message } from '@arco-design/web-vue'
 import { useAccountStore } from '@/stores/account'
@@ -27,6 +27,8 @@ import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
 import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 import AudioRecorder from 'js-audio-recorder'
+import { useLogout } from '@/hooks/use-auth'
+import { useCredentialStore } from '@/stores/credential'
 
 const route = useRoute()
 const updateConversationNameModalVisible = ref(false)
@@ -72,8 +74,11 @@ const can_speech_to_text = computed(() => {
   }
   return false
 })
+const router = useRouter()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const { handleLogout: handleLogoutHook } = useLogout()
+const credentialStore = useCredentialStore()
 // 定义会话计算属性，动态展示当前选中会话
 const conversation = computed(() => {
   // 判断是否选中新会话，如果是则直接返回新会话数据
@@ -156,7 +161,7 @@ const deleteConversation = async (idx: number, origin_is_pinned: boolean) => {
     } else {
       unpinned_conversations.value.splice(idx, 1)
     }
-    messages.value = []
+    selectedConversation.value = 'new_conversation'
   })
 }
 
@@ -418,7 +423,14 @@ const handleFileChange = async (event: Event) => {
     }
   }
 }
+const handleLogout = async () => {
+  await handleLogoutHook()
 
+  credentialStore.clear()
+  accountStore.clear()
+
+  await router.replace({ name: 'auth-login', query: { redirect: route.fullPath } })
+}
 // 监听选择会话变化
 watch(
   () => selectedConversation.value,
@@ -614,19 +626,29 @@ onMounted(async () => {
           </a-empty>
         </div>
       </div>
-      <div
-        class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
-      >
-        <!-- 头像 -->
-        <a-avatar :size="32" class="text-sm bg-blue-700" :image-url="accountStore.account.avatar">
-          {{ accountStore.account.name[0] }}
-        </a-avatar>
-        <!-- 个人信息 -->
-        <div class="flex flex-col">
-          <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
-          <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
+      <a-dropdown position="tl">
+        <div
+          class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
+        >
+          <!-- 头像 -->
+          <a-avatar :size="32" class="text-sm bg-blue-700" :image-url="accountStore.account.avatar">
+            {{ accountStore.account.name[0] }}
+          </a-avatar>
+          <!-- 个人信息 -->
+          <div class="flex flex-col">
+            <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
+            <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
+          </div>
         </div>
-      </div>
+        <template #content>
+          <a-doption @click="handleLogout">
+            <template #icon>
+              <icon-poweroff />
+            </template>
+            退出登录
+          </a-doption>
+        </template>
+      </a-dropdown>
     </div>
     <!-- 右侧对话窗口 -->
     <div class="flex-1 min-h-screen bg-white">

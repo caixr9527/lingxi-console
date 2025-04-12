@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useLogout } from '@/hooks/use-auth'
 import LayoutSidebar from './components/Sidebar.vue'
-import { useGetCurrentUser } from '@/hooks/use-account'
 import { useCredentialStore } from '@/stores/credential'
 import { useAccountStore } from '@/stores/account'
 import SettingModal from '@/views/layouts/components/SettingModal.vue'
 import IconLogo from '@/components/icons/IconLogo.vue'
+import { ref } from 'vue'
 const settingModalVisible = ref(false)
 const router = useRouter()
 const route = useRoute()
 const credentialStore = useCredentialStore()
 const accountStore = useAccountStore()
 const { handleLogout: handleLogoutHook } = useLogout()
-const { current_user, loadCurrentUser } = useGetCurrentUser()
 
 const handleLogout = async () => {
   await handleLogoutHook()
@@ -24,11 +22,6 @@ const handleLogout = async () => {
 
   await router.replace({ name: 'auth-login', query: { redirect: route.fullPath } })
 }
-
-onMounted(async () => {
-  await loadCurrentUser()
-  accountStore.update(current_user.value)
-})
 </script>
 
 <template>
