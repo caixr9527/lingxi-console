@@ -6,6 +6,7 @@ import { useCredentialStore } from '@/stores/credential'
 import { useAccountStore } from '@/stores/account'
 import SettingModal from '@/views/layouts/components/SettingModal.vue'
 import IconLogo from '@/components/icons/IconLogo.vue'
+import { ref } from 'vue'
 const settingModalVisible = ref(false)
 const router = useRouter()
 const route = useRoute()
