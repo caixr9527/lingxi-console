@@ -159,6 +159,7 @@ const deleteConversation = async (idx: number, origin_is_pinned: boolean) => {
       unpinned_conversations.value.splice(idx, 1)
     }
     messages.value = []
+    addConversation()
   })
 }
 
