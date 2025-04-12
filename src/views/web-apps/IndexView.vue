@@ -8,6 +8,7 @@ import { cloneDeep } from 'lodash'
 import { Message } from '@arco-design/web-vue'
 import { useAccountStore } from '@/stores/account'
 import { useGetConversationName } from '@/hooks/use-conversation'
+import { useGetCurrentUser } from '@/hooks/use-account'
 import {
   useGetAppConversations,
   useGetWebApp,
@@ -60,6 +61,7 @@ const { handleUpdateConversationIsPinned } = useUpdateConversationIsPinned()
 const { loading: webAppChatLoading, handleWebAppChat } = useWebAppChat()
 const { loading: stopWebAppChatLoading, handleStopWebAppChat } = useStopWebAppChat()
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
+const { current_user, loadCurrentUser } = useGetCurrentUser()
 const can_image_input = computed(() => {
   if (web_app.value) {
     return web_app.value?.app_config?.features?.includes('image_input')
@@ -483,6 +485,9 @@ onMounted(async () => {
   await Promise.all([loadWebApp(token), loadWebAppConversations(token)])
   // 默认新增空白会话
   addConversation()
+  // 加载用户信息
+  await loadCurrentUser()
+  accountStore.update(current_user.value)
 })
 </script>
 
