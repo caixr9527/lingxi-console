@@ -26,8 +26,8 @@ const handleLogout = async () => {
 }
 
 onMounted(async () => {
-  await loadCurrentUser()
-  accountStore.update(current_user.value)
+  //   await loadCurrentUser()
+  //   accountStore.update(current_user.value)
 })
 </script>
 

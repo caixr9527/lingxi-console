@@ -5,6 +5,8 @@ import { useCredentialStore } from '@/stores/credential'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import { usePasswordLogin } from '@/hooks/use-auth'
 import { useProvider } from '@/hooks/use-oauth'
+import { useGetCurrentUser } from '@/hooks/use-account'
+import { useAccountStore } from '@/stores/account'
 
 const errorMessage = ref('')
 const loginForm = ref({ email: '', password: '' })
@@ -15,7 +17,8 @@ const { loading: passwordLoginLoading, authorization, handlePasswordLogin } = us
 const { loading: providerLoading, redirect_url, handleProvider } = useProvider()
 
 const forgetPassword = () => Message.error('忘记密码请联系管理员')
-
+const { current_user, loadCurrentUser } = useGetCurrentUser()
+const accountStore = useAccountStore()
 const githubLogin = async () => {
   await handleProvider('github')
 
@@ -29,6 +32,9 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
     Message.success('登录成功，正在跳转')
     credentialStore.update(authorization.value)
     await router.replace({ path: String(route.query.redirect) || '/home' })
+    // 加载用户信息
+    await loadCurrentUser()
+    accountStore.update(current_user.value)
   } catch (error: any) {
     errorMessage.value = error.message
     loginForm.value.password = ''
