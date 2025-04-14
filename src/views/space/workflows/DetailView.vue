@@ -37,6 +37,8 @@ import DatasetRetrievalNodeInfo from './components/Infos/DatasetRetrievalNodeInf
 import ToolNodeInfo from './components/Infos/ToolNodeInfo.vue'
 import EndNodeInfo from './components/Infos/EndNodeInfo.vue'
 import { v4 } from 'uuid'
+import QuestionClassifierNodeInfo from './components/Infos/QuestionClassifierNodeInfo.vue'
+import QuestionClassifierNode from './components/nodes/QuestionClassifierNode.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -71,7 +73,7 @@ const zoomOptions = [
   { label: '50%', value: 0.5 },
   { label: '25%', value: 0.25 },
 ]
-const NOTE_TYPES = {
+const NODE_TYPES = {
   start: markRaw(StartNode),
   llm: markRaw(LlmNode),
   tool: markRaw(ToolNode),
@@ -79,6 +81,7 @@ const NOTE_TYPES = {
   template_transform: markRaw(TemplateTransformNode),
   http_request: markRaw(HttpRequestNode),
   code: markRaw(CodeNode),
+  question_classifier: markRaw(QuestionClassifierNode),
   end: markRaw(EndNode),
 }
 const NODE_DATA_MAP: Record<string, any> = {
@@ -164,6 +167,19 @@ const NODE_DATA_MAP: Record<string, any> = {
     description: '编写代码，处理输入输出变量来生成返回值',
     code: '',
     inputs: [],
+    outputs: [],
+  },
+  question_classifier: {
+    title: '意图识别',
+    description: '定义用户问题的分类条件，LLM能够根据分类描述执行不同的分支。',
+    classes: [],
+    inputs: [
+      {
+        name: 'query',
+        type: 'string',
+        value: { type: 'ref', content: { ref_node_id: '', ref_var_name: '' } },
+      },
+    ],
     outputs: [],
   },
   end: {
@@ -274,13 +290,32 @@ const clearSelectedNode = () => {
 
 const onUpdateNode = (node_data: Record<string, any>) => {
   // 获取该节点对应的索引
-  const idx = nodes.value.findIndex((item) => item.id === node_data.id)
+  const idx = nodes.value.findIndex((item: any) => item.id === node_data.id)
 
   // 检测是否存在数据，如果存在则更新
   if (idx !== -1) {
     nodes.value[idx].data = {
       ...nodes.value[idx].data,
       ...node_data,
+    }
+
+    // 检测节点类型是否为意图识别，如果是则同步更新edges边信息
+    if ('classes' in node_data) {
+      // 提取意图世界节点中存在的source_handle_id列表
+      const source_handle_ids = node_data.classes.map((item: any) => item.source_handle_id)
+      const cloneEdges = cloneDeep(edges.value)
+
+      // 循环遍历所有边并剔除
+      for (let i = cloneEdges.length - 1; i >= 0; i--) {
+        const edge = cloneEdges[i]
+        if (edge.source === node_data.id && source_handle_ids.indexOf(edge.sourceHandle) === -1) {
+          // 分类被剔除，则删除对应的边信息
+          cloneEdges.splice(i, 1)
+        }
+      }
+
+      // 重新赋值edges信息
+      edges.value = cloneEdges
     }
   }
 
@@ -338,8 +373,9 @@ onConnect((connection) => {
   // 检查节点和目标节点是否已经存在链接
   const isAlreadyConnected = edges.value.some((edge: any) => {
     return (
-      (edge.source === source && edge.target === target) ||
-      (edge.source === target && edge.target === source)
+      ((edge.source === source && edge.target === target) ||
+        (edge.source === target && edge.target === source)) &&
+      connection.sourceHandle === null
     )
   })
 
@@ -358,6 +394,7 @@ onConnect((connection) => {
     ...connection,
     id: v4(),
     source_type: source_node?.type,
+    source_handle_id: connection?.sourceHandle,
     target_type: target_node?.type,
     animated: true,
     style: { strokeWidth: 2, stroke: '#9ca3af' },
@@ -469,7 +506,7 @@ onMounted(async () => {
         :nodes-connectable="true"
         :connection-mode="ConnectionMode.Strict"
         :connection-line-options="{ style: { strokeWidth: 2, stroke: '#9ca3af' } }"
-        :node-types="NOTE_TYPES"
+        :node-types="NODE_TYPES"
         v-model:nodes="nodes"
         v-model:edges="edges"
         @update:nodes="onChange"
@@ -587,6 +624,23 @@ onMounted(async () => {
                       <!-- 节点描述 -->
                       <div class="text-gray-500 font-xs">对多个字符串变量的格式进行处理。</div>
                     </div>
+                    <!-- 意图识别节点 -->
+                    <div
+                      class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
+                      @click="() => addNode('question_classifier')"
+                    >
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-green-700 rounded-lg">
+                          <icon-mind-mapping />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">意图识别</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 text-xs">
+                        定义用户问题的分类条件，LLM能够根据分类描述执行不同的分支。
+                      </div>
+                    </div>
                     <!-- HTTP请求节点 -->
                     <div
                       class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
@@ -657,7 +711,7 @@ onMounted(async () => {
                 <a-dropdown
                   trigger="hover"
                   @select="
-                    (value) => {
+                    (value: any) => {
                       // 调整视口大小并更新视口等级
                       zoomLevel = Number(value)
                       instance.zoomTo(value)
@@ -756,6 +810,13 @@ onMounted(async () => {
           v-model:visible="nodeInfoVisible"
           @update-node="onUpdateNode"
           @clear-selected-node="clearSelectedNode"
+        />
+        <question-classifier-node-info
+          v-if="selectedNode && selectedNode?.type === 'question_classifier'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
         />
         <end-node-info
           v-if="selectedNode && selectedNode?.type === 'end'"
