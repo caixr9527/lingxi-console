@@ -22,7 +22,7 @@ const inputRefOptions = computed(() => {
 
 // 定义添加表单字段函数
 const addFormInputField = () => {
-  form.value?.inputs.push({ name: '', type: 'string', content: '', ref: '' })
+  form.value?.inputs.push({ name: '', type: 'string', content: null, ref: '' })
   Message.success('新增输入字段成功')
 }
 
@@ -39,27 +39,13 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
 
-  let vaildateEmpty = false
-  cloneInputs.forEach((item: any) => {
-    if (item.name.trim() === '') {
-      vaildateEmpty = true
-    }
-    if (item.type !== 'ref' && item.content.trim() === '') {
-      vaildateEmpty = true
-    }
-  })
-  if (vaildateEmpty) {
-    Message.warning('输入参数名/参数值不能为空')
-    return
-  }
-
   // 数据校验通过，通过事件触发数据更新
   emits('updateNode', {
     id: props.node.id,
     title: form.value.title,
     description: form.value.description,
     template: form.value.template,
-    inputs: cloneInputs.map((input: any) => {
+    inputs: cloneInputs.map((input: Record<string, any>) => {
       return {
         name: input.name,
         description: '',
@@ -113,7 +99,7 @@ watch(
         return {
           name: input.name, // 变量名
           type: input.value.type === 'literal' ? input.type : 'ref', // 数据类型(涵盖ref/string/int/float/boolean
-          content: input.value.type === 'literal' ? input.value.content : '', // 变量值内容
+          content: input.value.type === 'literal' ? input.value.content : null, // 变量值内容
           ref: input.value.type === 'ref' && refExists ? ref : '', // 变量引用信息，存储引用节点id+引用变量名
         }
       }),
@@ -219,12 +205,23 @@ watch(
                 { label: 'INT', value: 'int' },
                 { label: 'FLOAT', value: 'float' },
                 { label: 'BOOLEAN', value: 'boolean' },
+                { label: 'LIST[STRING]', value: 'list[string]' },
+                { label: 'LIST[INT]', value: 'list[int]' },
+                { label: 'LIST[FLOAT]', value: 'list[float]' },
+                { label: 'LIST[BOOLEAN]', value: 'list[boolean]' },
               ]"
             />
           </div>
           <div class="w-[47%] flex-shrink-0 flex items-center gap-1">
+            <a-input-tag
+              v-if="input.type.startsWith('list')"
+              size="mini"
+              v-model="input.content"
+              :default-value="[]"
+              placeholder="请输入参数值，按回车结束"
+            />
             <a-input
-              v-if="input.type !== 'ref'"
+              v-else-if="input.type !== 'ref'"
               size="mini"
               v-model="input.content"
               placeholder="请输入参数值"

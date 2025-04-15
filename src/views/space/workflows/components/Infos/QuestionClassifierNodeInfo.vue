@@ -113,7 +113,7 @@ watch(
         return {
           name: input.name, // 变量名
           type: input.value.type === 'literal' ? input.type : 'ref', // 数据类型(涵盖ref/string/int/float/boolean
-          content: input.value.type === 'literal' ? input.value.content : '', // 变量值内容
+          content: input.value.type === 'literal' ? input.value.content : null, // 变量值内容
           ref: input.value.type === 'ref' && refExists ? ref : '', // 变量引用信息，存储引用节点id+引用变量名
         }
       }),
@@ -200,12 +200,23 @@ watch(
                 { label: 'INT', value: 'int' },
                 { label: 'FLOAT', value: 'float' },
                 { label: 'BOOLEAN', value: 'boolean' },
+                { label: 'LIST[STRING]', value: 'list[string]' },
+                { label: 'LIST[INT]', value: 'list[int]' },
+                { label: 'LIST[FLOAT]', value: 'list[float]' },
+                { label: 'LIST[BOOLEAN]', value: 'list[boolean]' },
               ]"
             />
           </div>
           <div class="w-[55%] flex-shrink-0 flex items-center gap-1">
+            <a-input-tag
+              v-if="input.type.startsWith('list')"
+              size="mini"
+              v-model="input.content"
+              :default-value="[]"
+              placeholder="请输入参数值，按回车结束"
+            />
             <a-input
-              v-if="input.type !== 'ref'"
+              v-else-if="input.type !== 'ref'"
               size="mini"
               v-model="input.content"
               placeholder="请输入参数值"

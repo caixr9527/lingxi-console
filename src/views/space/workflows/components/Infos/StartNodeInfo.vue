@@ -165,6 +165,10 @@ watch(
                   <a-option value="int">INT</a-option>
                   <a-option value="float">FLOAT</a-option>
                   <a-option value="boolean">BOOLEAN</a-option>
+                  <a-option value="list[string]">LIST[STRING]</a-option>
+                  <a-option value="list[int]">LIST[INT]</a-option>
+                  <a-option value="list[float]">LIST[FLOAT]</a-option>
+                  <a-option value="list[boolean]">LIST[BOOLEAN]</a-option>
                 </a-select>
               </a-form-item>
               <a-form-item
