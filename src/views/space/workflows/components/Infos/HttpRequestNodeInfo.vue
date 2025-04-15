@@ -19,6 +19,10 @@ const variableTypes = [
   { label: 'INT', value: 'int' },
   { label: 'FLOAT', value: 'float' },
   { label: 'BOOLEAN', value: 'boolean' },
+  { label: 'LIST[STRING]', value: 'list[string]' },
+  { label: 'LIST[INT]', value: 'list[int]' },
+  { label: 'LIST[FLOAT]', value: 'list[float]' },
+  { label: 'LIST[BOOLEAN]', value: 'list[boolean]' },
 ]
 
 // 定义输入变量引用选项
@@ -29,11 +33,11 @@ const inputRefOptions = computed(() => {
 // 定义添加表单字段函数
 const addFormInputField = (meta_type: string) => {
   if (meta_type === 'params') {
-    form.value?.paramsInputs.push({ name: '', type: 'string', content: '', ref: '', meta_type })
+    form.value?.paramsInputs.push({ name: '', type: 'string', content: null, ref: '', meta_type })
   } else if (meta_type === 'headers') {
-    form.value?.headersInputs.push({ name: '', type: 'string', content: '', ref: '', meta_type })
+    form.value?.headersInputs.push({ name: '', type: 'string', content: null, ref: '', meta_type })
   } else if (meta_type === 'body') {
-    form.value?.bodyInputs.push({ name: '', type: 'string', content: '', ref: '', meta_type })
+    form.value?.bodyInputs.push({ name: '', type: 'string', content: null, ref: '', meta_type })
   }
   Message.success('新增输入字段成功')
 }
@@ -137,7 +141,7 @@ watch(
       return {
         name: input.name, // 变量名
         type: input.value.type === 'literal' ? input.type : 'ref', // 数据类型(涵盖ref/string/int/float/boolean
-        content: input.value.type === 'literal' ? input.value.content : '', // 变量值内容
+        content: input.value.type === 'literal' ? input.value.content : null, // 变量值内容
         ref: input.value.type === 'ref' && refExists ? ref : '', // 变量引用信息，存储引用节点id+引用变量名
         meta_type: input.meta.type,
       }
@@ -286,8 +290,15 @@ watch(
             <a-select size="mini" v-model="input.type" class="px-2" :options="variableTypes" />
           </div>
           <div class="w-[47%] flex-shrink-0 flex items-center gap-1">
+            <a-input-tag
+              v-if="input.type.startsWith('list')"
+              size="mini"
+              v-model="input.content"
+              :default-value="[]"
+              placeholder="请输入参数值，按回车结束"
+            />
             <a-input
-              v-if="input.type !== 'ref'"
+              v-else-if="input.type !== 'ref'"
               size="mini"
               v-model="input.content"
               placeholder="请输入参数值"

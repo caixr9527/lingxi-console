@@ -131,6 +131,13 @@ watch(
               <a-radio :value="true">是</a-radio>
               <a-radio :value="false">否</a-radio>
             </a-radio-group>
+            <!-- 调试窗口新增列表型数据输入，使用普通文本框代替，格式为[xxx, xxx] -->
+            <a-input-tag
+              v-else-if="input.type.startsWith('list')"
+              v-model="form[input.name]"
+              placeholder="请输入参考值列表信息，输入后回车"
+              class="!rounded-lg"
+            />
           </a-form-item>
           <a-button
             :loading="debugWorkflowLoading"
