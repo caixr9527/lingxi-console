@@ -69,16 +69,18 @@ const props = defineProps<NodeProps>()
       <!-- 迭代工作流 -->
       <div class="flex flex-col gap-2">
         <div
-          v-for="dataset in props.data?.meta?.datasets ?? []"
-          :key="dataset.id"
+          v-for="workflow in props.data?.meta?.workflows ?? []"
+          :key="workflow.id"
           class="flex items-center gap-2 text-xs"
         >
           <!-- 左侧工作流图标 -->
-          <a-avatar :size="16" shape="square" :image-url="dataset?.icon" />
+          <a-avatar :size="16" shape="square" :image-url="workflow?.icon" />
           <!-- 右侧工作流名称 -->
-          <div class="text-gray-700">{{ dataset?.name }}</div>
+          <div class="text-gray-700">{{ workflow?.name }}</div>
         </div>
-        <div v-if="!props.data?.meta?.datasets?.length" class="text-gray-500 text-xs px-0.5">-</div>
+        <div v-if="!props.data?.meta?.workflows?.length" class="text-gray-500 text-xs px-0.5">
+          -
+        </div>
       </div>
     </div>
     <!-- 输出变量 -->

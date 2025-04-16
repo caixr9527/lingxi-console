@@ -39,6 +39,8 @@ import EndNodeInfo from './components/Infos/EndNodeInfo.vue'
 import { v4 } from 'uuid'
 import QuestionClassifierNodeInfo from './components/Infos/QuestionClassifierNodeInfo.vue'
 import QuestionClassifierNode from './components/nodes/QuestionClassifierNode.vue'
+import IterationNode from './components/nodes/IterationNode.vue'
+import IterationNodeInfo from './components/Infos/IterationNodeInfo.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -82,6 +84,7 @@ const NODE_TYPES = {
   http_request: markRaw(HttpRequestNode),
   code: markRaw(CodeNode),
   question_classifier: markRaw(QuestionClassifierNode),
+  iteration: markRaw(IterationNode),
   end: markRaw(EndNode),
 }
 const NODE_DATA_MAP: Record<string, any> = {
@@ -181,6 +184,20 @@ const NODE_DATA_MAP: Record<string, any> = {
       },
     ],
     outputs: [],
+  },
+  iteration: {
+    title: '迭代节点',
+    description: '传递一个列表型数据，并引用一个工作流完成多轮迭代得到处理后的列表数据',
+    workflow_ids: [],
+    inputs: [
+      {
+        name: 'inputs',
+        type: 'list[string]',
+        value: { type: 'ref', content: { ref_node_id: '', ref_var_name: '' } },
+      },
+    ],
+    outputs: [{ name: 'outputs', type: 'list[string]', value: { type: 'generated', content: '' } }],
+    meta: { workflows: [] },
   },
   end: {
     title: '结束节点',
@@ -641,6 +658,23 @@ onMounted(async () => {
                         定义用户问题的分类条件，LLM能够根据分类描述执行不同的分支。
                       </div>
                     </div>
+                    <!-- 迭代节点 -->
+                    <div
+                      class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
+                      @click="() => addNode('iteration')"
+                    >
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-pink-700 rounded-lg">
+                          <icon-sync />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">迭代节点</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 text-xs">
+                        传递一个列表型数据，并引用一个工作流完成多轮迭代得到处理后的列表数据。
+                      </div>
+                    </div>
                     <!-- HTTP请求节点 -->
                     <div
                       class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
@@ -813,6 +847,13 @@ onMounted(async () => {
         />
         <question-classifier-node-info
           v-if="selectedNode && selectedNode?.type === 'question_classifier'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+        />
+        <iteration-node-info
+          v-if="selectedNode && selectedNode?.type === 'iteration'"
           :loading="updateDraftGraphLoading"
           :node="selectedNode"
           v-model:visible="nodeInfoVisible"

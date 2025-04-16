@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useVueFlow } from '@vue-flow/core'
 import { cloneDeep } from 'lodash'
 import { getReferencedVariables } from '@/utils/helper'
@@ -18,15 +19,19 @@ const props = defineProps({
   loading: { type: Boolean, required: true, default: false },
 })
 const emits = defineEmits(['update:visible', 'updateNode'])
+const route = useRoute()
 const workflowsModalVisible = ref(false)
 const form = ref<Record<string, any>>({})
 const { nodes, edges } = useVueFlow()
 const {
   loading: getWorkflowsWithPageLoading,
   paginator,
-  workflows,
+  workflows: originWorkflows,
   loadWorkflows,
 } = useGetWorkflowsWithPage()
+const workflows = computed(() => {
+  return originWorkflows.value.filter((item) => item.id !== route.params?.workflow_id)
+})
 
 const inputRefOptions = computed(() => {
   return getReferencedVariables(cloneDeep(nodes.value), cloneDeep(edges.value), props.node.id)
@@ -50,7 +55,7 @@ const handleSelectWorkflow = (idx: number) => {
 
   if (form.value.workflows.some((activateWorkflow: any) => activateWorkflow.id === workflow.id)) {
     form.value.workflows = form.value.workflows.filter(
-      (activateDataset: any) => activateDataset.id !== workflow.id,
+      (activateWorkflow: any) => activateWorkflow.id !== workflow.id,
     )
   } else {
     if (form.value.workflows.length >= 1) {
@@ -76,7 +81,7 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
     id: props.node.id,
     title: form.value.title,
     description: form.value.description,
-    dataset_ids: cloneWorkflows.map((workflow: any) => {
+    workflow_ids: cloneWorkflows.map((workflow: any) => {
       return workflow.id
     }),
     meta: { workflows: cloneWorkflows },
@@ -85,7 +90,7 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
         name: input.name,
         description: '',
         required: true,
-        type: input.type === 'ref' ? 'string' : input.type,
+        type: input.type === 'ref' ? 'list[string]' : input.type,
         value: {
           type: input.type === 'ref' ? 'ref' : 'literal',
           content:
@@ -114,11 +119,13 @@ watch(
       description: newNode.data.description,
       workflows: cloneDeep(newNode.data.meta.workflows) ?? [],
       inputs: cloneInputs.map((input: any) => {
+        // 7.1 计算引用的变量值信息
         const ref =
           input.value.type === 'ref'
             ? `${input.value.content.ref_node_id}/${input.value.content.ref_var_name}`
             : ''
 
+        // 7.2 判断引用的变量值信息是否存在，如果不存在则设置为空
         let refExists = false
         if (input.value.type === 'ref') {
           for (const inputRefOption of inputRefOptions.value) {
@@ -138,7 +145,7 @@ watch(
         }
       }),
       outputs: [
-        { name: 'combine_documents', type: 'string', value: { type: 'generated', content: '' } },
+        { name: 'outputs', type: 'list[string]', value: { type: 'generated', content: '' } },
       ],
     }
   },
