@@ -117,7 +117,7 @@ watch(
           ref: input.value.type === 'ref' && refExists ? ref : '', // 变量引用信息，存储引用节点id+引用变量名
         }
       }),
-      outputs: [{ name: 'node_id', type: 'string', value: { type: 'generated', content: '' } }],
+      outputs: [],
     }
   },
   { immediate: true },
