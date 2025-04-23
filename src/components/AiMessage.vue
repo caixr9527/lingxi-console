@@ -7,6 +7,7 @@ import AgentThought from './AgentThought.vue'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
 import 'github-markdown-css'
+import { Message } from '@arco-design/web-vue'
 
 const { textToAudioLoading, isPlaying, startAudioStream, stopAudioStream } = useAudioPlayer()
 const props = defineProps({
@@ -36,18 +37,22 @@ const props = defineProps({
 const emits = defineEmits(['selectSuggestedQuestion'])
 const md = MarkdownIt()
 md.set({
-  highlight: function (str, lang) {
+  highlight: function (str: string, lang: string) {
     // 指定语言时使用对应高亮
     if (lang && hljs.getLanguage(lang)) {
       try {
         return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`
-      } catch (__) {}
+      } catch (__) {
+        /* empty */
+      }
     }
 
     // 未指定语言时自动检测
     try {
       return `<pre class="hljs"><code>${hljs.highlightAuto(str).value}</code></pre>`
-    } catch (__) {}
+    } catch (__) {
+      /* empty */
+    }
 
     // 保底处理
     return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
@@ -56,6 +61,16 @@ md.set({
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
 })
+
+const copyText = async () => {
+  try {
+    await navigator.clipboard.writeText(props.answer)
+    Message.info('复制完成')
+  } catch (err) {
+    console.error('Failed to copy text: ', err)
+    Message.error('复制失败')
+  }
+}
 </script>
 
 <template>
@@ -100,6 +115,10 @@ const compiledMarkdown = computed(() => {
           <template #split>
             <a-divider direction="vertical" class="m-0" />
           </template>
+          <!-- 文本复制 -->
+          <div class="flex items-center gap-1 text-gray-500">
+            <icon-copy class="cursor-pointer hover:text-gray-700" @click="copyText" />
+          </div>
           <!-- 播放音频&暂停播放 -->
           <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
             <template v-if="textToAudioLoading">
@@ -108,7 +127,7 @@ const compiledMarkdown = computed(() => {
             <template v-else>
               <icon-pause
                 v-if="isPlaying"
-                class="text-blue-700 cursor-pointer hover:text-blue-700"
+                class="text-blue-700 cursor-pointer hover:text-gray-700"
                 @click="() => stopAudioStream()"
               />
               <icon-play-circle
