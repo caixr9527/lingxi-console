@@ -40,18 +40,18 @@ md.set({
     // 指定语言时使用对应高亮
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`;
+        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`
       } catch (__) {}
     }
-    
+
     // 未指定语言时自动检测
     try {
-      return `<pre class="hljs"><code>${hljs.highlightAuto(str).value}</code></pre>`;
+      return `<pre class="hljs"><code>${hljs.highlightAuto(str).value}</code></pre>`
     } catch (__) {}
-    
+
     // 保底处理
-    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
-  }
+    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
+  },
 })
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
@@ -100,6 +100,24 @@ const compiledMarkdown = computed(() => {
           <template #split>
             <a-divider direction="vertical" class="m-0" />
           </template>
+          <!-- 播放音频&暂停播放 -->
+          <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
+            <template v-if="textToAudioLoading">
+              <icon-loading class="text-gray-500" />
+            </template>
+            <template v-else>
+              <icon-pause
+                v-if="isPlaying"
+                class="text-blue-700 cursor-pointer hover:text-blue-700"
+                @click="() => stopAudioStream()"
+              />
+              <icon-play-circle
+                v-else
+                class="text-gray-400 cursor-pointer hover:text-gray-700"
+                @click="() => startAudioStream(props.message_id)"
+              />
+            </template>
+          </div>
           <div class="flex items-center gap-1 text-gray-500">
             <icon-check />
             {{ props.latency.toFixed(2) }}s
@@ -108,24 +126,6 @@ const compiledMarkdown = computed(() => {
             {{ props.total_token_count }} Tokens
           </div>
         </a-space>
-        <!-- 播放音频&暂停播放 -->
-        <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
-          <template v-if="textToAudioLoading">
-            <icon-loading class="hidden group-hover:block text-gray-500" />
-          </template>
-          <template v-else>
-            <icon-pause
-              v-if="isPlaying"
-              class="hidden group-hover:block text-blue-700 cursor-pointer hover:text-blue-700"
-              @click="() => stopAudioStream()"
-            />
-            <icon-play-circle
-              v-else
-              class="hidden group-hover:block text-gray-400 cursor-pointer hover:text-gray-700"
-              @click="() => startAudioStream(props.message_id)"
-            />
-          </template>
-        </div>
       </div>
       <!-- 建议问题列表 -->
       <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
