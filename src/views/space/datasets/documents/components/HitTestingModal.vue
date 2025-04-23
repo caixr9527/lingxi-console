@@ -258,6 +258,7 @@ watch(
               { label: '混合策略', value: 'hybrid' },
               { label: '全文检索', value: 'full_text' },
               { label: '相似性检索', value: 'semantic' },
+              { label: '多查询检索', value: 'rag_fusion' },
             ]"
           />
         </a-form-item>
