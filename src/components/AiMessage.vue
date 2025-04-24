@@ -109,7 +109,7 @@ const copyText = async () => {
         v-html="compiledMarkdown"
       ></div>
       <!-- 消息展示与操作 -->
-      <div class="w-full flex items-center justify-between">
+      <div v-if="props.answer" class="w-full flex items-center justify-between">
         <!-- 消息数据额外展示 -->
         <a-space class="text-xs">
           <template #split>

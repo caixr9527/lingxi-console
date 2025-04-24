@@ -192,6 +192,9 @@ onMounted(() => {
             <div v-else-if="retrieval_config?.retrieval_strategy === 'full_text'" class="">
               全文检索
             </div>
+            <div v-else-if="retrieval_config?.retrieval_strategy === 'rag_fusion'" class="">
+              多查询检索
+            </div>
             <div v-else class="">混合检索</div>
           </a-button>
           <a-button
