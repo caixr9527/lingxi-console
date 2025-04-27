@@ -10,6 +10,13 @@ import { useAccountStore } from '@/stores/account'
 
 const errorMessage = ref('')
 const loginForm = ref({ email: '', password: '' })
+const registerForm = ref({
+  email: '',
+  password: '',
+  confirmPassword: '',
+  verificationCode: '',
+})
+const registerModelVisible = ref(false)
 const credentialStore = useCredentialStore()
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +47,12 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
     loginForm.value.password = ''
   }
 }
+
+const registerSubmit = () => {}
+const handleCancel = () => {
+  registerModelVisible.value = false
+}
+const sendVerificationCode = () => {}
 </script>
 <template>
   <div class="">
@@ -96,6 +109,7 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
         >
           登录
         </a-button>
+        <a-button size="large" long @click="registerModelVisible = true">注册</a-button>
         <a-divider>第三方授权</a-divider>
         <a-button :loading="providerLoading" size="large" type="dashed" long @click="githubLogin">
           <template #icon>
@@ -106,5 +120,75 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
       </a-space>
     </a-form>
   </div>
+  <!-- 注册表单 -->
+  <a-modal v-model:visible="registerModelVisible" :footer="false">
+    <template #title> 注册 </template>
+    <a-form :model="registerForm" @submit="registerSubmit" layout="vertical">
+      <a-form-item
+        field="email"
+        :rules="[{ type: 'email', required: true, message: '登录账号必须是合法的邮箱' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input v-model="registerForm.email" size="large" placeholder="邮箱">
+          <template #prefix>
+            <icon-email />
+          </template>
+        </a-input>
+      </a-form-item>
+      <a-form-item
+        field="password"
+        :rules="[{ required: true, message: '密码不能为空' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input-password v-model="registerForm.password" size="large" placeholder="密码">
+          <template #prefix>
+            <icon-lock />
+          </template>
+        </a-input-password>
+      </a-form-item>
+      <a-form-item
+        field="confirmPassword"
+        :rules="[{ required: true, message: '密码不能为空' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input-password
+          v-model="registerForm.confirmPassword"
+          size="large"
+          placeholder="再次输入密码"
+        >
+          <template #prefix>
+            <icon-lock />
+          </template>
+        </a-input-password>
+      </a-form-item>
+      <a-row class="grid-demo" :gutter="24">
+        <a-col flex="20">
+          <a-form-item
+            field="verificationCode"
+            :rules="[{ required: true, message: '验证码不能为空' }]"
+            :validate-trigger="['change', 'blur']"
+            hide-label
+          >
+            <a-input v-model="registerForm.verificationCode" size="large" placeholder="验证码">
+              <template #prefix>
+                <icon-code />
+              </template>
+            </a-input>
+          </a-form-item>
+        </a-col>
+        <a-col flex="12">
+          <a-button type="primary" size="large" class="flex-1" @click="sendVerificationCode">
+            发送验证码
+          </a-button>
+        </a-col>
+      </a-row>
+      <a-button :loading="passwordLoginLoading" size="large" type="primary" html-type="submit">
+        注册
+      </a-button>
+    </a-form>
+  </a-modal>
 </template>
 <style scoped></style>
