@@ -5,7 +5,7 @@ import { useCredentialStore } from '@/stores/credential'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import { usePasswordLogin } from '@/hooks/use-auth'
 import { useProvider } from '@/hooks/use-oauth'
-import { useGetCurrentUser } from '@/hooks/use-account'
+import { useGetCurrentUser, useRegister } from '@/hooks/use-account'
 import { useAccountStore } from '@/stores/account'
 
 const errorMessage = ref('')
@@ -22,7 +22,7 @@ const route = useRoute()
 const router = useRouter()
 const { loading: passwordLoginLoading, authorization, handlePasswordLogin } = usePasswordLogin()
 const { loading: providerLoading, redirect_url, handleProvider } = useProvider()
-
+const { loading: registerLoading, handlerRegister } = useRegister()
 const forgetPassword = () => Message.error('忘记密码请联系管理员')
 const { current_user, loadCurrentUser } = useGetCurrentUser()
 const accountStore = useAccountStore()
@@ -48,8 +48,12 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
   }
 }
 
-const registerSubmit = () => {}
-const handleCancel = () => {
+const registerSubmit = async () => {
+  if (registerForm.value.confirmPassword !== registerForm.value.password) {
+    Message.error('两次密码不一致')
+    return
+  }
+  await handlerRegister({ ...registerForm.value })
   registerModelVisible.value = false
 }
 const sendVerificationCode = () => {}
@@ -121,7 +125,7 @@ const sendVerificationCode = () => {}
     </a-form>
   </div>
   <!-- 注册表单 -->
-  <a-modal v-model:visible="registerModelVisible" :footer="false">
+  <a-modal :width="400" v-model:visible="registerModelVisible" :footer="false">
     <template #title> 注册 </template>
     <a-form :model="registerForm" @submit="registerSubmit" layout="vertical">
       <a-form-item
@@ -185,7 +189,7 @@ const sendVerificationCode = () => {}
           </a-button>
         </a-col>
       </a-row>
-      <a-button :loading="passwordLoginLoading" size="large" type="primary" html-type="submit">
+      <a-button :loading="registerLoading" size="large" type="primary" html-type="submit">
         注册
       </a-button>
     </a-form>

@@ -1,4 +1,4 @@
-import type { GetCurrentUserResponse } from '@/models/account'
+import type { GetCurrentUserResponse, RegisterAccountRequest } from '@/models/account'
 import { type BaseResponse } from '@/models/base'
 import { get, post } from '@/utils/request'
 
@@ -22,4 +22,8 @@ export const updateAvatar = (avatar: string) => {
   return post<BaseResponse<any>>(`/account/avatar`, {
     body: { avatar },
   })
+}
+
+export const register = (req: RegisterAccountRequest) => {
+  return post<BaseResponse<any>>(`/account/register`, { body: req })
 }
