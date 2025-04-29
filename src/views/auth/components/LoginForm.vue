@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCredentialStore } from '@/stores/credential'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import { usePasswordLogin } from '@/hooks/use-auth'
 import { useProvider } from '@/hooks/use-oauth'
-import { useGetCurrentUser, useRegister } from '@/hooks/use-account'
+import { useGetCurrentUser, useRegister, useSendVerificationCode } from '@/hooks/use-account'
 import { useAccountStore } from '@/stores/account'
 
+const countdown = ref(0);
+const isCounting = ref(false);
 const errorMessage = ref('')
+let timer = null;
 const loginForm = ref({ email: '', password: '' })
 const registerForm = ref({
   email: '',
@@ -23,6 +26,7 @@ const router = useRouter()
 const { loading: passwordLoginLoading, authorization, handlePasswordLogin } = usePasswordLogin()
 const { loading: providerLoading, redirect_url, handleProvider } = useProvider()
 const { loading: registerLoading, handlerRegister } = useRegister()
+const { loading: sendCodeLoading, handlerSendCode } = useSendVerificationCode()
 const forgetPassword = () => Message.error('忘记密码请联系管理员')
 const { current_user, loadCurrentUser } = useGetCurrentUser()
 const accountStore = useAccountStore()
@@ -56,7 +60,43 @@ const registerSubmit = async () => {
   await handlerRegister({ ...registerForm.value })
   registerModelVisible.value = false
 }
-const sendVerificationCode = () => {}
+const sendVerificationCode = async () => {
+  if (!registerForm.value.email) {
+    Message.error('邮箱不能为空')
+    return
+  }
+  await handlerSendCode(registerForm.value.email)
+  startCountdown()
+}
+
+const clearTimer = () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+};
+
+// 开始倒计时
+const startCountdown = () => {
+  isCounting.value = true;
+  countdown.value = 60;
+  
+  timer = setInterval(() => {
+    countdown.value--;
+    if (countdown.value <= 0) {
+      clearTimer();
+      isCounting.value = false;
+    }
+  }, 1000);
+};
+
+// 组件卸载时清理
+onUnmounted(clearTimer);
+const buttonText = computed(() => {
+  return isCounting.value 
+    ? `${countdown.value}秒后重新获取`
+    : '获取验证码';
+});
 </script>
 <template>
   <div class="">
@@ -125,7 +165,7 @@ const sendVerificationCode = () => {}
     </a-form>
   </div>
   <!-- 注册表单 -->
-  <a-modal :width="400" v-model:visible="registerModelVisible" :footer="false">
+  <a-modal :width="400" v-model:visible="registerModelVisible" :footer="false" @close="clearTimer">
     <template #title> 注册 </template>
     <a-form :model="registerForm" @submit="registerSubmit" layout="vertical">
       <a-form-item
@@ -184,8 +224,8 @@ const sendVerificationCode = () => {}
           </a-form-item>
         </a-col>
         <a-col flex="12">
-          <a-button type="primary" size="large" class="flex-1" @click="sendVerificationCode">
-            发送验证码
+          <a-button type="primary" :disabled="isCounting" :loading="sendCodeLoading" size="large" @click="sendVerificationCode">
+            {{ buttonText }}
           </a-button>
         </a-col>
       </a-row>

@@ -5,6 +5,7 @@ import {
   updateName,
   updatePassword,
   register,
+  sendVerificationCode,
 } from '@/services/account'
 import { Message } from '@arco-design/web-vue'
 import JSEncrypt from 'jsencrypt'
@@ -103,4 +104,18 @@ export const useRegister = () => {
     }
   }
   return { loading, handlerRegister }
+}
+
+export const useSendVerificationCode = () => {
+  const loading = ref(false)
+  const handlerSendCode = async (email: string) => {
+    try {
+      loading.value = true
+      const resp = await sendVerificationCode(email)
+      Message.success(resp.message)
+    } finally {
+      loading.value = false
+    }
+  }
+  return {loading, handlerSendCode}
 }

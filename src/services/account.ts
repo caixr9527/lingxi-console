@@ -27,3 +27,7 @@ export const updateAvatar = (avatar: string) => {
 export const register = (req: RegisterAccountRequest) => {
   return post<BaseResponse<any>>(`/account/register`, { body: req })
 }
+
+export const sendVerificationCode = (email: string) => {
+  return post<BaseResponse<any>>(`/account/sendVerificationCode`, { body: { email } })
+}
