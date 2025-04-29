@@ -8,10 +8,10 @@ import { useProvider } from '@/hooks/use-oauth'
 import { useGetCurrentUser, useRegister, useSendVerificationCode } from '@/hooks/use-account'
 import { useAccountStore } from '@/stores/account'
 
-const countdown = ref(0);
-const isCounting = ref(false);
+const countdown = ref(0)
+const isCounting = ref(false)
 const errorMessage = ref('')
-let timer = null;
+let timer: any = null
 const loginForm = ref({ email: '', password: '' })
 const registerForm = ref({
   email: '',
@@ -71,32 +71,30 @@ const sendVerificationCode = async () => {
 
 const clearTimer = () => {
   if (timer) {
-    clearInterval(timer);
-    timer = null;
+    clearInterval(timer)
+    timer = null
   }
-};
+}
 
 // 开始倒计时
 const startCountdown = () => {
-  isCounting.value = true;
-  countdown.value = 60;
-  
+  isCounting.value = true
+  countdown.value = 60
+
   timer = setInterval(() => {
-    countdown.value--;
+    countdown.value--
     if (countdown.value <= 0) {
-      clearTimer();
-      isCounting.value = false;
+      clearTimer()
+      isCounting.value = false
     }
-  }, 1000);
-};
+  }, 1000)
+}
 
 // 组件卸载时清理
-onUnmounted(clearTimer);
+onUnmounted(clearTimer)
 const buttonText = computed(() => {
-  return isCounting.value 
-    ? `${countdown.value}秒后重新获取`
-    : '获取验证码';
-});
+  return isCounting.value ? `${countdown.value}秒后重新获取` : '获取验证码'
+})
 </script>
 <template>
   <div class="">
@@ -224,7 +222,13 @@ const buttonText = computed(() => {
           </a-form-item>
         </a-col>
         <a-col flex="12">
-          <a-button type="primary" :disabled="isCounting" :loading="sendCodeLoading" size="large" @click="sendVerificationCode">
+          <a-button
+            type="primary"
+            :disabled="isCounting"
+            :loading="sendCodeLoading"
+            size="large"
+            @click="sendVerificationCode"
+          >
             {{ buttonText }}
           </a-button>
         </a-col>
