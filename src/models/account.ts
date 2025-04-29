@@ -9,3 +9,10 @@ export type GetCurrentUserResponse = BaseResponse<{
   last_login_at: number
   created_at: number
 }>
+
+export type RegisterAccountRequest = {
+  email: string
+  password: string
+  confirmPassword: string
+  verificationCode: string
+}

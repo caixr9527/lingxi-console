@@ -405,7 +405,7 @@ onMounted(() => {
             />
           </div>
         </a-form-item>
-        <a-form-item field="score" label="最小匹配度">
+        <a-form-item v-if="retrievalConfigForm.retrieval_strategy !== 'rag_fusion'" field="score" label="最小匹配度">
           <div class="flex items-center gap-4 w-full pl-3">
             <a-slider
               v-model:model-value="retrievalConfigForm.score"
