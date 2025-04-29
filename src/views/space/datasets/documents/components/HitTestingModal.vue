@@ -114,6 +114,9 @@ watch(
                   <div v-else-if="hitTestingForm.retrieval_strategy === 'full_text'" class="">
                     全文检索
                   </div>
+                  <div v-else-if="hitTestingForm.retrieval_strategy === 'rag_fusion'" class="">
+                    多查询检索
+                  </div>
                   <div v-else class="">混合检索</div>
                 </a-button>
               </div>
@@ -200,7 +203,7 @@ watch(
                   <div class="p-4 bg-gray-50 rounded-lg cursor-pointer">
                     <!-- 顶部得分部分 -->
                     <div
-                      v-if="hitTestingForm.retrieval_strategy === 'semantic'"
+                      v-if="hitTestingForm.retrieval_strategy === 'semantic' || hitTestingForm.retrieval_strategy === 'rag_fusion'"
                       class="flex items-center gap-2 mb-1.5"
                     >
                       <icon-pushpin />
@@ -272,7 +275,7 @@ watch(
             />
           </div>
         </a-form-item>
-        <a-form-item field="score" label="最小匹配度">
+        <a-form-item v-if="hitTestingForm.retrieval_strategy !== 'rag_fusion'" field="score" label="最小匹配度">
           <div class="flex items-center gap-4 w-full pl-3">
             <a-slider
               v-model:model-value="retrievalSettingForm.score"
