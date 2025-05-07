@@ -55,19 +55,21 @@ const handleLogout = async () => {
           <div
             class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
           >
-            <!-- 头像 -->
-            <a-avatar
-              :size="32"
-              class="text-sm bg-blue-700"
-              :image-url="accountStore.account.avatar"
-            >
-              {{ accountStore.account.name[0] }}
-            </a-avatar>
-            <!-- 个人信息 -->
-            <div class="flex flex-col">
-              <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
-              <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
-            </div>
+            <a-space>
+              <!-- 头像 -->
+              <a-avatar
+                :size="32"
+                class="text-sm bg-blue-700"
+                :image-url="accountStore.account.avatar"
+              >
+                {{ accountStore.account.name[0] }}
+              </a-avatar>
+              <!-- 个人信息 -->
+              <div class="flex flex-col">
+                <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
+                <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
+              </div>
+            </a-space>
           </div>
           <template #content>
             <a-doption @click="settingModalVisible = true">
