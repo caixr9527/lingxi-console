@@ -31,3 +31,7 @@ export const register = (req: RegisterAccountRequest) => {
 export const sendVerificationCode = (email: string) => {
   return post<BaseResponse<any>>(`/account/sendVerificationCode`, { body: { email } })
 }
+
+export const forgetPassword = (req: RegisterAccountRequest) => {
+  return post<BaseResponse<any>>(`/account/forgetPassword`, { body: req })
+}
