@@ -6,6 +6,7 @@ import {
   updatePassword,
   register,
   sendVerificationCode,
+  forgetPassword,
 } from '@/services/account'
 import { Message } from '@arco-design/web-vue'
 import JSEncrypt from 'jsencrypt'
@@ -106,6 +107,24 @@ export const useRegister = () => {
   return { loading, handlerRegister }
 }
 
+export const useForgetPassword = () => {
+  const loading = ref(false)
+  const handlerForgetPassword = async (req: RegisterAccountRequest) => {
+    try {
+      loading.value = true
+      const encryptor = new JSEncrypt()
+      encryptor.setPublicKey(public_key)
+      req.password = String(encryptor.encrypt(req.password))
+      req.confirmPassword = String(encryptor.encrypt(req.confirmPassword))
+      const resp = await forgetPassword(req)
+      Message.success(resp.message)
+    } finally {
+      loading.value = false
+    }
+  }
+  return { loading, handlerForgetPassword }
+}
+
 export const useSendVerificationCode = () => {
   const loading = ref(false)
   const handlerSendCode = async (email: string) => {
@@ -117,5 +136,5 @@ export const useSendVerificationCode = () => {
       loading.value = false
     }
   }
-  return {loading, handlerSendCode}
+  return { loading, handlerSendCode }
 }

@@ -5,7 +5,12 @@ import { useCredentialStore } from '@/stores/credential'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import { usePasswordLogin } from '@/hooks/use-auth'
 import { useProvider } from '@/hooks/use-oauth'
-import { useGetCurrentUser, useRegister, useSendVerificationCode } from '@/hooks/use-account'
+import {
+  useGetCurrentUser,
+  useRegister,
+  useSendVerificationCode,
+  useForgetPassword,
+} from '@/hooks/use-account'
 import { useAccountStore } from '@/stores/account'
 
 const countdown = ref(0)
@@ -20,6 +25,7 @@ const registerForm = ref({
   verificationCode: '',
 })
 const registerModelVisible = ref(false)
+const forgetPasswordVisible = ref(false)
 const credentialStore = useCredentialStore()
 const route = useRoute()
 const router = useRouter()
@@ -27,7 +33,7 @@ const { loading: passwordLoginLoading, authorization, handlePasswordLogin } = us
 const { loading: providerLoading, redirect_url, handleProvider } = useProvider()
 const { loading: registerLoading, handlerRegister } = useRegister()
 const { loading: sendCodeLoading, handlerSendCode } = useSendVerificationCode()
-const forgetPassword = () => Message.error('忘记密码请联系管理员')
+const { loading: forgetPasswordLoading, handlerForgetPassword } = useForgetPassword()
 const { current_user, loadCurrentUser } = useGetCurrentUser()
 const accountStore = useAccountStore()
 const githubLogin = async () => {
@@ -60,6 +66,16 @@ const registerSubmit = async () => {
   await handlerRegister({ ...registerForm.value })
   registerModelVisible.value = false
 }
+
+const forgetPasswordSubmit = async () => {
+  if (registerForm.value.confirmPassword !== registerForm.value.password) {
+    Message.error('两次密码不一致')
+    return
+  }
+  await handlerForgetPassword({ ...registerForm.value })
+  forgetPasswordVisible.value = false
+}
+
 const sendVerificationCode = async () => {
   if (!registerForm.value.email) {
     Message.error('邮箱不能为空')
@@ -140,7 +156,7 @@ const buttonText = computed(() => {
       <a-space :size="16" direction="vertical">
         <div class="flex justify-between">
           <a-checkbox>记住密码</a-checkbox>
-          <a-link @click="forgetPassword">忘记密码?</a-link>
+          <a-link @click="forgetPasswordVisible = true">忘记密码?</a-link>
         </div>
         <a-button
           :loading="passwordLoginLoading"
@@ -235,6 +251,82 @@ const buttonText = computed(() => {
       </a-row>
       <a-button :loading="registerLoading" size="large" type="primary" html-type="submit">
         注册
+      </a-button>
+    </a-form>
+  </a-modal>
+  <!-- 忘记密码表单 -->
+  <a-modal :width="400" v-model:visible="forgetPasswordVisible" :footer="false" @close="clearTimer">
+    <template #title> 修改密码 </template>
+    <a-form :model="registerForm" @submit="forgetPasswordSubmit" layout="vertical">
+      <a-form-item
+        field="email"
+        :rules="[{ type: 'email', required: true, message: '登录账号必须是合法的邮箱' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input v-model="registerForm.email" size="large" placeholder="邮箱">
+          <template #prefix>
+            <icon-email />
+          </template>
+        </a-input>
+      </a-form-item>
+      <a-form-item
+        field="password"
+        :rules="[{ required: true, message: '密码不能为空' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input-password v-model="registerForm.password" size="large" placeholder="密码">
+          <template #prefix>
+            <icon-lock />
+          </template>
+        </a-input-password>
+      </a-form-item>
+      <a-form-item
+        field="confirmPassword"
+        :rules="[{ required: true, message: '密码不能为空' }]"
+        :validate-trigger="['change', 'blur']"
+        hide-label
+      >
+        <a-input-password
+          v-model="registerForm.confirmPassword"
+          size="large"
+          placeholder="再次输入密码"
+        >
+          <template #prefix>
+            <icon-lock />
+          </template>
+        </a-input-password>
+      </a-form-item>
+      <a-row class="grid-demo" :gutter="24">
+        <a-col flex="20">
+          <a-form-item
+            field="verificationCode"
+            :rules="[{ required: true, message: '验证码不能为空' }]"
+            :validate-trigger="['change', 'blur']"
+            hide-label
+          >
+            <a-input v-model="registerForm.verificationCode" size="large" placeholder="验证码">
+              <template #prefix>
+                <icon-code />
+              </template>
+            </a-input>
+          </a-form-item>
+        </a-col>
+        <a-col flex="12">
+          <a-button
+            type="primary"
+            :disabled="isCounting"
+            :loading="sendCodeLoading"
+            size="large"
+            @click="sendVerificationCode"
+          >
+            {{ buttonText }}
+          </a-button>
+        </a-col>
+      </a-row>
+      <a-button :loading="forgetPasswordLoading" size="large" type="primary" html-type="submit">
+        修改密码
       </a-button>
     </a-form>
   </a-modal>
