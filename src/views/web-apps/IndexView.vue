@@ -64,9 +64,24 @@ const { loading: stopWebAppChatLoading, handleStopWebAppChat } = useStopWebAppCh
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const can_image_input = computed(() => {
   if (web_app.value) {
-    return web_app.value?.app_config?.features?.includes('image_input')
+    return (
+      web_app.value?.app_config?.features?.includes('image_input') ||
+      web_app.value?.app_config?.multimodal?.enable
+    )
   }
   return false
+})
+const upload_file_tooltip = computed(() => {
+  if (web_app.value?.app_config?.multimodal?.enable) {
+    return '支持各类格式的文档和图片,仅识别文字'
+  }
+  return '支持图片格式,模型支持图片识别'
+})
+const upload_file_accept = computed(() => {
+  if (web_app.value?.app_config?.multimodal?.enable) {
+    return '.png,.jpg,.jpeg,.doc,.docx,.md,.txt,.yaml,.yml,.properties'
+  }
+  return 'image/*'
 })
 const can_speech_to_text = computed(() => {
   if (web_app.value) {
@@ -632,7 +647,11 @@ onMounted(async () => {
         >
           <a-space>
             <!-- 头像 -->
-            <a-avatar :size="32" class="text-sm bg-blue-700" :image-url="accountStore.account.avatar">
+            <a-avatar
+              :size="32"
+              class="text-sm bg-blue-700"
+              :image-url="accountStore.account.avatar"
+            >
               {{ accountStore.account.name[0] }}
             </a-avatar>
             <!-- 个人信息 -->
@@ -640,7 +659,7 @@ onMounted(async () => {
               <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
               <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
             </div>
-          </a-space>  
+          </a-space>
         </div>
         <template #content>
           <a-doption @click="handleLogout">
@@ -777,23 +796,25 @@ onMounted(async () => {
               <input
                 type="file"
                 ref="fileInput"
-                accept="image/*"
+                :accept="upload_file_accept"
                 @change="handleFileChange"
                 class="hidden"
               />
-              <a-button
-                v-if="can_image_input"
-                :loading="uploadFileLoading"
-                size="mini"
-                type="text"
-                shape="circle"
-                class="!text-gray-700"
-                @click="triggerFileInput"
-              >
-                <template #icon>
-                  <icon-plus />
-                </template>
-              </a-button>
+              <a-tooltip :content="upload_file_tooltip">
+                <a-button
+                  v-if="can_image_input"
+                  :loading="uploadFileLoading"
+                  size="mini"
+                  type="text"
+                  shape="circle"
+                  class="!text-gray-700"
+                  @click="triggerFileInput"
+                >
+                  <template #icon>
+                    <icon-plus />
+                  </template>
+                </a-button>
+              </a-tooltip>
               <!-- 语音转文本加载按钮 -->
               <template v-if="!can_speech_to_text"></template>
               <template v-else-if="audioToTextLoading">
