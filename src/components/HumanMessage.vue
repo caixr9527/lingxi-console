@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isImage, isFile } from '@/utils/helper'
 const props = defineProps({
   account: {
     type: Object,
@@ -32,7 +33,17 @@ const props = defineProps({
     v-else
     class="bg-blue-100 border border-blue-200 text-gray-700 px-4 py-3 rounded-2xl break-all ml-auto"
   >
-    <a-image v-for="(image_url, idx) in props.image_urls" :key="idx" :src="String(image_url)" />
+    <div v-for="(image_url, idx) in props.image_urls" :key="idx">
+      <a-image v-if="isImage(String(image_url))" :src="String(image_url)" />
+      <a-space v-else-if="isFile(String(image_url))">
+        <a :href="String(image_url)" target="_blank" rel="noopener noreferrer">
+          <a-avatar :size="64" shape="square">
+            <icon-file />
+          </a-avatar>
+        </a>
+      </a-space>
+    </div>
+
     {{ props.query }}
   </div>
 </template>

@@ -133,3 +133,54 @@ export const getReferencedVariables = (
 
   return options
 }
+
+export function isImage(url: string) {
+  // 支持的图片扩展名列表（可自行扩展）
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'svg', 'gif', 'webp', 'bmp', 'ico']
+
+  try {
+    // 处理URL参数和哈希
+    const cleanUrl = url.split(/[?#]/)[0]
+    // 获取文件名
+    const filename = cleanUrl.split('/').pop()
+    // 获取扩展名（转换为小写）
+    const ext = filename?.split('.').pop()?.toLowerCase() || ''
+    // 检查是否有扩展名且扩展名在列表中
+    return filename?.includes('.') && imageExtensions.includes(ext)
+  } catch (error) {
+    // 如果解析出错（如无效URL格式）
+    return false
+  }
+}
+
+export function isFile(url: string) {
+  // 支持的图片扩展名列表（可自行扩展）
+  const fileExtensions = [
+    'xlsx',
+    'xls',
+    'pdf',
+    'md',
+    'markdown',
+    'htm',
+    'html',
+    'csv',
+    'ppt',
+    'pptx',
+    'xml',
+    'txt',
+  ]
+
+  try {
+    // 处理URL参数和哈希
+    const cleanUrl = url.split(/[?#]/)[0]
+    // 获取文件名
+    const filename = cleanUrl.split('/').pop()
+    // 获取扩展名（转换为小写）
+    const ext = filename?.split('.').pop()?.toLowerCase() || ''
+    // 检查是否有扩展名且扩展名在列表中
+    return filename?.includes('.') && fileExtensions.includes(ext)
+  } catch (error) {
+    // 如果解析出错（如无效URL格式）
+    return false
+  }
+}
