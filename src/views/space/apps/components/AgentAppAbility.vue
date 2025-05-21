@@ -8,6 +8,7 @@ import ToolsAbilityItem from './abilities/ToolsAbilityItem.vue'
 import WorkflowsAbilityItem from './abilities/WorkflowsAbilityItem.vue'
 import SpeechToTextAbilityItem from './abilities/SpeechToTextAbilityItem.vue'
 import TextToSpeechAbilitiItem from './abilities/TextToSpeechAbilitiItem.vue'
+import MultimodalAbilityItem from './abilities/MultimodalAbilityItem.vue'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
@@ -24,6 +25,7 @@ const defaultActiveKeys: any[] = [
   'review_config',
   'speech_to_text',
   'text_to_speech',
+  'multimodal',
 ]
 </script>
 
@@ -141,6 +143,17 @@ const defaultActiveKeys: any[] = [
         <!-- 语音输出 -->
         <text-to-speech-abiliti-item
           :text_to_speech="props.draft_app_config.text_to_speech"
+          :app_id="props.app_id"
+        />
+        <multimodal-ability-item
+          :multimodal="props.draft_app_config.multimodal"
+          @update:multimodal="
+            (multimodal: any) =>
+              emits('update:draft_app_config', {
+                ...props.draft_app_config,
+                multimodal,
+              })
+          "
           :app_id="props.app_id"
         />
         <!-- 内容审核 -->

@@ -298,6 +298,7 @@ export const useGetDraftAppConfig = () => {
         workflows: data.workflows,
         speech_to_text: data.speech_to_text,
         text_to_speech: data.text_to_speech,
+        multimodal: data.multimodal,
       }
     } finally {
       loading.value = false

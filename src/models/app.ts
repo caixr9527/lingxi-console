@@ -67,6 +67,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
   opening_questions: string[]
   speech_to_text: { enable: boolean }
   text_to_speech: { enable: boolean; voice: string; auto_play: boolean }
+  multimodal: { enable: boolean }
   suggested_after_answer: { enable: boolean }
   review_config: {
     enable: boolean
@@ -91,6 +92,7 @@ export type UpdateDraftAppConfigRequest = {
   opening_statement?: string
   opening_questions?: string[]
   speech_to_text?: { enable: boolean }
+  multimodal?: { enable: boolean }
   text_to_speech?: { enable: boolean; voice: string; auto_play: boolean }
   suggested_after_answer?: { enable: boolean }
   review_config?: {

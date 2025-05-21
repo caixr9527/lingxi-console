@@ -24,11 +24,24 @@ import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { QueueEvent } from '@/config'
-import { uploadImage } from '@/services/upload-file'
+import { uploadFile, uploadImage } from '@/services/upload-file'
 import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 import AudioRecorder from 'js-audio-recorder'
 import { useLogout } from '@/hooks/use-auth'
 import { useCredentialStore } from '@/stores/credential'
+import { cosDomain } from '@/config'
+import { isImage, isFile } from '@/utils/helper'
+import IconCsv from '@/components/icons/IconCsv.vue'
+import IconDoc from '@/components/icons/IconDoc.vue'
+import IconHtml from '@/components/icons/IconHtml.vue'
+import IconMd from '@/components/icons/IconMd.vue'
+import IconPdf from '@/components/icons/IconPdf.vue'
+import IconPpt from '@/components/icons/IconPpt.vue'
+import IconProperties from '@/components/icons/IconProperties.vue'
+import IconTxt from '@/components/icons/IconTxt.vue'
+import IconXls from '@/components/icons/IconXls.vue'
+import IconXml from '@/components/icons/IconXml.vue'
+import IconYaml from '@/components/icons/IconYaml.vue'
 
 const route = useRoute()
 const updateConversationNameModalVisible = ref(false)
@@ -64,9 +77,24 @@ const { loading: stopWebAppChatLoading, handleStopWebAppChat } = useStopWebAppCh
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const can_image_input = computed(() => {
   if (web_app.value) {
-    return web_app.value?.app_config?.features?.includes('image_input')
+    return (
+      web_app.value?.app_config?.features?.includes('image_input') ||
+      web_app.value?.app_config?.multimodal?.enable
+    )
   }
   return false
+})
+const upload_file_tooltip = computed(() => {
+  if (web_app.value?.app_config?.multimodal?.enable) {
+    return '支持各类格式的文档和图片,仅识别文字'
+  }
+  return '支持图片格式,模型支持图片识别'
+})
+const upload_file_accept = computed(() => {
+  if (web_app.value?.app_config?.multimodal?.enable) {
+    return '.jpg,.jpeg,.png,.svg,.gif,.webp,.bmp,.ico,.xlsx,.xls,.pdf,.md,.markdown,.htm,.html,.csv,.ppt,.pptx,.xml,.txt,.yaml,.yml,.properties,.doc,.docx'
+  }
+  return 'image/*'
 })
 const can_speech_to_text = computed(() => {
   if (web_app.value) {
@@ -395,7 +423,7 @@ const handleSubmitQuestion = async (question: string) => {
 const triggerFileInput = () => {
   // 检测上传的图片数量是否超过5
   if (image_urls.value.length >= 5) {
-    Message.error('对话上传图片数量不能超过5张')
+    Message.error('对话上传文档/文件/图片数量不能超过5')
     return
   }
 
@@ -405,22 +433,51 @@ const triggerFileInput = () => {
 
 // 定义文件变化监听器
 const handleFileChange = async (event: Event) => {
-  // 判断是否在上传中
-  if (uploadFileLoading.value) return
+  try {
+    // 判断是否在上传中
+    if (uploadFileLoading.value) return
 
-  // 获取当前选中的图片
-  const input = event.target as HTMLInputElement
-  const selectedFile = input.files?.[0]
-  if (selectedFile) {
-    try {
-      // 调用API接口上传图片
-      uploadFileLoading.value = true
-      const resp = await uploadImage(selectedFile)
-      image_urls.value.push(resp.data.image_url)
-      Message.success('上传图片成功')
-    } finally {
-      uploadFileLoading.value = false
+    uploadFileLoading.value = true
+    // 获取当前选中的图片
+    const input = event.target as HTMLInputElement
+    const files = input.files
+    const filesLength = files ? files.length : 0
+    if (filesLength > 5) {
+      Message.error('对话上传文档/文件/图片数量不能超过5')
+      return
     }
+    if (filesLength === 0) {
+      return
+    }
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+
+    const filesArray = Array.from(input.files || []) // 转为数组方便操作
+
+    if (filesArray.some((file) => file.size > MAX_SIZE)) {
+      Message.warning('单个文件大小不能超过10M')
+      return
+    }
+
+    for (const file of filesArray) {
+      if (file) {
+        const isImg = file.type.startsWith('image')
+        var resp: any
+        if (isImg) {
+          resp = await uploadImage(file)
+        } else {
+          resp = await uploadFile(file)
+        }
+        if (resp.code === 'success') {
+          image_urls.value.push(isImg ? resp.data.image_url : cosDomain + resp.data.key)
+        } else {
+          Message.error(resp.message)
+          return
+        }
+      }
+    }
+    Message.success('上传图片成功')
+  } finally {
+    uploadFileLoading.value = false
   }
 }
 const handleLogout = async () => {
@@ -632,7 +689,11 @@ onMounted(async () => {
         >
           <a-space>
             <!-- 头像 -->
-            <a-avatar :size="32" class="text-sm bg-blue-700" :image-url="accountStore.account.avatar">
+            <a-avatar
+              :size="32"
+              class="text-sm bg-blue-700"
+              :image-url="accountStore.account.avatar"
+            >
               {{ accountStore.account.name[0] }}
             </a-avatar>
             <!-- 个人信息 -->
@@ -640,7 +701,7 @@ onMounted(async () => {
               <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
               <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
             </div>
-          </a-space>  
+          </a-space>
         </div>
         <template #content>
           <a-doption @click="handleLogout">
@@ -754,7 +815,25 @@ onMounted(async () => {
                 :key="image_url"
                 class="w-10 h-10 relative rounded-lg overflow-hidden group cursor-pointer"
               >
-                <a-avatar shape="square" :image-url="image_url" />
+                <a-avatar v-if="isImage(image_url)" shape="square" :image-url="image_url" />
+                <a-avatar
+                  :style="{ width: '40px', height: '40px' }"
+                  v-else-if="isFile(image_url)"
+                  shape="square"
+                >
+                  <icon-csv v-if="image_url.endsWith('csv')" />
+                  <icon-doc v-else-if="image_url.endsWith('doc') || image_url.endsWith('docx')" />
+                  <icon-html v-else-if="image_url.endsWith('htm') || image_url.endsWith('html')" />
+                  <icon-md v-else-if="image_url.endsWith('md') || image_url.endsWith('markdown')" />
+                  <icon-pdf v-else-if="image_url.endsWith('pdf')" />
+                  <icon-ppt v-else-if="image_url.endsWith('ppt') || image_url.endsWith('pptx')" />
+                  <icon-properties v-else-if="image_url.endsWith('properties')" />
+                  <icon-txt v-else-if="image_url.endsWith('txt')" />
+                  <icon-xls v-else-if="image_url.endsWith('xls') || image_url.endsWith('xlsx')" />
+                  <icon-xml v-else-if="image_url.endsWith('xml')" />
+                  <icon-yaml v-else-if="image_url.endsWith('yaml') || image_url.endsWith('yml')" />
+                  <icon-file v-else />
+                </a-avatar>
                 <div
                   class="hidden group-hover:flex items-center justify-center bg-gray-700/50 w-10 h-10 absolute top-0"
                 >
@@ -777,23 +856,26 @@ onMounted(async () => {
               <input
                 type="file"
                 ref="fileInput"
-                accept="image/*"
+                :accept="upload_file_accept"
                 @change="handleFileChange"
                 class="hidden"
+                multiple
               />
-              <a-button
-                v-if="can_image_input"
-                :loading="uploadFileLoading"
-                size="mini"
-                type="text"
-                shape="circle"
-                class="!text-gray-700"
-                @click="triggerFileInput"
-              >
-                <template #icon>
-                  <icon-plus />
-                </template>
-              </a-button>
+              <a-tooltip :content="upload_file_tooltip">
+                <a-button
+                  v-if="can_image_input"
+                  :loading="uploadFileLoading"
+                  size="mini"
+                  type="text"
+                  shape="circle"
+                  class="!text-gray-700"
+                  @click="triggerFileInput"
+                >
+                  <template #icon>
+                    <icon-plus />
+                  </template>
+                </a-button>
+              </a-tooltip>
               <!-- 语音转文本加载按钮 -->
               <template v-if="!can_speech_to_text"></template>
               <template v-else-if="audioToTextLoading">

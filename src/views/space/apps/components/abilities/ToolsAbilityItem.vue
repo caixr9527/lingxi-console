@@ -218,6 +218,9 @@ const handleSelectTool = async (provider_idx: number, tool_idx: number) => {
     })
   ) {
     const newTools = [...props.tools].filter((item) => {
+      if (item.provider.id === selectTool.provider.id) {
+        return item.tool.name !== selectTool.tool.name
+      }
       return item.provider.id !== selectTool.provider.id && item.tool.name !== selectTool.tool.name
     })
     await handleUpdateDraftAppConfig(props.app_id, {
@@ -566,7 +569,12 @@ onMounted(() => {
             <div class="text-lg font-bold text-gray-700">
               {{ toolsActivateType === 'api_tool' ? '自定义插件' : '内置插件' }}
             </div>
-            <a-button size="mini" type="text" class="!text-gray-700 ml-6">
+            <a-button
+              size="mini"
+              type="text"
+              class="!text-gray-700 ml-6"
+              @click="toolsModalVisible = false"
+            >
               <template #icon>
                 <icon-close />
               </template>
