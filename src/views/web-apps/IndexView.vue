@@ -454,7 +454,7 @@ const handleFileChange = async (event: Event) => {
     const filesArray = Array.from(input.files || []) // 转为数组方便操作
 
     if (filesArray.some((file) => file.size > MAX_SIZE)) {
-      Message.warning('当个文件大小不能超过10M')
+      Message.warning('单个文件大小不能超过10M')
       return
     }
 
