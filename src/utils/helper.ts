@@ -168,6 +168,8 @@ export function isFile(url: string) {
     'pptx',
     'xml',
     'txt',
+    "doc",
+    "docx"
   ]
 
   try {
