@@ -2,7 +2,7 @@
 // @ts-ignore
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { nextTick, onMounted, type PropType, ref } from 'vue'
+import { computed, nextTick, onMounted, type PropType, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   useDebugChat,
@@ -29,32 +29,39 @@ const props = defineProps({
     },
     required: true,
   },
-  suggested_after_answer: {
-    type: Object as PropType<{ enable: boolean }>,
+  //   suggested_after_answer: {
+  //     type: Object as PropType<{ enable: boolean }>,
+  //     default: () => {
+  //       return { enable: true }
+  //     },
+  //     required: true,
+  //   },
+  //   opening_statement: { type: String, default: '', required: true },
+  //   opening_questions: { type: Array as PropType<string[]>, default: () => [], required: true },
+  //   text_to_speech: {
+  //     type: Object,
+  //     default: () => {
+  //       return {
+  //         enable: false,
+  //         auto_play: false,
+  //         voice: 'echo',
+  //       }
+  //     },
+  //     required: false,
+  //   },
+  //   speech_to_text: {
+  //     type: Object,
+  //     default: () => {
+  //       return { enable: false }
+  //     },
+  //     required: false,
+  //   },
+  app_config: {
+    type: Object as PropType<Record<string, any>>,
     default: () => {
-      return { enable: true }
+      return {}
     },
     required: true,
-  },
-  opening_statement: { type: String, default: '', required: true },
-  opening_questions: { type: Array as PropType<string[]>, default: () => [], required: true },
-  text_to_speech: {
-    type: Object,
-    default: () => {
-      return {
-        enable: false,
-        auto_play: false,
-        voice: 'echo',
-      }
-    },
-    required: false,
-  },
-  speech_to_text: {
-    type: Object,
-    default: () => {
-      return { enable: false }
-    },
-    required: false,
   },
 })
 const query = ref('')
@@ -203,7 +210,7 @@ const handleSubmit = async () => {
   })
 
   if (
-    props.suggested_after_answer.enable &&
+    props.app_config.suggested_after_answer?.enable &&
     message_id.value &&
     message_event.value === QueueEvent.agentEnd
   ) {
@@ -211,7 +218,11 @@ const handleSubmit = async () => {
     setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
   }
 
-  if (props.text_to_speech.enable && props.text_to_speech.auto_play && message_id.value) {
+  if (
+    props.app_config.text_to_speech?.enable &&
+    props.app_config.text_to_speech?.auto_play &&
+    message_id.value
+  ) {
     startAudioStream(message_id.value)
   }
 }
@@ -322,7 +333,7 @@ onMounted(async () => {
                 :enable_token_cost="true"
                 :enable_agent_thought="true"
                 :message_id="item.id"
-                :enable_text_to_speech="props.text_to_speech.enable"
+                :enable_text_to_speech="props.app_config.text_to_speech?.enable"
                 :agent_thoughts="item.agent_thoughts"
                 :answer="item.answer"
                 :app="props.app"
@@ -358,16 +369,16 @@ onMounted(async () => {
       </div>
       <!-- 对话开场白 -->
       <div
-        v-if="props.opening_statement"
+        v-if="props.app_config.opening_statement"
         class="bg-gray-100 w-full px-4 py-3 rounded-lg text-gray-700"
       >
-        {{ props.opening_statement }}
+        {{ props.app_config.opening_statement }}
       </div>
       <!-- 开场白建议问题 -->
       <div class="flex items-center flex-wrap gap-2 w-full">
         <div
-          v-for="(opening_question, idx) in props.opening_questions.filter(
-            (item) => item.trim() !== '',
+          v-for="(opening_question, idx) in props.app_config.opening_questions?.filter(
+            (item: String) => item.trim() !== '',
           )"
           :key="idx"
           class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
@@ -451,7 +462,7 @@ onMounted(async () => {
               </template>
             </a-button>
             <!-- 语音转文本加载按钮 -->
-            <template v-if="!speech_to_text.enable"></template>
+            <template v-if="!props.app_config.speech_to_text?.enable"></template>
             <template v-else-if="audioToTextLoading">
               <a-button size="mini" type="text" shape="circle">
                 <template #icon>
