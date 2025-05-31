@@ -15,10 +15,22 @@ import { useAccountStore } from '@/stores/account'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { Message } from '@arco-design/web-vue'
-import { QueueEvent } from '@/config'
-import { uploadImage } from '@/services/upload-file'
+import { cosDomain, QueueEvent } from '@/config'
+import { uploadFile, uploadImage } from '@/services/upload-file'
 import AudioRecorder from 'js-audio-recorder'
 import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
+import { isImage, isFile } from '@/utils/helper'
+import IconCsv from '@/components/icons/IconCsv.vue'
+import IconDoc from '@/components/icons/IconDoc.vue'
+import IconHtml from '@/components/icons/IconHtml.vue'
+import IconMd from '@/components/icons/IconMd.vue'
+import IconPdf from '@/components/icons/IconPdf.vue'
+import IconPpt from '@/components/icons/IconPpt.vue'
+import IconProperties from '@/components/icons/IconProperties.vue'
+import IconTxt from '@/components/icons/IconTxt.vue'
+import IconXls from '@/components/icons/IconXls.vue'
+import IconXml from '@/components/icons/IconXml.vue'
+import IconYaml from '@/components/icons/IconYaml.vue'
 
 const route = useRoute()
 const props = defineProps({
@@ -29,33 +41,6 @@ const props = defineProps({
     },
     required: true,
   },
-  //   suggested_after_answer: {
-  //     type: Object as PropType<{ enable: boolean }>,
-  //     default: () => {
-  //       return { enable: true }
-  //     },
-  //     required: true,
-  //   },
-  //   opening_statement: { type: String, default: '', required: true },
-  //   opening_questions: { type: Array as PropType<string[]>, default: () => [], required: true },
-  //   text_to_speech: {
-  //     type: Object,
-  //     default: () => {
-  //       return {
-  //         enable: false,
-  //         auto_play: false,
-  //         voice: 'echo',
-  //       }
-  //     },
-  //     required: false,
-  //   },
-  //   speech_to_text: {
-  //     type: Object,
-  //     default: () => {
-  //       return { enable: false }
-  //     },
-  //     required: false,
-  //   },
   app_config: {
     type: Object as PropType<Record<string, any>>,
     default: () => {
@@ -247,21 +232,57 @@ const triggerFileInput = () => {
 }
 
 const handleFileChange = async (event: Event) => {
-  if (uploadFileLoading.value) return
+  try {
+    // 判断是否在上传中
+    if (uploadFileLoading.value) return
 
-  const input = event.target as HTMLInputElement
-  const selectedFile = input.files?.[0]
-  if (selectedFile) {
-    try {
-      uploadFileLoading.value = true
-      const resp = await uploadImage(selectedFile)
-      image_urls.value.push(resp.data.image_url)
-      Message.success('上传图片成功')
-    } finally {
-      uploadFileLoading.value = false
+    uploadFileLoading.value = true
+    // 获取当前选中的图片
+    const input = event.target as HTMLInputElement
+    const files = input.files
+    const filesLength = files ? files.length : 0
+    if (filesLength > 5) {
+      Message.error('对话上传文档/文件/图片数量不能超过5')
+      return
     }
+    if (filesLength === 0) {
+      return
+    }
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+
+    const filesArray = Array.from(input.files || []) // 转为数组方便操作
+
+    if (filesArray.some((file) => file.size > MAX_SIZE)) {
+      Message.warning('单个文件大小不能超过10M')
+      return
+    }
+
+    for (const file of filesArray) {
+      if (file) {
+        const isImg = file.type.startsWith('image')
+        var resp: any
+        if (isImg) {
+          resp = await uploadImage(file)
+        } else {
+          resp = await uploadFile(file)
+        }
+        if (resp.code === 'success') {
+          image_urls.value.push(isImg ? resp.data.image_url : cosDomain + resp.data.key)
+        } else {
+          Message.error(resp.message)
+          return
+        }
+      }
+    }
+    Message.success('上传图片成功')
+  } finally {
+    uploadFileLoading.value = false
   }
 }
+
+const can_image_input = computed(() => {
+  return props.app_config?.multimodal?.enable
+})
 const handleStartRecord = async () => {
   // 创建AudioRecorder
   recorder = new AudioRecorder()
@@ -276,6 +297,13 @@ const handleStartRecord = async () => {
     isRecording.value = false
   }
 }
+
+const upload_file_accept = computed(() => {
+  if (props.app_config?.multimodal?.enable) {
+    return '.jpg,.jpeg,.png,.svg,.gif,.webp,.bmp,.ico,.xlsx,.xls,.pdf,.md,.markdown,.htm,.html,.csv,.ppt,.pptx,.xml,.txt,.yaml,.yml,.properties,.doc,.docx'
+  }
+  return 'image/*'
+})
 
 const handleStopRecord = async () => {
   if (recorder) {
@@ -420,13 +448,31 @@ onMounted(async () => {
           :class="`${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
         >
           <!-- 图片列表 -->
-          <div v-if="image_urls.length > 0" class="flex items-center gap-2">
+          <div v-if="image_urls.length > 0 && can_image_input" class="flex items-center gap-2">
             <div
               v-for="(image_url, idx) in image_urls"
               :key="image_url"
               class="w-10 h-10 relative rounded-lg overflow-hidden group cursor-pointer"
             >
-              <a-avatar shape="square" :image-url="image_url" />
+              <a-avatar v-if="isImage(image_url)" shape="square" :image-url="image_url" />
+              <a-avatar
+                :style="{ width: '40px', height: '40px' }"
+                v-else-if="isFile(image_url)"
+                shape="square"
+              >
+                <icon-csv v-if="image_url.endsWith('csv')" />
+                <icon-doc v-else-if="image_url.endsWith('doc') || image_url.endsWith('docx')" />
+                <icon-html v-else-if="image_url.endsWith('htm') || image_url.endsWith('html')" />
+                <icon-md v-else-if="image_url.endsWith('md') || image_url.endsWith('markdown')" />
+                <icon-pdf v-else-if="image_url.endsWith('pdf')" />
+                <icon-ppt v-else-if="image_url.endsWith('ppt') || image_url.endsWith('pptx')" />
+                <icon-properties v-else-if="image_url.endsWith('properties')" />
+                <icon-txt v-else-if="image_url.endsWith('txt')" />
+                <icon-xls v-else-if="image_url.endsWith('xls') || image_url.endsWith('xlsx')" />
+                <icon-xml v-else-if="image_url.endsWith('xml')" />
+                <icon-yaml v-else-if="image_url.endsWith('yaml') || image_url.endsWith('yml')" />
+                <icon-file v-else />
+              </a-avatar>
               <div
                 class="hidden group-hover:flex items-center justify-center bg-gray-700/50 w-10 h-10 absolute top-0"
               >
@@ -445,11 +491,13 @@ onMounted(async () => {
             <input
               type="file"
               ref="fileInput"
-              accept="image/*"
+              :accept="upload_file_accept"
               @change="handleFileChange"
               class="hidden"
+              multiple
             />
             <a-button
+              v-if="can_image_input"
               :loading="uploadFileLoading"
               size="mini"
               type="text"
