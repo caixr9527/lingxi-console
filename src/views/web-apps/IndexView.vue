@@ -2,7 +2,7 @@
 // @ts-ignore
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { cloneDeep } from 'lodash'
 import { Message } from '@arco-design/web-vue'
@@ -29,7 +29,7 @@ import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 import AudioRecorder from 'js-audio-recorder'
 import { useLogout } from '@/hooks/use-auth'
 import { useCredentialStore } from '@/stores/credential'
-import { cosDomain } from '@/config'
+import { cosDomain, title } from '@/config'
 import { isImage, isFile } from '@/utils/helper'
 import IconCsv from '@/components/icons/IconCsv.vue'
 import IconDoc from '@/components/icons/IconDoc.vue'
@@ -552,6 +552,27 @@ onMounted(async () => {
   await Promise.all([loadWebApp(token), loadWebAppConversations(token)])
   // 默认新增空白会话
   addConversation()
+  updateFavicon(web_app.value.icon)
+  document.title = web_app.value.name
+})
+
+const originalFavicon = '/logo.svg' // 默认 logo 路径
+
+// 动态修改 favicon
+const updateFavicon = (iconPath: string) => {
+  let link = document.querySelector("link[rel*='icon']")
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'icon'
+    document.head.appendChild(link)
+  }
+  link.href = iconPath
+}
+
+onBeforeUnmount(() => {
+  // 离开页面时恢复默认 logo
+  updateFavicon(originalFavicon)
+  document.title = title
 })
 </script>
 

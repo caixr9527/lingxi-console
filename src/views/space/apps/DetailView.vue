@@ -63,15 +63,7 @@ onMounted(async () => {
           :long_term_memory="draftAppConfigForm.long_term_memory"
         />
         <!-- 对话窗口 -->
-        <preview-debug-chat
-          :suggested_after_answer="draftAppConfigForm.suggested_after_answer"
-          :opening_questions="draftAppConfigForm.opening_questions"
-          :opening_statement="draftAppConfigForm.opening_statement"
-          :text_to_speech="draftAppConfigForm.text_to_speech"
-          :speech_to_text="draftAppConfigForm.speech_to_text"
-          :app="props.app"
-          :app_id="props.app?.id"
-        />
+        <preview-debug-chat :app="props.app" :app_config="draftAppConfigForm" />
       </div>
     </div>
   </div>
