@@ -14,6 +14,26 @@ import { type CreateApiToolProviderRequest } from '@/models/api-tool'
 import moment from 'moment/moment'
 import { typeMap } from '@/config'
 import { type FileItem, Form, type ValidatedError } from '@arco-design/web-vue'
+const openapi_schema_tooltip = `{
+	"description": "工具描述",
+	"server": "工具调用服务器url地址",
+	"paths": {
+		"接口路径": {
+			"请求方式,post/get": {
+				"description": "请求描述",
+				"operationId": "请求id",
+				"parameters": [{
+					"name": "参数名",
+					"in": "入参方式，query:?query=xxx,request_body:body参数",
+					"description": "参数描述",
+					"required": 是否必填,
+					"type": "参数类型,str;int"
+				}]
+			}
+		}
+	}
+}
+`
 
 const route = useRoute()
 const props = defineProps({
@@ -385,6 +405,7 @@ watch(
           <a-form-item
             field="openapi_schema"
             label="OpenAPI Schema"
+            :tooltip="openapi_schema_tooltip"
             asterisk-position="end"
             :rules="[{ required: true, message: 'OpenAPI Schema不能为空' }]"
           >
