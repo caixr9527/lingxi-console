@@ -41,6 +41,9 @@ import QuestionClassifierNodeInfo from './components/Infos/QuestionClassifierNod
 import QuestionClassifierNode from './components/nodes/QuestionClassifierNode.vue'
 import IterationNode from './components/nodes/IterationNode.vue'
 import IterationNodeInfo from './components/Infos/IterationNodeInfo.vue'
+import ConditionSelectNode from './components/nodes/ConditionSelectNode.vue'
+import ConditionSelectNodeInfo from './components/Infos/ConditionSelectNodeInfo.vue'
+import IconIf from '@/components/icons/IconIf.vue'
 
 const route = useRoute()
 const selectedNode = ref<any>(null)
@@ -84,6 +87,7 @@ const NODE_TYPES = {
   http_request: markRaw(HttpRequestNode),
   code: markRaw(CodeNode),
   question_classifier: markRaw(QuestionClassifierNode),
+  condition_selector: markRaw(ConditionSelectNode),
   iteration: markRaw(IterationNode),
   end: markRaw(EndNode),
 }
@@ -183,6 +187,14 @@ const NODE_DATA_MAP: Record<string, any> = {
         value: { type: 'ref', content: { ref_node_id: '', ref_var_name: '' } },
       },
     ],
+    outputs: [],
+  },
+  condition_selector: {
+    title: '选择器',
+    description:
+      '连接多个下游分支，若设定的条件成立则仅运行对应的分支，若均不成立则只运行“否则”分支',
+    classes: [],
+    inputs: [],
     outputs: [],
   },
   iteration: {
@@ -658,6 +670,23 @@ onMounted(async () => {
                         定义用户问题的分类条件，LLM能够根据分类描述执行不同的分支。
                       </div>
                     </div>
+                    <!-- 选择器节点 -->
+                    <div
+                      class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
+                      @click="() => addNode('condition_selector')"
+                    >
+                      <!-- 节点名称 -->
+                      <div class="flex items-center gap-2">
+                        <a-avatar shape="square" :size="24" class="bg-gray-700 rounded-lg">
+                          <icon-if />
+                        </a-avatar>
+                        <div class="text-gray-700 font-semibold">选择器</div>
+                      </div>
+                      <!-- 节点描述 -->
+                      <div class="text-gray-500 text-xs">
+                        条件选择，根据不同条件执行不同的分支。
+                      </div>
+                    </div>
                     <!-- 迭代节点 -->
                     <div
                       class="flex flex-col px-3 py-2 gap-2 cursor-pointer hover:bg-gray-50"
@@ -847,6 +876,13 @@ onMounted(async () => {
         />
         <question-classifier-node-info
           v-if="selectedNode && selectedNode?.type === 'question_classifier'"
+          :loading="updateDraftGraphLoading"
+          :node="selectedNode"
+          v-model:visible="nodeInfoVisible"
+          @update-node="onUpdateNode"
+        />
+        <condition-select-node-info
+          v-if="selectedNode && selectedNode?.type === 'condition_selector'"
           :loading="updateDraftGraphLoading"
           :node="selectedNode"
           v-model:visible="nodeInfoVisible"
