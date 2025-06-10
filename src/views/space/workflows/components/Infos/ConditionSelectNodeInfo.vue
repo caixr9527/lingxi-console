@@ -408,8 +408,8 @@ onMounted(() => {
             </div>
           </div>
           <!-- 条件选择输入数据 -->
-          <a-row :gutter="6" wrap="false">
-            <a-col v-if="classifier.condition_group.length > 1" flex="10px">
+          <div class="flex items-center justify-between py-1">
+            <div v-if="classifier.condition_group.length > 1" class="flex items-center">
               <a-select
                 :bordered="false"
                 size="mini"
@@ -419,22 +419,20 @@ onMounted(() => {
                 <a-option value="and">且</a-option>
                 <a-option value="or">或</a-option>
               </a-select>
-            </a-col>
-            <a-col flex="285px">
-              <div v-for="(cg, cgIdx) in classifier.condition_group" :key="cgIdx">
-                <a-row :gutter="12" style="margin-bottom: 12px">
-                  <a-col :flex="3">
-                    <a-select size="mini" v-model="cg.variable">
-                      <a-option v-for="item in form?.inputs" :key="item.name" :value="item.name">
-                        {{ item.name }}
-                      </a-option>
-                    </a-select>
-                  </a-col>
-                  <a-col :flex="2">
+            </div>
+            <div class="flex-1 items-center">
+              <div
+                v-for="(cg, cgIdx) in classifier.condition_group"
+                :key="cgIdx"
+                class="flex items-center justify-between py-1"
+              >
+                <a-space>
+                  <div class="flex items-center w-[60px]">
                     <a-select
                       size="mini"
                       v-model="cg.condition_type"
                       @change="selectOp(classifier.source_handle_id, cgIdx)"
+                      class="rounded-lg"
                     >
                       <a-option value="==">=</a-option>
                       <a-option value="!=">≠</a-option>
@@ -449,16 +447,26 @@ onMounted(() => {
                       <a-option value="starts_with">开头是</a-option>
                       <a-option value="ends_with">结尾是</a-option>
                     </a-select>
-                  </a-col>
-                  <a-col :flex="6">
-                    <a-input
-                      :disabled="cg.condition_type === 'empty' || cg.condition_type === 'not empty'"
-                      size="mini"
-                      v-model="cg.parameter"
-                      allow-clear
-                    />
-                  </a-col>
-                  <a-col :flex="1">
+                  </div>
+                  <div class="flex-1 items-center w-[180px]">
+                    <a-space direction="vertical" fill>
+                      <a-select size="mini" v-model="cg.variable" class="rounded-lg">
+                        <a-option v-for="item in form?.inputs" :key="item.name" :value="item.name">
+                          {{ item.name }}
+                        </a-option>
+                      </a-select>
+                      <a-input
+                        class="rounded-lg"
+                        :disabled="
+                          cg.condition_type === 'empty' || cg.condition_type === 'not empty'
+                        "
+                        size="mini"
+                        v-model="cg.parameter"
+                        allow-clear
+                      />
+                    </a-space>
+                  </div>
+                  <div class="flex-1 items-center">
                     <a-button
                       v-if="cgIdx !== 0"
                       type="text"
@@ -470,8 +478,8 @@ onMounted(() => {
                         <icon-delete />
                       </template>
                     </a-button>
-                  </a-col>
-                </a-row>
+                  </div>
+                </a-space>
               </div>
               <a-button
                 v-if="idx !== classesLength - 1"
@@ -484,8 +492,8 @@ onMounted(() => {
                 </template>
                 新增
               </a-button>
-            </a-col>
-          </a-row>
+            </div>
+          </div>
         </div>
         <!-- 空数据状态 -->
         <a-empty v-if="form?.classes.length <= 0" class="my-4">该节点暂无条件选择</a-empty>
@@ -516,4 +524,13 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.arco-select-option {
+  font-size: 10px !important;
+}
+
+.arco-select-view-suffix {
+  width: 12px !important;
+  height: 12px !important;
+}
+</style>
