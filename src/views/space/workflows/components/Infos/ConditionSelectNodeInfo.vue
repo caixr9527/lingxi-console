@@ -7,6 +7,7 @@ import { getReferencedVariables } from '@/utils/helper'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import IconIf from '@/components/icons/IconIf.vue'
 import { onMounted } from 'vue'
+import { color } from 'echarts'
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
   node: {
@@ -33,6 +34,10 @@ const addFormInputField = () => {
 
 // 定义添加问题分类字段函数
 const addClass = () => {
+  if (form.value?.classes.length >= 5) {
+    Message.warning('最多只能有5个条件分支')
+    return
+  }
   const source_handle_id = v4()
   form.value?.classes.splice(1, 0, {
     condition_group: [],
@@ -100,6 +105,14 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   // 检查表单是否出现错误，如果出现错误则直接结束
   if (errors) return
 
+  for (const item of form.value.classes) {
+    for (const itemCg of item.condition_group) {
+      if (itemCg.variable === '' || itemCg.parameter === '' || itemCg.condition_type === '') {
+        Message.warning('优先级' + (item.priority + 1) + '参数缺失')
+        return
+      }
+    }
+  }
   // 深度拷贝表单数据内容
   const cloneInputs = cloneDeep(form.value.inputs)
   const cloneClasses = cloneDeep(form.value.classes)
@@ -132,6 +145,18 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
     outputs: cloneDeep(form.value.outputs),
   })
 }
+
+watch(
+  () => form.value.classes,
+  () => {
+    var index = form.value.classes.length - 1
+    for (const item of form.value.classes) {
+      item.priority = index
+      index = index - 1
+    }
+  },
+  { deep: true },
+)
 
 // 监听数据，将数据映射到表单模型上
 watch(
@@ -182,6 +207,9 @@ const classesLength = computed(() => {
 })
 
 onMounted(() => {
+  if (form.value?.classes.length > 0) {
+    return
+  }
   form.value?.classes.push({
     condition_group: [],
     logical_type: '',
@@ -191,11 +219,8 @@ onMounted(() => {
     source_handle_id: v4(),
   })
   form.value?.classes.push({
-    condition_group: [
-      { variable: '1', parameter: '1', condition_type: '1' },
-      { variable: '1', parameter: '1', condition_type: '1' },
-    ],
-    logical_type: 'or',
+    condition_group: [{ variable: '', parameter: '', condition_type: '' }],
+    logical_type: 'and',
     priority: 0,
     node_id: '',
     node_type: '',
@@ -363,6 +388,9 @@ onMounted(() => {
             <!-- 左侧标题 -->
             <div class="font-bold text-gray-700">
               {{ idx === classesLength - 1 ? '否则' : idx === 0 ? '如果' : '否则如果' }}
+              <a-tag color="green">
+                {{ '优先级' + (classifier.priority + 1) }}
+              </a-tag>
             </div>
             <!-- 右侧操作按钮 -->
             <div class="">
@@ -379,7 +407,6 @@ onMounted(() => {
               </a-button>
             </div>
           </div>
-          <p>{{ classifier.source_handle_id }}</p>
           <!-- 条件选择输入数据 -->
           <a-row :gutter="6" wrap="false">
             <a-col v-if="classifier.condition_group.length > 1" flex="10px">
@@ -403,13 +430,13 @@ onMounted(() => {
                       </a-option>
                     </a-select>
                   </a-col>
-                  <a-col :flex="5">
+                  <a-col :flex="2">
                     <a-select
                       size="mini"
                       v-model="cg.condition_type"
                       @change="selectOp(classifier.source_handle_id, cgIdx)"
                     >
-                      <a-option value="=">=</a-option>
+                      <a-option value="==">=</a-option>
                       <a-option value="!=">≠</a-option>
                       <a-option value=">">&gt;</a-option>
                       <a-option value=">=">&ge;</a-option>
@@ -423,7 +450,7 @@ onMounted(() => {
                       <a-option value="ends_with">结尾是</a-option>
                     </a-select>
                   </a-col>
-                  <a-col :flex="3">
+                  <a-col :flex="6">
                     <a-input
                       :disabled="cg.condition_type === 'empty' || cg.condition_type === 'not empty'"
                       size="mini"

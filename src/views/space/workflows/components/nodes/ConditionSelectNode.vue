@@ -26,7 +26,13 @@ const classesLength = computed(() => {
       :key="idx"
       class="bg-gray-100 rounded-lg px-3 py-1.5 text-xs font-bold relative"
     >
-      <p>{{ idx === classesLength - 1 ? '否则' : idx === 0 ? '如果' : '否则如果' }}</p>
+      <p>
+        {{ idx === classesLength - 1 ? '否则' : idx === 0 ? '如果' : '否则如果' }}
+        <a-tag color="green" size="small">
+          {{ '优先级' + (classifier.priority + 1) }}
+        </a-tag>
+      </p>
+
       <handle
         type="source"
         :id="classifier?.source_handle_id"
