@@ -101,7 +101,7 @@ const NODE_DATA_MAP: Record<string, any> = {
     title: '大语言模型',
     description: '调用大语言模型，根据输入参数和提示词生成回复。',
     prompt: '',
-    model_config: {
+    language_model_config: {
       provider: 'openai',
       model: 'gpt-4o-mini',
       parameters: {
