@@ -102,7 +102,10 @@ const handleCancelToolInfoModal = () => {
   toolInfoNavType.value = 'info'
 }
 
-const handleSubmitToolInfo = async () => {
+const handleSubmitToolInfo = async ({ errors }: any) => {
+  if (errors) {
+    return
+  }
   const tool = props.tools[toolInfoIdx.value]
   if (tool.type === 'api_tool') {
     handleCancelToolInfoModal()
@@ -437,31 +440,31 @@ onMounted(() => {
         v-if="toolInfoNavType === 'setting'"
         class="h-[calc(100vh-170px)] pb-4 overflow-scroll scrollbar-w-none"
       >
-        <a-form v-model:model="toolInfoSettingForm" layout="vertical" class="">
+        <a-form
+          v-model:model="toolInfoSettingForm"
+          layout="vertical"
+          class=""
+          @submit="handleSubmitToolInfo"
+        >
           <a-form-item
             v-for="param in toolInfo?.tool?.params"
             :key="param.name"
             :field="param.name"
+            :required="param.required"
+            :label="param.label"
+            :validate-trigger="['change', 'input', 'blur', 'focus']"
+            :rules="[{ required: param.required, message: param.label + '不能为空' }]"
           >
-            <template #label>
-              <div class="flex items-center gap-1">
-                <div class="text-gray-700">{{ param.label }}</div>
-                <div v-if="param.required" class="text-red-700">*</div>
-                <a-tooltip :content="param.label">
-                  <icon-info-circle />
-                </a-tooltip>
-              </div>
-            </template>
             <a-select
               v-if="param.type === 'select'"
               :default-value="param.default"
               v-model:model-value="toolInfoSettingForm[param.name]"
-              placeholder="请输入参数值"
+              placeholder="请选择参数"
               :options="param.options"
             />
             <a-input
               v-if="param.type === 'string'"
-              placeholder="请输入参数值"
+              :placeholder="'请输入' + param.label"
               v-model:model-value="toolInfoSettingForm[param.name]"
               :default-value="param.default"
             />
@@ -482,22 +485,22 @@ onMounted(() => {
               <a-radio :value="false">关闭</a-radio>
             </a-radio-group>
           </a-form-item>
+          <!-- 底部按钮 -->
+          <div class="flex items-center justify-between">
+            <div class=""></div>
+            <a-space :size="12">
+              <a-button class="rounded-lg" @click="handleCancelToolInfoModal">取消</a-button>
+              <a-button
+                :loading="updateDraftAppConfigLoading"
+                type="primary"
+                class="rounded-lg"
+                html-type="submit"
+              >
+                保存
+              </a-button>
+            </a-space>
+          </div>
         </a-form>
-      </div>
-      <!-- 底部按钮 -->
-      <div class="flex items-center justify-between">
-        <div class=""></div>
-        <a-space :size="12">
-          <a-button class="rounded-lg" @click="handleCancelToolInfoModal">取消</a-button>
-          <a-button
-            :loading="updateDraftAppConfigLoading"
-            type="primary"
-            class="rounded-lg"
-            @click="handleSubmitToolInfo"
-          >
-            保存
-          </a-button>
-        </a-space>
       </div>
     </a-modal>
     <!-- 选择工具模态窗 -->
