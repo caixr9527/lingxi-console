@@ -67,7 +67,6 @@ const copyText = async () => {
     await navigator.clipboard.writeText(props.answer)
     Message.info('复制完成')
   } catch (err) {
-    console.error('Failed to copy text: ', err)
     Message.error('复制失败')
   }
 }
