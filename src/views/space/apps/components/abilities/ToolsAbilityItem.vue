@@ -468,6 +468,12 @@ onMounted(() => {
               v-model:model-value="toolInfoSettingForm[param.name]"
               :default-value="param.default"
             />
+            <a-input-password
+              v-if="param.type === 'password'"
+              :placeholder="'请输入' + param.label"
+              v-model:model-value="toolInfoSettingForm[param.name]"
+              :default-value="param.default"
+            />
             <a-input-number
               v-if="param.type === 'number'"
               placeholder="请输入参数值"
