@@ -84,7 +84,7 @@ watch(
       <template #extra>
         <a-dropdown
           @select="
-            async (value) => {
+            async (value: any) => {
               if (Boolean(value) !== textToSpeechForm.enable) {
                 try {
                   // 1.表盖表单数据并确保数据同步

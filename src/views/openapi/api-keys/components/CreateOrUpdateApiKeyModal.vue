@@ -75,7 +75,7 @@ watch(
 <template>
   <a-modal
     :visible="props.visible"
-    @update:visible="(value) => emits('update:visible', value)"
+    @update:visible="(value: any) => emits('update:visible', value)"
     hide-title
     :footer="false"
   >

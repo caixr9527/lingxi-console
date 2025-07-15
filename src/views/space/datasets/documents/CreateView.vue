@@ -165,7 +165,7 @@ onUnmounted(() => stopTimer())
           multiple
           tip="支持PDF、TXT、DOC、DOCX、MD，最多可上传10个文件，每个文件的大小不超过10MB"
           :custom-request="
-            (option) => {
+            (option: any) => {
               const { fileItem, onSuccess, onError } = option
 
               const uploadTask = async () => {

@@ -156,7 +156,7 @@ watch(
                 size="small"
                 :bordered="{ wrapper: false }"
                 :data="queries"
-                @row-click="(record) => (hitTestingForm.query = record.query)"
+                @row-click="(record: any) => (hitTestingForm.query = record.query)"
               >
                 <template #columns>
                   <a-table-column
@@ -203,7 +203,10 @@ watch(
                   <div class="p-4 bg-gray-50 rounded-lg cursor-pointer">
                     <!-- 顶部得分部分 -->
                     <div
-                      v-if="hitTestingForm.retrieval_strategy === 'semantic' || hitTestingForm.retrieval_strategy === 'rag_fusion'"
+                      v-if="
+                        hitTestingForm.retrieval_strategy === 'semantic' ||
+                        hitTestingForm.retrieval_strategy === 'rag_fusion'
+                      "
                       class="flex items-center gap-2 mb-1.5"
                     >
                       <icon-pushpin />
@@ -275,7 +278,11 @@ watch(
             />
           </div>
         </a-form-item>
-        <a-form-item v-if="hitTestingForm.retrieval_strategy !== 'rag_fusion'" field="score" label="最小匹配度">
+        <a-form-item
+          v-if="hitTestingForm.retrieval_strategy !== 'rag_fusion'"
+          field="score"
+          label="最小匹配度"
+        >
           <div class="flex items-center gap-4 w-full pl-3">
             <a-slider
               v-model:model-value="retrievalSettingForm.score"

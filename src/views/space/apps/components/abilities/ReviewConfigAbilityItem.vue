@@ -95,7 +95,7 @@ watch(
       <template #extra>
         <a-dropdown
           @select="
-            async (value) => {
+            async (value: any) => {
               if (Boolean(value) !== reviewConfigForm.enable) {
                 try {
                   // 1.表盖表单数据并确保数据同步
@@ -178,13 +178,13 @@ watch(
               show-word-limit
               :auto-size="{ minRows: 4, maxRows: 4 }"
               :word-length="
-                (value) => {
+                (value: any) => {
                   if (value.trim() === '') return 0
                   return value.split(/\r?\n/).length
                 }
               "
               :word-slice="
-                (value, maxLength) => {
+                (value: any, maxLength: any) => {
                   // 1.分割内容并截取前100个关键词
                   const lines = value.split(/\r?\n/)
                   const first100Lines = lines.slice(0, maxLength)
