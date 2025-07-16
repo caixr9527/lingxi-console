@@ -19,6 +19,7 @@ const defaultForm = {
   icon: '',
   name: '',
   description: '',
+  mode: 0,
 }
 const form = ref({ ...defaultForm })
 const formRef = ref<InstanceType<typeof Form>>()
@@ -52,6 +53,7 @@ watch(
           icon: app.value.icon,
           name: app.value.name,
           description: app.value.description,
+          mode: app.value.mode,
         }
       }
     } else {

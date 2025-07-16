@@ -2,6 +2,7 @@
 import { useRoute } from 'vue-router'
 import { useGetDraftAppConfig } from '@/hooks/use-app'
 import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
+import SupervisorPresetPromptTextarea from './components/SupervisorPresetPromptTextArea.vue'
 import PreviewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
@@ -40,7 +41,10 @@ onMounted(async () => {
           />
         </div>
         <!-- 底部编排区域 -->
-        <div class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
+        <div
+          v-if="app.mode === 0"
+          class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]"
+        >
           <!-- 左侧人设与回复逻辑 -->
           <div class="border-r py-4">
             <preset-prompt-textarea
@@ -53,6 +57,14 @@ onMounted(async () => {
             v-model:draft_app_config="draftAppConfigForm"
             :app_id="String(route.params?.app_id)"
           />
+        </div>
+        <div v-else class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
+          <div class="border-r py-4">
+            <supervisor-preset-prompt-textarea
+              v-model:preset_prompt="draftAppConfigForm.preset_prompt"
+              :app_id="String(route.params?.app_id)"
+            />
+          </div>
         </div>
       </div>
       <!-- 右侧调试与会话 -->

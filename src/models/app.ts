@@ -21,7 +21,7 @@ export type GetAppResponse = BaseResponse<{
 export type CreateAppRequest = { name: string; icon: string; description: string }
 
 // 更新应用请求结构
-export type UpdateAppRequest = { name: string; icon: string; description: string }
+export type UpdateAppRequest = { name: string; icon: string; description: string; mode: number }
 
 // 获取应用分页列表数据请求
 export type GetAppsWithPageRequest = BasePaginatorRequest & { search_word: string }

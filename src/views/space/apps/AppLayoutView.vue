@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import moment from 'moment'
-import { useGetApp, usePublish, useCancelPublish } from '@/hooks/use-app'
+import { useGetApp, usePublish, useCancelPublish, useUpdateApp } from '@/hooks/use-app'
 import PublishHistoryDrawer from '@/views/space/apps/components/PublishHistoryDrawer.vue'
 import { onMounted, ref } from 'vue'
 
@@ -9,8 +9,18 @@ const route = useRoute()
 const publishHistoryDrawerVisible = ref(false)
 
 const { loading, app, loadApp } = useGetApp()
+const { handleUpdateApp } = useUpdateApp()
 const { loading: publishLoading, handlePublish } = usePublish()
 const { handleCancelPublish } = useCancelPublish()
+
+const updateMode = async () => {
+  handleUpdateApp(String(route.params?.app_id), {
+    mode: app.value.mode,
+    name: app.value.name,
+    icon: app.value.icon,
+    description: app.value.description,
+  })
+}
 
 onMounted(async () => {
   await loadApp(String(route.params?.app_id))
@@ -40,7 +50,33 @@ onMounted(async () => {
           <div class="flex flex-col justity-between h-[40px]">
             <a-skeleton-line v-if="loading" :widths="[100]" />
 
-            <div v-else class="text-gray-700 font-bold">{{ app.name }}</div>
+            <div v-else class="text-gray-700 font-bold pb-2">
+              <a-space>
+                {{ app.name }}
+                <a-select
+                  class="rounded-lg"
+                  size="mini"
+                  v-model:model-value="app.mode"
+                  @change="updateMode"
+                >
+                  <a-option :value="0">单Agent模式</a-option>
+                  <a-option :value="1">Supervisor模式</a-option>
+                </a-select>
+                <a-tooltip position="bottom">
+                  <template #content>
+                    <p>
+                      单Agent模式:
+                      用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。
+                    </p>
+                    <p>
+                      supervisor模式:
+                      在一个智能体中设置多个Agent，由Supervisor统一调度协调，以处理复杂逻辑。
+                    </p>
+                  </template>
+                  <icon-question-circle />
+                </a-tooltip>
+              </a-space>
+            </div>
             <div v-if="loading" class="flex item-center gap-2">
               <a-skeleton-line :widths="[60]" :line-height="18" />
               <a-skeleton-line :widths="[60]" :line-height="18" />
