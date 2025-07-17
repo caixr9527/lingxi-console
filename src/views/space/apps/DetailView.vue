@@ -41,13 +41,16 @@ onMounted(async () => {
           />
         </div>
         <!-- 底部编排区域 -->
-        <div
-          v-if="app.mode === 0"
-          class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]"
-        >
+        <div class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
           <!-- 左侧人设与回复逻辑 -->
           <div class="border-r py-4">
             <preset-prompt-textarea
+              v-if="app.mode === 0"
+              v-model:preset_prompt="draftAppConfigForm.preset_prompt"
+              :app_id="String(route.params?.app_id)"
+            />
+            <supervisor-preset-prompt-textarea
+              v-else
               v-model:preset_prompt="draftAppConfigForm.preset_prompt"
               :app_id="String(route.params?.app_id)"
             />
@@ -55,16 +58,9 @@ onMounted(async () => {
           <!-- 右侧应用能力 -->
           <agent-app-ability
             v-model:draft_app_config="draftAppConfigForm"
+            :mode="app.mode"
             :app_id="String(route.params?.app_id)"
           />
-        </div>
-        <div v-else class="grid grid-cols-[13fr_13fr] overflow-hidden h-[calc(100vh-141px)]">
-          <div class="border-r py-4">
-            <supervisor-preset-prompt-textarea
-              v-model:preset_prompt="draftAppConfigForm.preset_prompt"
-              :app_id="String(route.params?.app_id)"
-            />
-          </div>
         </div>
       </div>
       <!-- 右侧调试与会话 -->

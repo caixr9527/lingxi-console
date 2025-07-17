@@ -5,6 +5,8 @@ import { onMounted, ref, watch } from 'vue'
 import { useAccountStore } from '@/stores/account'
 import CreateOrUpdateAppModal from './components/CreateOrUpdateAppModal.vue'
 import { useRoute } from 'vue-router'
+import IconSingle from '@/components/icons/IconSingle.vue'
+import IconMulti from '@/components/icons/IconMulti.vue'
 
 const route = useRoute()
 const props = defineProps({
@@ -91,7 +93,11 @@ watch(
                   />
                 </router-link>
                 <div class="text-xs text-gray-500 line-clamp-1">
-                  {{ app.model_config.provider }} · {{ app.model_config.model }}
+                  <a-space size="mini">
+                    <icon-multi v-if="app.mode === 1" />
+                    <icon-single v-else />
+                    {{ app.model_config.provider }} · {{ app.model_config.model }}
+                  </a-space>
                 </div>
               </div>
               <!-- 操作按钮 -->

@@ -9,9 +9,11 @@ import WorkflowsAbilityItem from './abilities/WorkflowsAbilityItem.vue'
 import SpeechToTextAbilityItem from './abilities/SpeechToTextAbilityItem.vue'
 import TextToSpeechAbilitiItem from './abilities/TextToSpeechAbilitiItem.vue'
 import MultimodalAbilityItem from './abilities/MultimodalAbilityItem.vue'
+import AgentAbilityItem from './abilities/AgentAbilityItem.vue'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
+  mode: { type: Number, required: true },
   draft_app_config: { type: Object, required: true },
 })
 const emits = defineEmits(['update:draft_app_config'])
@@ -26,6 +28,7 @@ const defaultActiveKeys: any[] = [
   'speech_to_text',
   'text_to_speech',
   'multimodal',
+  'agents',
 ]
 </script>
 
@@ -40,6 +43,19 @@ const defaultActiveKeys: any[] = [
           <icon-down v-if="active" />
           <icon-right v-else />
         </template>
+        <!-- 协同智能体组件 -->
+        <agent-ability-item
+          v-if="mode === 1"
+          :agents="props.draft_app_config.agents"
+          @update:agents="
+            (agents) =>
+              emits('update:draft_app_config', {
+                ...props.draft_app_config,
+                agents,
+              })
+          "
+          :app_id="props.app_id"
+        />
         <!-- 扩展插件组件 -->
         <tools-ability-item
           :tools="props.draft_app_config.tools"

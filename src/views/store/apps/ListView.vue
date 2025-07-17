@@ -72,7 +72,7 @@ onMounted(() => {
       <!-- 底部应用列表 -->
       <a-row :gutter="[20, 20]" class="flex-1">
         <!-- 有数据的UI状态 -->
-        <a-col v-for="(app, idx) in filterApps" :key="app.id" :span="6">
+        <a-col v-for="app in filterApps" :key="app.id" :span="6">
           <a-card hoverable class="cursor-pointer rounded-lg">
             <!-- 顶部应用名称 -->
             <div class="flex items-center gap-3 mb-3">
