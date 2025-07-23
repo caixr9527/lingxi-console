@@ -10,7 +10,10 @@ const props = defineProps({
 })
 const emits = defineEmits(['update:preset_prompt'])
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
-const agents = reactive(['数学: 研究数据', '哲学: 研究哲学'])
+const agents = reactive([
+  '高级程序员助手: 一个帮助高级程序员进行高效编码、调试、问题解决和项目管理的智能应用。功能包括代码生成和优化、调试建议、技术文档检索、项目管理工具整合等。',
+  '英语学习助手: 一个帮助用户提高英语水平的应用，提供词汇学习、语法练习、听力训练、口语练习以及阅读和写作指导。用户可以通过自定义学习计划来针对性地提升某一领域的英语能力。应用中还包括每日英语短文和习题，以及与在线教师互动的功能。',
+])
 
 const prompt = computed(() => {
   return `# 角色

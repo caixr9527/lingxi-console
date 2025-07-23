@@ -60,7 +60,7 @@ onMounted(async () => {
                   @change="updateMode"
                 >
                   <a-option :value="0">单Agent模式</a-option>
-                  <a-option :value="1">Supervisor模式</a-option>
+                  <a-option :value="1">Supervisor模式(Beta)</a-option>
                 </a-select>
                 <a-tooltip position="bottom">
                   <template #content>
