@@ -19,3 +19,9 @@ export const generateSuggestedQuestions = (message_id: string) => {
     body: { message_id },
   })
 }
+
+export const autoGeneratePrompt = (app_id: string) => {
+  return post<BaseResponse<string>>(`ai/auto-generate-prompt`, {
+    body: { app_id },
+  })
+}
