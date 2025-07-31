@@ -103,7 +103,7 @@ watch(
               :limit="1"
               image-preview
               :custom-request="
-                (option) => {
+                (option: any) => {
                   const uploadTask = async () => {
                     const { fileItem, onSuccess } = option
                     await handleUploadImage(fileItem.file as File)

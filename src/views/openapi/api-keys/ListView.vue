@@ -170,7 +170,7 @@ watch(
                 type="round"
                 :model-value="record.is_active"
                 @change="
-                  (value) => {
+                  (value: any) => {
                     handleUpdateApiKeyIsActive(record.id, value as boolean, () => {
                       api_keys[rowIndex].is_active = Boolean(value)
                     })

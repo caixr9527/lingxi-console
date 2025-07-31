@@ -48,7 +48,7 @@ const handleUpdateOpeningQuestions = async () => {
           </div>
           <a-textarea
             :model-value="props.opening_statement"
-            @update:model-value="(value) => emits('update:opening_statement', value)"
+            @update:model-value="(value: any) => emits('update:opening_statement', value)"
             placeholder="在此处填写 AI 应用的开场白"
             class="bg-white text-gray-700 rounded-lg border border-gray-200"
             :auto-size="{ minRows: 4, maxRows: 4 }"
@@ -80,7 +80,7 @@ const handleUpdateOpeningQuestions = async () => {
               <a-input
                 :model-value="opening_question"
                 @update:model-value="
-                  (value) => {
+                  (value: any) => {
                     const newQuestions = [...computed_opening_questions]
                     newQuestions[idx] = value
                     computed_opening_questions = newQuestions

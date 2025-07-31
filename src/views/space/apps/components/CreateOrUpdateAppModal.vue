@@ -18,7 +18,9 @@ const defaultForm = {
   fileList: [] as any,
   icon: '',
   name: '',
+  en_name: '',
   description: '',
+  mode: 0,
 }
 const form = ref({ ...defaultForm })
 const formRef = ref<InstanceType<typeof Form>>()
@@ -51,7 +53,9 @@ watch(
           fileList: [{ uid: '1', name: '应用图标', url: app.value.icon }],
           icon: app.value.icon,
           name: app.value.name,
+          en_name: app.value.en_name,
           description: app.value.description,
+          mode: app.value.mode,
         }
       }
     } else {
@@ -131,6 +135,14 @@ watch(
           :rules="[{ required: true, message: '应用名称不能为空' }]"
         >
           <a-input v-model:model-value="form.name" placeholder="请输入应用名称" />
+        </a-form-item>
+        <a-form-item
+          field="en_name"
+          label="英文名称"
+          asterisk-position="end"
+          :rules="[{ required: true, message: '应用英文名称不能为空' }]"
+        >
+          <a-input v-model:model-value="form.en_name" placeholder="请输入应用名称" />
         </a-form-item>
         <a-form-item field="description" label="应用描述">
           <a-textarea

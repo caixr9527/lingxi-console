@@ -101,7 +101,7 @@ watch(
             v-model:file-list="form.fileList"
             image-preview
             :custom-request="
-              (option) => {
+              (option: any) => {
                 // 1.从option中提取数据
                 const { fileItem, onSuccess, onError } = option
 

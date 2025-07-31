@@ -240,7 +240,7 @@ onMounted(() => {
                   type="round"
                   :model-value="record.enabled"
                   @change="
-                    (value) => {
+                    (value: any) => {
                       handleUpdateEnabled(
                         route.params?.dataset_id as string,
                         record.id,

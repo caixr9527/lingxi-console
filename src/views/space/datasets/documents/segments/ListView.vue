@@ -185,7 +185,7 @@ onMounted(() => {
                   v-model:model-value="segment.enabled"
                   :disabled="segment.status !== 'completed'"
                   @change="
-                    async (value) =>
+                    async (value: any) =>
                       await handleUpdateSegmentEnabled(
                         route.params?.dataset_id as string,
                         route.params?.document_id as string,

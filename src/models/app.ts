@@ -18,18 +18,29 @@ export type GetAppResponse = BaseResponse<{
 }>
 
 // 新增应用请求结构
-export type CreateAppRequest = { name: string; icon: string; description: string }
+export type CreateAppRequest = { name: string; en_name: string; icon: string; description: string }
 
 // 更新应用请求结构
-export type UpdateAppRequest = { name: string; icon: string; description: string }
+export type UpdateAppRequest = {
+  name: string
+  en_name: string
+  icon: string
+  description: string
+  mode: number
+}
 
 // 获取应用分页列表数据请求
-export type GetAppsWithPageRequest = BasePaginatorRequest & { search_word: string }
+export type GetAppsWithPageRequest = BasePaginatorRequest & {
+  search_word: string
+  status: string
+  mode: number
+}
 
 // 获取应用分页列表数据响应
 export type GetAppsWithPageResponse = BasePaginatorResponse<{
   id: string
   name: string
+  en_name: string
   icon: string
   description: string
   preset_prompt: string
@@ -38,6 +49,7 @@ export type GetAppsWithPageResponse = BasePaginatorResponse<{
     model: string
   }
   status: string
+  mode: number
   updated_at: number
   created_at: number
 }>
@@ -59,6 +71,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
       params: Record<string, any>
     }
   }[]
+  agents: { id: string; name: string; en_name: string; description: string; icon: string }[]
   workflows: { id: string; name: string; icon: string; description: string }[]
   datasets: { id: string; name: string; icon: string; description: string }[]
   retrieval_config: { retrieval_strategy: string; k: number; score: number }
@@ -85,6 +98,7 @@ export type UpdateDraftAppConfigRequest = {
   dialog_round?: number
   preset_prompt?: string
   tools?: { type: string; provider_id: string; tool_id: string; params: Record<string, any> }[]
+  agents?: string[]
   workflows?: string[]
   datasets?: string[]
   retrieval_config?: { retrieval_strategy: string; k: number; score: number }

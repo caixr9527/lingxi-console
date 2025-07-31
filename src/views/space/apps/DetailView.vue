@@ -2,6 +2,7 @@
 import { useRoute } from 'vue-router'
 import { useGetDraftAppConfig } from '@/hooks/use-app'
 import PresetPromptTextarea from './components/PresetPromptTextArea.vue'
+import SupervisorPresetPromptTextarea from './components/SupervisorPresetPromptTextArea.vue'
 import PreviewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
@@ -44,6 +45,12 @@ onMounted(async () => {
           <!-- 左侧人设与回复逻辑 -->
           <div class="border-r py-4">
             <preset-prompt-textarea
+              v-if="app.mode === 0"
+              v-model:preset_prompt="draftAppConfigForm.preset_prompt"
+              :app_id="String(route.params?.app_id)"
+            />
+            <supervisor-preset-prompt-textarea
+              v-else
               v-model:preset_prompt="draftAppConfigForm.preset_prompt"
               :app_id="String(route.params?.app_id)"
             />
@@ -51,6 +58,7 @@ onMounted(async () => {
           <!-- 右侧应用能力 -->
           <agent-app-ability
             v-model:draft_app_config="draftAppConfigForm"
+            :mode="app.mode"
             :app_id="String(route.params?.app_id)"
           />
         </div>

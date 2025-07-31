@@ -59,7 +59,12 @@ export const useGetAppsWithPage = () => {
   }
   const paginator = ref({ ...defaultPaginator })
 
-  const loadApps = async (init: boolean = false, search_word: string = '') => {
+  const loadApps = async (
+    init: boolean = false,
+    search_word: string = '',
+    status: string = '',
+    mode: number = -1,
+  ) => {
     if (init) {
       paginator.value = defaultPaginator
     } else if (paginator.value.current_page > paginator.value.total_page) {
@@ -72,6 +77,8 @@ export const useGetAppsWithPage = () => {
         current_page: paginator.value.current_page,
         page_size: paginator.value.page_size,
         search_word: search_word,
+        status: status,
+        mode: mode,
       })
       const data = resp.data
 
@@ -295,6 +302,7 @@ export const useGetDraftAppConfig = () => {
         datasets: data.datasets,
         retrieval_config: data.retrieval_config,
         tools: data.tools,
+        agents: data.agents,
         workflows: data.workflows,
         speech_to_text: data.speech_to_text,
         text_to_speech: data.text_to_speech,

@@ -13,7 +13,7 @@ export const httpCode = {
   validateError: 'validate_error',
 }
 
-export const typeMap = {
+export const typeMap: any = {
   str: '字符串',
   int: '整型',
   fload: '浮点型',
@@ -25,6 +25,7 @@ export const QueueEvent = {
   agentThought: 'agent_thought',
   agentMessage: 'agent_message',
   agentAction: 'agent_action',
+  agentDispatch: 'agent_dispatch',
   datasetRetrieval: 'dataset_retrieval',
   agentEnd: 'agent_end',
   stop: 'stop',
