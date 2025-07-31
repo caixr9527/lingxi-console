@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type PropType, ref } from 'vue'
 import { QueueEvent } from '@/config'
+import IconDispatch from '@/components/icons/IconDispatch.vue'
 
 const props = defineProps({
   loading: { type: Boolean, default: false, required: true },
@@ -45,6 +46,7 @@ const visible = ref(false)
             QueueEvent.agentThought,
             QueueEvent.datasetRetrieval,
             QueueEvent.agentAction,
+            QueueEvent.agentDispatch,
             QueueEvent.agentMessage,
           ].includes(item.event),
         )"
@@ -55,6 +57,7 @@ const visible = ref(false)
           <icon-language v-else-if="agent_thought.event === QueueEvent.agentThought" />
           <icon-storage v-else-if="agent_thought.event === QueueEvent.datasetRetrieval" />
           <icon-tool v-else-if="agent_thought.event === QueueEvent.agentAction" />
+          <icon-relation v-else-if="agent_thought.event === QueueEvent.agentDispatch" />
           <icon-message v-else-if="agent_thought.event === QueueEvent.agentMessage" />
         </template>
         <template #header>
@@ -68,7 +71,10 @@ const visible = ref(false)
             搜索知识库
           </div>
           <div class="text-gray-700" v-if="agent_thought.event === QueueEvent.agentAction">
-            调用工具
+            工具调用
+          </div>
+          <div class="text-gray-700" v-if="agent_thought.event === QueueEvent.agentDispatch">
+            智能体调度
           </div>
           <div class="text-gray-700" v-if="agent_thought.event === QueueEvent.agentMessage">
             智能体消息

@@ -160,7 +160,7 @@ watch(
             <!-- 名称与描述信息 -->
             <div class="flex flex-col gap-1 h-9">
               <div class="text-gray-700 font-bold leading-[18px] line-clamp-1 break-all">
-                {{ agent.name }}
+                {{ agent.name }}({{ agent.en_name }})
               </div>
               <div class="text-gray-500 text-xs line-clamp-1 break-all">
                 {{ agent.description }}
@@ -240,7 +240,7 @@ watch(
                 class="flex-shrink-0 rounded"
                 :image-url="app.icon"
               />
-              <div class="line-clamp-1 text-gray-500 flex-1">{{ app.name }}</div>
+              <div class="line-clamp-1 text-gray-500 flex-1">{{ app.name }}({{ app.en_name }})</div>
             </div>
             <!-- 无数据UI状态 -->
             <a-empty

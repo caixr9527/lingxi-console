@@ -18,10 +18,16 @@ export type GetAppResponse = BaseResponse<{
 }>
 
 // 新增应用请求结构
-export type CreateAppRequest = { name: string; icon: string; description: string }
+export type CreateAppRequest = { name: string; en_name: string; icon: string; description: string }
 
 // 更新应用请求结构
-export type UpdateAppRequest = { name: string; icon: string; description: string; mode: number }
+export type UpdateAppRequest = {
+  name: string
+  en_name: string
+  icon: string
+  description: string
+  mode: number
+}
 
 // 获取应用分页列表数据请求
 export type GetAppsWithPageRequest = BasePaginatorRequest & {
@@ -34,6 +40,7 @@ export type GetAppsWithPageRequest = BasePaginatorRequest & {
 export type GetAppsWithPageResponse = BasePaginatorResponse<{
   id: string
   name: string
+  en_name: string
   icon: string
   description: string
   preset_prompt: string
@@ -64,7 +71,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
       params: Record<string, any>
     }
   }[]
-  agents: { id: string; name: string; description: string; icon: string }[]
+  agents: { id: string; name: string; en_name: string; description: string; icon: string }[]
   workflows: { id: string; name: string; icon: string; description: string }[]
   datasets: { id: string; name: string; icon: string; description: string }[]
   retrieval_config: { retrieval_strategy: string; k: number; score: number }

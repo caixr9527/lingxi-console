@@ -17,6 +17,7 @@ const updateMode = async () => {
   handleUpdateApp(String(route.params?.app_id), {
     mode: app.value.mode,
     name: app.value.name,
+    en_name: app.value.en_name,
     icon: app.value.icon,
     description: app.value.description,
   })
