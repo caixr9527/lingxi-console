@@ -55,6 +55,7 @@ const handleSelectApp = (idx: number) => {
     activateApps.value.push({
       id: app.id,
       name: app.name,
+      en_name: app.en_name,
       icon: app.icon,
       description: app.description,
     })
@@ -94,6 +95,7 @@ watch(
           return {
             id: agent.id,
             name: agent.name,
+            en_name: agent.en_name,
             icon: agent.icon,
             description: agent.description,
           }
