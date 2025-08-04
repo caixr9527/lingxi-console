@@ -44,7 +44,7 @@ onMounted(async () => {
               if (app.status === 'republish') {
                 Modal.warning({
                   title: '要返回到应用列表吗?',
-                  content: '草稿已被修改，请重新发布。',
+                  content: '应用草稿已被修改，请重新发布。',
                   hideCancel: false,
                   okText: '发布',
                   onOk: async () => {
