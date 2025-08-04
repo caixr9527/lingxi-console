@@ -3,9 +3,10 @@ import { cloneDeep, isEqual } from 'lodash'
 import { nextTick, ref, watch } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 
+const emits = defineEmits(['update-status'])
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
-  review_config: { type: Object, default: {}, required: true },
+  review_config: { type: Object, default: () => {}, required: true },
 })
 const { loading, handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const isInit = ref(false)
@@ -51,6 +52,7 @@ const handleSubmitReviewConfig = async () => {
         outputs_config: reviewConfigForm.value.outputs_config,
       },
     })
+    emits('update-status', 'republish')
 
     //  接口更新更新成功，同步表单信息
     originReviewConfigForm.value = cloneDeep(reviewConfigForm.value)

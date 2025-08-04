@@ -16,7 +16,7 @@ const props = defineProps({
   mode: { type: Number, required: true },
   draft_app_config: { type: Object, required: true },
 })
-const emits = defineEmits(['update:draft_app_config'])
+const emits = defineEmits(['update:draft_app_config', 'update-status'])
 const defaultActiveKeys: any[] = [
   'tools',
   'workflows',
@@ -48,11 +48,13 @@ const defaultActiveKeys: any[] = [
           v-if="mode === 1"
           :agents="props.draft_app_config.agents"
           @update:agents="
-            (agents) =>
+            (agents) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 agents,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -60,11 +62,13 @@ const defaultActiveKeys: any[] = [
         <tools-ability-item
           :tools="props.draft_app_config.tools"
           @update:tools="
-            (tools) =>
+            (tools) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 tools: tools,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -72,11 +76,13 @@ const defaultActiveKeys: any[] = [
         <workflows-ability-item
           :workflows="props.draft_app_config.workflows"
           @update:workflows="
-            (workflows) =>
+            (workflows) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 workflows,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -84,19 +90,23 @@ const defaultActiveKeys: any[] = [
         <datasets-ability-item
           :retrieval_config="props.draft_app_config.retrieval_config"
           @update:retrieval_config="
-            (retrieval_config) =>
+            (retrieval_config) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 retrieval_config,
               })
+              emits('update-status', 'republish')
+            }
           "
           :datasets="props.draft_app_config.datasets"
           @update:datasets="
-            (datasets) =>
+            (datasets) => {
               emits('update:draft_app_config', {
                 ...draft_app_config,
                 datasets,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -104,11 +114,13 @@ const defaultActiveKeys: any[] = [
         <long-term-memory-ability-item
           :long_term_memory="props.draft_app_config.long_term_memory"
           @update:long_term_memory="
-            (long_term_memory) =>
+            (long_term_memory) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 long_term_memory,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -116,19 +128,23 @@ const defaultActiveKeys: any[] = [
         <opening-ability-item
           :opening_questions="props.draft_app_config.opening_questions"
           @update:opening_questions="
-            (opening_questions) =>
+            (opening_questions) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 opening_questions,
               })
+              emits('update-status', 'republish')
+            }
           "
           :opening_statement="props.draft_app_config.opening_statement"
           @update:opening_statement="
-            (opening_statement) =>
+            (opening_statement) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 opening_statement,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -136,11 +152,13 @@ const defaultActiveKeys: any[] = [
         <suggested-after-answer-ability-item
           :suggested_after_answer="props.draft_app_config.suggested_after_answer"
           @update:suggested_after_answer="
-            (suggested_after_answer) =>
+            (suggested_after_answer) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 suggested_after_answer,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -148,11 +166,13 @@ const defaultActiveKeys: any[] = [
         <speech-to-text-ability-item
           :speech_to_text="props.draft_app_config.speech_to_text"
           @update:speech_to_text="
-            (speech_to_text: any) =>
+            (speech_to_text: any) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 speech_to_text,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -160,15 +180,18 @@ const defaultActiveKeys: any[] = [
         <text-to-speech-abiliti-item
           :text_to_speech="props.draft_app_config.text_to_speech"
           :app_id="props.app_id"
+          @update-status="(status: any) => emits('update-status', 'republish')"
         />
         <multimodal-ability-item
           :multimodal="props.draft_app_config.multimodal"
           @update:multimodal="
-            (multimodal: any) =>
+            (multimodal: any) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 multimodal,
               })
+              emits('update-status', 'republish')
+            }
           "
           :app_id="props.app_id"
         />
@@ -176,6 +199,7 @@ const defaultActiveKeys: any[] = [
         <review-config-ability-item
           :review_config="props.draft_app_config.review_config"
           :app_id="props.app_id"
+          @update-status="(status: any) => emits('update-status', 'republish')"
         />
       </a-collapse>
     </div>

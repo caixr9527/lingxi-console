@@ -6,7 +6,7 @@ const props = defineProps({
   app_id: { type: String, required: true },
   preset_prompt: { type: String, default: '', required: true },
 })
-const emits = defineEmits(['update:preset_prompt'])
+const emits = defineEmits(['update:preset_prompt', 'update-status'])
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const { loading, prompt, handleGeneratePrompt } = useGeneratePrompt()
 </script>
@@ -23,6 +23,7 @@ const { loading, prompt, handleGeneratePrompt } = useGeneratePrompt()
           async () => {
             await handleGeneratePrompt(props.app_id)
             emits('update:preset_prompt', prompt)
+            emits('update-status', 'republish')
             await handleUpdateDraftAppConfig(props.app_id, {
               preset_prompt: prompt,
             })
@@ -42,7 +43,12 @@ const { loading, prompt, handleGeneratePrompt } = useGeneratePrompt()
         class="h-full resize-none !bg-transparent !border-0 text-gray-700 px-1 preset-prompt-textarea"
         :max-length="2000"
         :model-value="props.preset_prompt"
-        @update:model-value="(value: any) => emits('update:preset_prompt', value)"
+        @update:model-value="
+          (value: any) => {
+            emits('update:preset_prompt', value)
+            emits('update-status', 'republish')
+          }
+        "
         placeholder="点击自动生成人设prompt"
         show-word-limit
         @blur="

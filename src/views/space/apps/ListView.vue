@@ -84,13 +84,23 @@ watch(
                     name: 'space-apps-detail',
                     params: { app_id: app.id },
                   }"
-                  class="text-base text-gray-900 font-bold line-clamp-1"
+                  class="flex"
                 >
-                  {{ app.name }}
-                  <icon-check-circle-fill
-                    v-if="app.status === 'published'"
-                    class="text-green-700"
-                  />
+                  <a-space>
+                    <div class="text-base text-gray-900 font-bold line-clamp-1">
+                      {{ app.name }}
+                    </div>
+                    <icon-check-circle-fill
+                      v-if="app.status === 'published'"
+                      class="text-green-700"
+                    />
+                    <a-tooltip content="内容已修改，但未重新发布。">
+                      <icon-exclamation-circle-fill
+                        v-if="app.status === 'republish'"
+                        class="text-red-700"
+                      />
+                    </a-tooltip>
+                  </a-space>
                 </router-link>
                 <div class="text-xs text-gray-500 line-clamp-1">
                   <a-space size="mini">
