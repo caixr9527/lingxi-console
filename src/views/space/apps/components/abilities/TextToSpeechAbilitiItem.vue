@@ -13,6 +13,7 @@ const props = defineProps({
     required: true,
   },
 })
+const emits = defineEmits(['update-status'])
 const { loading, handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const isInit = ref(false)
 const textToSpeechModalVisible = ref(false)
@@ -46,6 +47,7 @@ const handleSubmitTextToSpeech = async () => {
       auto_play: textToSpeechForm.value.auto_play,
     },
   })
+  emits('update-status', 'republish')
 
   // 接口更新更新成功，同步表单信息
   originTextToSpeechForm.value = cloneDeep(textToSpeechForm.value)

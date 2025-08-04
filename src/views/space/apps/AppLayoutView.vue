@@ -4,10 +4,11 @@ import moment from 'moment'
 import { useGetApp, usePublish, useCancelPublish, useUpdateApp } from '@/hooks/use-app'
 import PublishHistoryDrawer from '@/views/space/apps/components/PublishHistoryDrawer.vue'
 import { onMounted, ref } from 'vue'
+import router from '@/router'
+import { Modal } from '@arco-design/web-vue'
 
 const route = useRoute()
 const publishHistoryDrawerVisible = ref(false)
-
 const { loading, app, loadApp } = useGetApp()
 const { handleUpdateApp } = useUpdateApp()
 const { loading: publishLoading, handlePublish } = usePublish()
@@ -36,13 +37,32 @@ onMounted(async () => {
       <!-- 左侧应用信息 -->
       <div class="flex items-center gap-2">
         <!-- 回退按钮 -->
-        <router-link :to="{ name: 'space-apps-list' }">
-          <a-button size="mini">
-            <template #icon>
-              <icon-left />
-            </template>
-          </a-button>
-        </router-link>
+        <a-button
+          size="mini"
+          @click="
+            () => {
+              if (app.status === 'republish') {
+                Modal.warning({
+                  title: '要返回到应用列表吗?',
+                  content: '应用草稿已被修改，请重新发布。',
+                  hideCancel: false,
+                  okText: '发布',
+                  onOk: async () => {
+                    const app_id = String(route.params?.app_id)
+                    await handlePublish(app_id)
+                    app.status = 'publish'
+                  },
+                })
+              } else {
+                router.push({ name: 'space-apps-list' })
+              }
+            }
+          "
+        >
+          <template #icon>
+            <icon-left />
+          </template>
+        </a-button>
         <!-- 应用容器 -->
         <div class="flex items-center gap-3">
           <!-- 应用图标 -->
@@ -151,6 +171,12 @@ onMounted(async () => {
                 }
               "
             >
+              <template #icon>
+                <icon-exclamation-circle-fill
+                  v-if="app.status === 'republish'"
+                  class="text-red-500"
+                />
+              </template>
               更新发布
             </a-button>
             <a-dropdown position="br">
@@ -179,7 +205,7 @@ onMounted(async () => {
       </div>
     </div>
     <!-- 底部内容区 -->
-    <router-view :app="app" />
+    <router-view :app="app" v-model:status="app.status" />
     <!-- 发布历史抽屉组件 -->
     <publish-history-drawer
       :app="app"

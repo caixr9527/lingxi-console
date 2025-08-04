@@ -7,7 +7,7 @@ import PreviewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
 import ModelConfig from './components/ModelConfig.vue'
-import { onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const route = useRoute()
 const props = defineProps({
@@ -19,8 +19,30 @@ const props = defineProps({
     required: true,
   },
 })
+const emits = defineEmits(['update:status'])
+const state = ref('')
 const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig()
-
+// watch(
+//   () => props.app,
+//   (newVal) => {
+//     state.value = newVal.status
+//   },
+// )
+// watch(
+//   () => state,
+//   (newVal) => {
+//     state.value = newVal.value
+//     console.log('------', newVal)
+//     emits('update:status', state)
+//   },
+// )
+// watch(
+//   () => draftAppConfigForm,
+//   () => {
+//     console.log('-----')
+//     emits('update:status', state)
+//   },
+// )
 onMounted(async () => {
   await loadDraftAppConfig(String(route.params?.app_id))
 })
@@ -48,10 +70,20 @@ onMounted(async () => {
               v-if="app.mode === 0"
               v-model:preset_prompt="draftAppConfigForm.preset_prompt"
               :app_id="String(route.params?.app_id)"
+              @update-status="
+                (value: any) => {
+                  emits('update:status', value)
+                }
+              "
             />
             <supervisor-preset-prompt-textarea
               v-else
               v-model:preset_prompt="draftAppConfigForm.preset_prompt"
+              @update-status="
+                (value: any) => {
+                  emits('update:status', value)
+                }
+              "
               :app_id="String(route.params?.app_id)"
             />
           </div>
@@ -60,6 +92,11 @@ onMounted(async () => {
             v-model:draft_app_config="draftAppConfigForm"
             :mode="app.mode"
             :app_id="String(route.params?.app_id)"
+            @update-status="
+              (value: any) => {
+                emits('update:status', value)
+              }
+            "
           />
         </div>
       </div>

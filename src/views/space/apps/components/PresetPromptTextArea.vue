@@ -9,7 +9,7 @@ const props = defineProps({
   app_id: { type: String, required: true },
   preset_prompt: { type: String, default: '', required: true },
 })
-const emits = defineEmits(['update:preset_prompt'])
+const emits = defineEmits(['update:preset_prompt', 'update-status'])
 const optimizeTriggerVisible = ref(false)
 const origin_prompt = ref('')
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
@@ -21,6 +21,7 @@ const handleReplacePresetPrompt = () => {
     return
   }
   emits('update:preset_prompt', optimize_prompt.value)
+  emits('update-status', 'republish')
 
   handleUpdateDraftAppConfig(props.app_id, { preset_prompt: optimize_prompt.value })
   optimizeTriggerVisible.value = false
@@ -106,7 +107,12 @@ const handleSubmit = async () => {
         :max-length="2000"
         show-word-limit
         :model-value="props.preset_prompt"
-        @update:model-value="(value: any) => emits('update:preset_prompt', value)"
+        @update:model-value="
+          (value: any) => {
+            emits('update:preset_prompt', value)
+            emits('update-status', 'republish')
+          }
+        "
         @blur="
           async () => {
             await handleUpdateDraftAppConfig(props.app_id, {
