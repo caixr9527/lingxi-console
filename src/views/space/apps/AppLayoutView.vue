@@ -15,7 +15,7 @@ const { loading: publishLoading, handlePublish } = usePublish()
 const { handleCancelPublish } = useCancelPublish()
 
 const updateMode = async () => {
-  handleUpdateApp(String(route.params?.app_id), {
+  await handleUpdateApp(String(route.params?.app_id), {
     mode: app.value.mode,
     name: app.value.name,
     en_name: app.value.en_name,
@@ -44,7 +44,7 @@ onMounted(async () => {
               if (app.status === 'republish') {
                 Modal.warning({
                   title: '要返回到应用列表吗?',
-                  content: '应用草稿已被修改，请重新发布。',
+                  content: '应用已被修改，请重新发布。',
                   hideCancel: false,
                   okText: '发布',
                   onOk: async () => {
@@ -78,7 +78,12 @@ onMounted(async () => {
                   class="rounded-lg"
                   size="mini"
                   v-model:model-value="app.mode"
-                  @change="updateMode"
+                  @change="
+                    () => {
+                      updateMode()
+                      app.status = 'republish'
+                    }
+                  "
                 >
                   <a-option :value="0">单Agent模式</a-option>
                   <a-option :value="1">Supervisor模式(Beta)</a-option>
@@ -90,7 +95,7 @@ onMounted(async () => {
                       用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。
                     </p>
                     <p>
-                      supervisor模式:
+                      Supervisor模式:
                       在一个智能体中设置多个Agent，由Supervisor统一调度协调，以处理复杂逻辑。
                     </p>
                   </template>
