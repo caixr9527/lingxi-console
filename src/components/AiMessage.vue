@@ -41,7 +41,7 @@ const md = MarkdownIt({
   typographer: true, // 优化排版
 })
 // 添加自定义 ^^ 规则
-md.inline.ruler.before('emphasis', 'double_caret', (state, silent) => {
+md.inline.ruler.before('emphasis', 'double_caret', (state: any, silent: any) => {
   const max = state.posMax
   const start = state.pos
 

@@ -15,7 +15,7 @@ const props = defineProps({
   },
   dialog_round: { type: Number, default: 3, required: true },
 })
-const emits = defineEmits(['update:model_config'])
+const emits = defineEmits(['update:model_config', 'update-status'])
 const form = ref<any>({})
 const {
   loading: getLanguageModelLoading,
@@ -73,7 +73,10 @@ const hideModelTrigger = () => {
   handleUpdateDraftAppConfig(props.app_id, {
     model_config: model_config,
     dialog_round: form.value.dialog_round,
-  }).then(() => emits('update:model_config', model_config))
+  }).then(() => {
+    emits('update:model_config', model_config)
+    emits('update-status', 'republish')
+  })
 }
 
 watch(
