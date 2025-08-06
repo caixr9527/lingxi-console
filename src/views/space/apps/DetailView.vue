@@ -21,7 +21,11 @@ const props = defineProps({
 })
 const emits = defineEmits(['update:status'])
 const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig()
-
+const updateStatus = (value: any) => {
+  if (props.app.status === 'published') {
+    emits('update:status', value)
+  }
+}
 onMounted(async () => {
   await loadDraftAppConfig(String(route.params?.app_id))
 })
@@ -41,7 +45,7 @@ onMounted(async () => {
             :app_id="String(route.params?.app_id)"
             @update-status="
               (value: any) => {
-                emits('update:status', value)
+                updateStatus(value)
               }
             "
           />
@@ -56,7 +60,7 @@ onMounted(async () => {
               :app_id="String(route.params?.app_id)"
               @update-status="
                 (value: any) => {
-                  emits('update:status', value)
+                  updateStatus(value)
                 }
               "
             />
@@ -65,7 +69,7 @@ onMounted(async () => {
               v-model:preset_prompt="draftAppConfigForm.preset_prompt"
               @update-status="
                 (value: any) => {
-                  emits('update:status', value)
+                  updateStatus(value)
                 }
               "
               :app_id="String(route.params?.app_id)"
@@ -78,7 +82,7 @@ onMounted(async () => {
             :app_id="String(route.params?.app_id)"
             @update-status="
               (value: any) => {
-                emits('update:status', value)
+                updateStatus(value)
               }
             "
           />
