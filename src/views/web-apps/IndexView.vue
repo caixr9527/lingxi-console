@@ -560,7 +560,7 @@ const originalFavicon = '/logo.svg' // 默认 logo 路径
 
 // 动态修改 favicon
 const updateFavicon = (iconPath: string) => {
-  let link = document.querySelector("link[rel*='icon']")
+  let link: any = document.querySelector("link[rel*='icon']")
   if (!link) {
     link = document.createElement('link')
     link.rel = 'icon'
