@@ -128,6 +128,28 @@ onMounted(() => {
       <div class="bg-white px-6 py-5 shadow rounded-lg w-[460px]">
         <!-- 标题 -->
         <div class="text-gray-700 text-base font-semibold mb-3">模型设置</div>
+        <div class="w-full">
+          <a-space direction="vertical">
+            <a-space align="start">
+              <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
+                <div class="text-xs">base_url</div>
+                <a-tooltip content="接口地址">
+                  <icon-question-circle />
+                </a-tooltip>
+              </div>
+              <a-input class="w-[280px]" v-model:model-value="language_model.base_url" />
+            </a-space>
+            <a-space align="start" v-if="props.model_config.provider !== 'ollama'">
+              <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
+                <div class="text-xs">api_key</div>
+                <a-tooltip content="接口密钥">
+                  <icon-question-circle />
+                </a-tooltip>
+              </div>
+              <a-input-password class="w-[280px]" v-model:model-value="language_model.api_key" />
+            </a-space>
+          </a-space>
+        </div>
         <!-- 模型选择 -->
         <div class="flex flex-col gap-2 mb-2">
           <div class="text-gray-700">模型</div>
