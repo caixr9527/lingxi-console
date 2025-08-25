@@ -67,6 +67,8 @@ const hideModelTrigger = () => {
     provider: provider_name,
     model: model_name,
     parameters: form.value.parameters,
+    baseUrl: form.value.baseUrl,
+    apiKey: form.value.apiKey,
   }
 
   // 提交应用草稿配置更新
@@ -87,6 +89,8 @@ watch(
     form.value['provider'] = newValue?.provider
     form.value['model'] = newValue?.model
     form.value['parameters'] = newValue?.parameters
+    form.value['baseUrl'] = newValue?.baseUrl
+    form.value['apiKey'] = newValue?.apiKey
 
     // 请求语言模型详情API接口
     newValue?.provider && loadLanguageModel(String(newValue?.provider), String(newValue?.model))
@@ -132,21 +136,21 @@ onMounted(() => {
           <a-space direction="vertical">
             <a-space align="start">
               <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
-                <div class="text-xs">base_url</div>
+                <div class="text-xs">Base Url</div>
                 <a-tooltip content="接口地址">
                   <icon-question-circle />
                 </a-tooltip>
               </div>
-              <a-input class="w-[280px]" v-model:model-value="language_model.base_url" />
+              <a-input class="w-[280px]" v-model:model-value="form.baseUrl" />
             </a-space>
             <a-space align="start" v-if="props.model_config.provider !== 'ollama'">
               <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
-                <div class="text-xs">api_key</div>
+                <div class="text-xs">API Key</div>
                 <a-tooltip content="接口密钥">
                   <icon-question-circle />
                 </a-tooltip>
               </div>
-              <a-input-password class="w-[280px]" v-model:model-value="language_model.api_key" />
+              <a-input-password class="w-[280px]" v-model:model-value="form.apiKey" />
             </a-space>
           </a-space>
         </div>
