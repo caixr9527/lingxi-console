@@ -57,6 +57,8 @@ const hideModelTrigger = () => {
     provider: provider_name,
     model: model_name,
     parameters: form.value.parameters,
+    baseUrl: form.value.baseUrl,
+    apiKey: form.value.apiKey,
   }
 
   // 提交应用草稿配置更新
@@ -71,7 +73,12 @@ watch(
     form.value['provider'] = newValue?.provider
     form.value['model'] = newValue?.model
     form.value['parameters'] = newValue?.parameters
-
+    if (newValue?.baseUrl) {
+      form.value['baseUrl'] = newValue?.baseUrl
+    }
+    if (newValue?.apiKey) {
+      form.value['apiKey'] = newValue?.apiKey
+    }
     // 请求语言模型详情API接口
     newValue?.provider && loadLanguageModel(String(newValue?.provider), String(newValue?.model))
   },
@@ -104,6 +111,28 @@ onMounted(() => {
       <div class="bg-white px-6 py-5 shadow rounded-lg w-[460px]">
         <!-- 标题 -->
         <div class="text-gray-700 text-base font-semibold mb-3">模型设置</div>
+        <div class="w-full">
+          <a-space direction="vertical">
+            <a-space align="start">
+              <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
+                <div class="text-xs">Base Url</div>
+                <a-tooltip content="接口地址">
+                  <icon-question-circle />
+                </a-tooltip>
+              </div>
+              <a-input class="w-[280px]" v-model:model-value="form.baseUrl" />
+            </a-space>
+            <a-space align="start" v-if="props.model_config.provider !== 'ollama'">
+              <div class="flex items-center gap-2 text-gray-500 w-[80px] flex-shrink-0">
+                <div class="text-xs">API Key</div>
+                <a-tooltip content="接口密钥">
+                  <icon-question-circle />
+                </a-tooltip>
+              </div>
+              <a-input-password class="w-[280px]" v-model:model-value="form.apiKey" />
+            </a-space>
+          </a-space>
+        </div>
         <!-- 模型选择 -->
         <div class="flex flex-col gap-2 mb-2">
           <div class="text-gray-700">模型</div>
