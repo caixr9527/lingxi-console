@@ -4,7 +4,13 @@ import { apiPrefix } from '@/config'
 import { useGetLanguageModel, useGetLanguageModels } from '@/hooks/use-language-model'
 
 const props = defineProps({
-  model_config: { type: Object, default: {}, required: true },
+  model_config: {
+    type: Object,
+    default: () => {
+      return {}
+    },
+    required: true,
+  },
 })
 const emits = defineEmits(['update:model_config'])
 const form = ref<any>({})
