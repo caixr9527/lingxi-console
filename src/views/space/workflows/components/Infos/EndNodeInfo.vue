@@ -7,7 +7,7 @@ import { Message, type ValidatedError } from '@arco-design/web-vue'
 
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
-  node: { type: Object as unknown as GraphNode, required: true, default: {} },
+  node: { type: Object as unknown as GraphNode, required: true, default: () => {} },
   loading: { type: Boolean, required: true, default: false },
 })
 const emits = defineEmits(['update:visible', 'updateNode', 'clearSelectedNode'])
