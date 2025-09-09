@@ -7,7 +7,6 @@ import { getReferencedVariables } from '@/utils/helper'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 import IconIf from '@/components/icons/IconIf.vue'
 import { onMounted } from 'vue'
-import { color } from 'echarts'
 const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
   node: {

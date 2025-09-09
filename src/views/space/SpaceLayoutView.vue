@@ -16,10 +16,6 @@ const search = (value: any) => {
   })
 }
 
-const updateCreateType = (value: string) => {
-  createType.value = value
-}
-
 watch(
   () => route.query?.search_word,
   () => {
