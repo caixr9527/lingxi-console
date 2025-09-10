@@ -73,7 +73,7 @@ const { loading: debugChatLoading, handleDebugChat } = useDebugChat()
 const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat()
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
-const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const { startAudioStream } = useAudioPlayer()
 
 const saveScrollHeight = () => {
   scrollHeight.value = scroller.value.$el.scrollHeight
