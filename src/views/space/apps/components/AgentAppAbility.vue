@@ -10,6 +10,7 @@ import SpeechToTextAbilityItem from './abilities/SpeechToTextAbilityItem.vue'
 import TextToSpeechAbilitiItem from './abilities/TextToSpeechAbilitiItem.vue'
 import MultimodalAbilityItem from './abilities/MultimodalAbilityItem.vue'
 import AgentAbilityItem from './abilities/AgentAbilityItem.vue'
+import McpAbilityItem from './abilities/McpAbilityItem.vue'
 
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
@@ -29,6 +30,7 @@ const defaultActiveKeys: any[] = [
   'text_to_speech',
   'multimodal',
   'agents',
+  'mcp_server',
 ]
 </script>
 
@@ -43,6 +45,19 @@ const defaultActiveKeys: any[] = [
           <icon-down v-if="active" />
           <icon-right v-else />
         </template>
+        <mcp-ability-item
+          :mcp_server="props.draft_app_config.mcp_server"
+          :app_id="props.app_id"
+          @update:mcp_server="
+            (mcp_server) => {
+              emits('update:draft_app_config', {
+                ...props.draft_app_config,
+                mcp_server,
+              })
+              emits('update-status', 'republish')
+            }
+          "
+        />
         <!-- 协同智能体组件 -->
         <agent-ability-item
           v-if="mode === 1"
