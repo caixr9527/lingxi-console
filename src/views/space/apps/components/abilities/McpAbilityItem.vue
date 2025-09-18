@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, type PropType, ref } from 'vue'
-import { type GetDraftAppConfigResponse } from '@/models/app'
+import { computed, type PropType, ref } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
-import { useGetApiTool, useGetApiToolProvidersWithPage } from '@/hooks/use-tool'
-import { useGetBuiltinTool, useGetBuiltinTools, useGetCategories } from '@/hooks/use-builtin-tool'
-import { apiPrefix, typeMap } from '@/config'
-import { Message } from '@arco-design/web-vue'
-import IconMcp from '@/components/icons/IconMCP.vue'
 
+import IconMcp from '@/components/icons/IconMCP.vue'
+import JsonEditorVue from '@/components/JsonEditor.vue'
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
-  mcp_server: { type: String, default: '', required: true },
+  mcp_server: {
+    type: Object as PropType<{ mcpServers: {} }>,
+    default: () => {
+      return { mcpServers: {} }
+    },
+    required: true,
+  },
 })
 const emits = defineEmits(['update:mcp_server'])
 
 const mcpServerModalVisible = ref(false)
-const defaultMcpServer = `{"mcpServers": {}}`
+const saveBtDisable = ref(false)
+const defaultMcpServer = { mcpServers: {} }
 
 const mcpServers = computed(() => {
   try {
-    const data = JSON.parse(props.mcp_server)
-    return Object.keys(data.mcpServers)
+    return Object.keys(props.mcp_server.mcpServers)
   } catch {
     /* empty */
   }
@@ -33,6 +35,10 @@ const handleSubmit = async () => {
     mcp_server: props.mcp_server,
   })
 }
+
+const computedMcpServer = computed(() => {
+  return props.mcp_server
+})
 </script>
 
 <template>
@@ -79,42 +85,41 @@ const handleSubmit = async () => {
   <a-modal :visible="mcpServerModalVisible" title="MCP配置" @cancel="mcpServerModalVisible = false">
     <template #footer>
       <a-button
-        type="secondary"
-        @click="
-          () => {
-            try {
-              emits('update:mcp_server', JSON.stringify(JSON.parse(props.mcp_server), null, '\t'))
-            } catch {
-              Message.error('格式错误')
-            }
-          }
-        "
-      >
-        格式化
-      </a-button>
-      <a-button
+        :disabled="saveBtDisable"
         type="primary"
         @click="
           () => {
-            try {
-              JSON.parse(props.mcp_server)
-              handleSubmit()
-              mcpServerModalVisible = false
-            } catch {
-              Message.error('格式错误')
-            }
+            handleSubmit()
+            mcpServerModalVisible = false
           }
         "
       >
         保存
       </a-button>
     </template>
-    <a-textarea
-      :auto-size="{ minRows: 20, maxRows: 20 }"
-      :model-value="props.mcp_server || defaultMcpServer"
-      @update:model-value="
+    <json-editor-vue
+      class="editor"
+      v-model="computedMcpServer"
+      current-mode="code"
+      mode="code"
+      :options="{ mainMenuBar: false, navigationBar: false }"
+      language="zh-CN"
+      @validationError="
+        (editor: any, errors: any[]) => {
+          if (errors.length > 0) {
+            saveBtDisable = true
+          } else {
+            saveBtDisable = false
+          }
+        }
+      "
+      @update:modelValue="
         (value: any) => {
-          emits('update:mcp_server', value)
+          if (value) {
+            emits('update:mcp_server', value)
+          } else {
+            emits('update:mcp_server', defaultMcpServer)
+          }
         }
       "
     />

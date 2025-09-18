@@ -7,7 +7,9 @@ const props = defineProps({
   app_id: { type: String, default: '', required: true },
   long_term_memory: {
     type: Object as PropType<{ enable: boolean }>,
-    default: { enable: false },
+    default: () => {
+      return { enable: false }
+    },
     required: true,
   },
 })

@@ -45,11 +45,12 @@ const defaultActiveKeys: any[] = [
           <icon-down v-if="active" />
           <icon-right v-else />
         </template>
+        <!-- MCP服务器配置 -->
         <mcp-ability-item
           :mcp_server="props.draft_app_config.mcp_server"
           :app_id="props.app_id"
           @update:mcp_server="
-            (mcp_server) => {
+            (mcp_server: {}) => {
               emits('update:draft_app_config', {
                 ...props.draft_app_config,
                 mcp_server,
