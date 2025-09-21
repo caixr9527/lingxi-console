@@ -5,7 +5,7 @@ import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   opening_statement: { type: String, default: '', required: true },
-  opening_questions: { type: Array as PropType<string[]>, default: [], required: true },
+  opening_questions: { type: Array as PropType<string[]>, default: () => [], required: true },
 })
 const emits = defineEmits(['update:opening_statement', 'update:opening_questions'])
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()

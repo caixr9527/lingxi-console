@@ -2,7 +2,6 @@
 import { type PropType } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 
-// 1.定义自定义组件所需数据
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   long_term_memory: {

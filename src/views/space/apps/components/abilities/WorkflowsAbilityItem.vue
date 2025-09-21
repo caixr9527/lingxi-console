@@ -16,7 +16,7 @@ const props = defineProps({
         description: string
       }[]
     >,
-    default: [],
+    default: () => [],
     required: true,
   },
 })
