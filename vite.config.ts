@@ -13,14 +13,12 @@ export default defineConfig({
     }),
   ],
   build: {
-    rollupOptions: {
-      external: ['jsoneditor'], // 明确声明为外部依赖
-      output: {
-        globals: {
-          jsoneditor: 'JSONEditor', // 指定全局变量名
-        },
-      },
+    commonjsOptions: {
+      include: [/jsoneditor/, /node_modules/],
     },
+  },
+  optimizeDeps: {
+    include: ['jsoneditor'],
   },
   resolve: {
     alias: {
