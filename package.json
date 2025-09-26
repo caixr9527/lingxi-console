@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.55.3",
+    "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@rushstack/eslint-patch": "^1.8.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/dagre": "^0.7.52",
