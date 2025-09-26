@@ -86,7 +86,6 @@ const computedMcpServer = computed(() => {
     :visible="mcpServerModalVisible"
     :modal-style="{ width: '800px' }"
     title="MCP配置"
-    class="scrollbar-h-none"
     @cancel="mcpServerModalVisible = false"
   >
     <template #footer>

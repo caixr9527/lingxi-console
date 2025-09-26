@@ -398,6 +398,11 @@
   resolved "https://mirrors.cloud.tencent.com/npm/@tsconfig/node20/-/node20-20.1.4.tgz"
   integrity sha512-sqgsT69YFeLWf5NtJ4Xq/xAF8p4ZQHlmGW74Nu2tD4+g5fAsposc4ZfaaPixVu4y01BEiDCWLRDCvDM5JOsRxg==
 
+"@types/ace@*":
+  version "0.0.52"
+  resolved "https://mirrors.cloud.tencent.com/npm/@types/ace/-/ace-0.0.52.tgz#e530e7b85e5407ed3b8c987a3719692ac0d95d4c"
+  integrity sha512-YPF9S7fzpuyrxru+sG/rrTpZkC6gpHBPF14W3x70kqVOD+ks6jkYLapk4yceh36xej7K4HYxcyz9ZDQ2lTvwgQ==
+
 "@types/dagre@^0.7.52":
   version "0.7.52"
   resolved "https://mirrors.cloud.tencent.com/npm/@types/dagre/-/dagre-0.7.52.tgz#edbf0bca6922cd0ad1936a7486f9d03523d7565a"
@@ -416,6 +421,14 @@
     "@types/node" "*"
     "@types/tough-cookie" "*"
     parse5 "^7.0.0"
+
+"@types/jsoneditor@^9.9.6":
+  version "9.9.6"
+  resolved "https://mirrors.cloud.tencent.com/npm/@types/jsoneditor/-/jsoneditor-9.9.6.tgz#94013da0548bac334143552e1b59711555b6332c"
+  integrity sha512-SJ29nWBIhnhtU5n72wxhPiuUVd8cnDHd7ZYMqVkzWtdRxTUdS8+oy1pg66yhmM1kcuanX3xmAAKfcyhhBnHEjQ==
+  dependencies:
+    "@types/ace" "*"
+    ajv "^6.12.0"
 
 "@types/lodash@^4.17.13":
   version "4.17.13"
@@ -803,7 +816,7 @@ agent-base@^7.0.2, agent-base@^7.1.0:
   dependencies:
     debug "^4.3.4"
 
-ajv@^6.12.4, ajv@^6.12.6:
+ajv@^6.12.0, ajv@^6.12.4, ajv@^6.12.6:
   version "6.12.6"
   resolved "https://mirrors.cloud.tencent.com/npm/ajv/-/ajv-6.12.6.tgz"
   integrity sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==
