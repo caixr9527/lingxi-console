@@ -3,6 +3,7 @@ import { computed, type PropType, ref } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 
 import IconMcp from '@/components/icons/IconMCP.vue'
+// @ts-ignore
 import JsonEditorVue from '@/components/JsonEditor.vue'
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const props = defineProps({
@@ -86,7 +87,6 @@ const computedMcpServer = computed(() => {
     :visible="mcpServerModalVisible"
     :modal-style="{ width: '800px' }"
     title="MCP配置"
-    class="scrollbar-h-none"
     @cancel="mcpServerModalVisible = false"
   >
     <template #footer>
