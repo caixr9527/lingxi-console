@@ -88,6 +88,7 @@ export type GetDraftAppConfigResponse = BaseResponse<{
     inputs_config: { enable: boolean; preset_response: string }
     outputs_config: { enable: boolean }
   }
+  mcp_server: { mcpServers: {} }
   updated_at: number
   created_at: number
 }>
@@ -121,6 +122,7 @@ export type UpdateDraftAppConfigRequest = {
     inputs_config: { enable: boolean; preset_response: string }
     outputs_config: { enable: boolean }
   }
+  mcp_server?: { mcpServers: {} }
 }
 
 // 获取应用的调试会话消息列表响应结构

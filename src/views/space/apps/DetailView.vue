@@ -7,7 +7,7 @@ import PreviewDebugHeader from './components/PreViewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
 import ModelConfig from './components/ModelConfig.vue'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted } from 'vue'
 
 const route = useRoute()
 const props = defineProps({

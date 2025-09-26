@@ -73,7 +73,7 @@ const { loading: debugChatLoading, handleDebugChat } = useDebugChat()
 const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat()
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
-const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const { startAudioStream } = useAudioPlayer()
 
 const saveScrollHeight = () => {
   scrollHeight.value = scroller.value.$el.scrollHeight
@@ -172,7 +172,7 @@ const handleSubmit = async () => {
       } else if (event === QueueEvent.error) {
         messages.value[0].answer = data?.observation
       } else if (event === QueueEvent.timeout) {
-        messages.value[0].answer = '服务器繁忙,请稍后重试'
+        messages.value[0].answer = data?.thought
       } else {
         position += 1
         agent_thoughts.push({

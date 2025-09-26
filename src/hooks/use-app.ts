@@ -307,6 +307,7 @@ export const useGetDraftAppConfig = () => {
         speech_to_text: data.speech_to_text,
         text_to_speech: data.text_to_speech,
         multimodal: data.multimodal,
+        mcp_server: data.mcp_server,
       }
     } finally {
       loading.value = false
