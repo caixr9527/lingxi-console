@@ -3,6 +3,7 @@ import { computed, type PropType, ref } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 
 import IconMcp from '@/components/icons/IconMCP.vue'
+// @ts-ignore
 import JsonEditorVue from '@/components/JsonEditor.vue'
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
 const props = defineProps({
