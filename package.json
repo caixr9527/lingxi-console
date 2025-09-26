@@ -23,6 +23,7 @@
     "highlight.js": "^11.11.1",
     "js-audio-recorder": "^1.0.7",
     "jsencrypt": "^3.3.2",
+    "jsoneditor": "^10.4.1",
     "lodash": "^4.17.21",
     "markdown-it": "^14.1.0",
     "moment": "^2.30.1",

@@ -6,6 +6,16 @@ import vue from '@vitejs/plugin-vue'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
+  build: {
+    rollupOptions: {
+      external: ['jsoneditor'], // 明确声明为外部依赖
+      output: {
+        globals: {
+          jsoneditor: 'JSONEditor', // 指定全局变量名
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
