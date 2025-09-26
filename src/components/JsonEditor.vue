@@ -174,7 +174,7 @@ export default {
 }
 .json-editor-vue {
   width: 100%;
-  height: 100%;
+  height: 500px;
 }
 code {
   background-color: #f5f5f5;

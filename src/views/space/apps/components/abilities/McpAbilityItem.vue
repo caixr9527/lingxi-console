@@ -82,7 +82,13 @@ const computedMcpServer = computed(() => {
       <div v-else class="text-xs text-gray-500 leading-[22px]">快速接入MCP服务</div>
     </a-collapse-item>
   </div>
-  <a-modal :visible="mcpServerModalVisible" title="MCP配置" @cancel="mcpServerModalVisible = false">
+  <a-modal
+    :visible="mcpServerModalVisible"
+    :modal-style="{ width: '800px' }"
+    title="MCP配置"
+    class="scrollbar-h-none"
+    @cancel="mcpServerModalVisible = false"
+  >
     <template #footer>
       <a-button
         :disabled="saveBtDisable"
