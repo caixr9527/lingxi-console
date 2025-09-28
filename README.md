@@ -23,6 +23,7 @@
    - **Custom AI Personas & Logic:** Flexibly define AI personalities, response strategies, and **optimize prompts**.
    - **Multi-Agent System (Beta):** Supports both single-Agent operation and Supervisor-coordinated multi-Agent systems.
    - **Rich Capability Extensions:** Integrate plugins, workflows, knowledge bases configure **long-term memory**,**opening prompts/preset questions**, **user question suggestions**, **multi-language/multi-modal input/output**, **content moderation**, etc.
+   - **MCP client configuration:** Adhering to the MCP protocol specification, it can seamlessly invoke external tools and services, enhancing external scalability.
    - **Real-Time Preview & Debugging:** Test while you build with WYSIWYG editing boosting development efficiency.
    - **Model Flexibility:** Supports **custom LLM integration** and key parameter tuning.
    - **Version Control:** Enables **historical version rollback** for AI applications, ensuring configuration security.
