@@ -1,0 +1,39 @@
+version: '3'
+services:
+  lingxi-console:
+    image: lingxi-console:1.0.0
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        VITE_COS_DOMAIN: '修改为自己的OSS域名'
+        VITE_API_PREFIX: https://127.0.0.1/api
+        VITE_TITLE: 灵析应用开发平台
+        VITE_DESCRIPTION: "If you don't understand, just ask"
+        VITE_ICP_CODE: ''
+        VITE_GA_CODE: ''
+    container_name: lingxi-console
+    restart: always
+    environment:
+      VITE_COS_DOMAIN: '修改为自己的OSS域名'
+      VITE_API_PREFIX: https://127.0.0.1/api
+      VITE_TITLE: 灵析应用开发平台
+      VITE_DESCRIPTION: "If you don't understand, just ask"
+      VITE_ICP_CODE: ''
+      VITE_GA_CODE: ''
+    ports:
+      - '3000:3000'
+  nginx:
+    image: nginx:latest
+    restart: always
+    container_name: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/ssl
+    depends_on:
+      - lingxi-console
+    ports:
+      - '80:80'
+      - '443:443'
