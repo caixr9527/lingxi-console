@@ -91,7 +91,7 @@ md.set({
   },
 })
 const compiledMarkdown = computed(() => {
-  return md.render(props.query)
+  return md.render(props.query.replace(/\n/g, '<br>'))
 })
 </script>
 
@@ -160,7 +160,7 @@ const compiledMarkdown = computed(() => {
       </template>
     </div>
     <div
-      class="!bg-blue-100 markdown-body border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all"
+      class="white-space: pre-wrap !bg-blue-100 markdown-body border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all"
       v-html="compiledMarkdown"
     ></div>
   </div>
