@@ -11,9 +11,6 @@ import IconTxt from '@/components/icons/IconTxt.vue'
 import IconXls from '@/components/icons/IconXls.vue'
 import IconXml from '@/components/icons/IconXml.vue'
 import IconYaml from '@/components/icons/IconYaml.vue'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js'
-import { computed } from 'vue'
 const props = defineProps({
   account: {
     type: Object,
@@ -25,73 +22,6 @@ const props = defineProps({
   query: { type: String, default: '', required: true },
   image_urls: { type: Array, default: () => [] },
   enable_user_info: { type: Boolean, default: false, required: false },
-})
-
-const md = MarkdownIt({
-  html: true, // 允许 HTML 标签
-  linkify: true, // 自动转换 URL 为链接
-  typographer: true, // 优化排版
-})
-// 添加自定义 ^^ 规则
-md.inline.ruler.before('emphasis', 'double_caret', (state: any, silent: any) => {
-  const max = state.posMax
-  const start = state.pos
-
-  if (state.src.charCodeAt(start) !== 0x5e || state.src.charCodeAt(start + 1) !== 0x5e) {
-    return false
-  }
-
-  let end = start + 2
-  while (end < max) {
-    if (state.src.charCodeAt(end) === 0x5e && state.src.charCodeAt(end + 1) === 0x5e) {
-      break
-    }
-    end++
-  }
-
-  if (end + 1 >= max) return false
-
-  const content = state.src.slice(start + 2, end)
-
-  if (!silent) {
-    const token = state.push('double_caret', '', 0)
-    token.content = content
-    token.markup = '^^'
-  }
-
-  state.pos = end + 2
-  return true
-})
-
-// 自定义渲染规则
-md.renderer.rules.double_caret = (tokens: any, idx: any) => {
-  return `<mark style="background-color: transparent; font-style: italic;">${md.utils.escapeHtml(tokens[idx].content)}</mark>`
-}
-
-md.set({
-  highlight: function (str: string, lang: string) {
-    // 指定语言时使用对应高亮
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`
-      } catch (__) {
-        /* empty */
-      }
-    }
-
-    // 未指定语言时自动检测
-    try {
-      return `<pre class="hljs"><code>${hljs.highlightAuto(str).value}</code></pre>`
-    } catch (__) {
-      /* empty */
-    }
-
-    // 保底处理
-    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
-  },
-})
-const compiledMarkdown = computed(() => {
-  return md.render(props.query.replace(/\n/g, '<br>'))
 })
 </script>
 
