@@ -108,8 +108,9 @@ const compiledMarkdown = computed(() => {
         <a-image v-for="(image_url, idx) in props.image_urls" :key="idx" :src="String(image_url)" />
         <div
           class="!bg-gray-100 markdown-body border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all"
-          v-html="compiledMarkdown"
-        ></div>
+        >
+          {{ props.query }}
+        </div>
       </div>
     </div>
   </div>
@@ -160,9 +161,10 @@ const compiledMarkdown = computed(() => {
       </template>
     </div>
     <div
-      class="white-space: pre-wrap !bg-blue-100 markdown-body border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all"
-      v-html="compiledMarkdown"
-    ></div>
+      class="whitespace-pre-wrap !bg-blue-100 border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all"
+    >
+      {{ props.query }}
+    </div>
   </div>
 </template>
 
