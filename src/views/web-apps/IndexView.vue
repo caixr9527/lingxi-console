@@ -802,9 +802,8 @@ onBeforeUnmount(() => {
         <div
           v-if="web_app?.app_config?.opening_statement"
           class="bg-gray-100 w-full px-4 py-3 rounded-lg text-gray-700"
-        >
-          {{ web_app?.app_config?.opening_statement }}
-        </div>
+          v-html="web_app?.app_config?.opening_statement"
+        ></div>
         <!-- 开场白建议问题 -->
         <div class="flex items-center flex-wrap gap-2 w-full">
           <a-space>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, type PropType } from 'vue'
+import { onBeforeUnmount, ref, shallowRef, onMounted, computed, nextTick, type PropType } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
-
+import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import type { IToolbarConfig, IDomEditor } from '@wangeditor/editor'
 const props = defineProps({
   app_id: { type: String, default: '', required: true },
   opening_statement: { type: String, default: '', required: true },
@@ -9,6 +11,9 @@ const props = defineProps({
 })
 const emits = defineEmits(['update:opening_statement', 'update:opening_questions'])
 const { handleUpdateDraftAppConfig } = useUpdateDraftAppConfig()
+const editorRef = shallowRef()
+const toolbarConfig: Partial<IToolbarConfig> = {}
+const editorConfig = { placeholder: '在此处填写 AI 应用的开场白' }
 const computed_opening_questions = computed({
   get(): string[] {
     // 1.检测传递的opening_questions长度是否等于3，如果小于3并且最后一个元素不是空数据则新增一个
@@ -29,6 +34,29 @@ const handleUpdateOpeningQuestions = async () => {
     opening_questions: computed_opening_questions.value.filter((item) => item.trim() !== ''),
   })
 }
+onMounted(() => {
+  toolbarConfig.toolbarKeys = [
+    'headerSelect',
+    'blockquote',
+    '|',
+    'bold',
+    'underline',
+    'italic',
+    '|',
+    'bulletedList',
+    'numberedList',
+    '|',
+    'emotion',
+    'insertLink',
+    'codeBlock',
+  ]
+})
+onBeforeUnmount(() => {
+  const editor = editorRef.value
+  if (editor == null) return
+
+  editor.destroy()
+})
 </script>
 
 <template>
@@ -46,7 +74,7 @@ const handleUpdateOpeningQuestions = async () => {
               <icon-exclamation-circle />
             </a-tooltip>
           </div>
-          <a-textarea
+          <!-- <a-textarea
             :model-value="props.opening_statement"
             @update:model-value="(value: any) => emits('update:opening_statement', value)"
             placeholder="在此处填写 AI 应用的开场白"
@@ -56,6 +84,36 @@ const handleUpdateOpeningQuestions = async () => {
               async () => {
                 await handleUpdateDraftAppConfig(props.app_id, {
                   opening_statement: props.opening_statement,
+                })
+              }
+            "
+          /> -->
+          <Toolbar
+            class="bg-white text-gray-700 rounded-lg border border-gray-200"
+            :editor="editorRef"
+            :defaultConfig="toolbarConfig"
+            mode="default"
+          />
+          <Editor
+            class="bg-white text-gray-700 rounded-lg border border-gray-200"
+            style="height: 120px; overflow-y: hidden"
+            :model-value="props.opening_statement"
+            :defaultConfig="editorConfig"
+            @update:model-value="
+              (value: any) =>
+                emits('update:opening_statement', value === '<p><br></p>' ? '' : value)
+            "
+            mode="default"
+            @onCreated="
+              async (editor: IDomEditor) => {
+                editorRef = editor // 记录 editor 实例，重要！
+              }
+            "
+            @onBlur="
+              async () => {
+                await handleUpdateDraftAppConfig(props.app_id, {
+                  opening_statement:
+                    props.opening_statement === '<p><br></p>' ? '' : props.opening_statement,
                 })
               }
             "
@@ -119,4 +177,29 @@ const handleUpdateOpeningQuestions = async () => {
   </div>
 </template>
 
-<style scoped></style>
+<style>
+.w-e-bar-item {
+  display: flex;
+  height: 22px;
+  padding: 2px;
+  position: relative;
+  text-align: center;
+}
+.w-e-bar-divider {
+  background-color: var(--w-e-toolbar-border-color);
+  display: inline-flex;
+  height: 22px;
+  margin: 0 5px;
+  width: 1px;
+}
+.w-e-bar-item button {
+  background: transparent;
+  border: none;
+  color: var(--w-e-toolbar-color);
+  cursor: pointer;
+  display: inline-flex;
+  height: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+</style>
