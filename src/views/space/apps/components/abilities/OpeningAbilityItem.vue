@@ -74,20 +74,6 @@ onBeforeUnmount(() => {
               <icon-exclamation-circle />
             </a-tooltip>
           </div>
-          <!-- <a-textarea
-            :model-value="props.opening_statement"
-            @update:model-value="(value: any) => emits('update:opening_statement', value)"
-            placeholder="在此处填写 AI 应用的开场白"
-            class="bg-white text-gray-700 rounded-lg border border-gray-200"
-            :auto-size="{ minRows: 4, maxRows: 4 }"
-            @blur="
-              async () => {
-                await handleUpdateDraftAppConfig(props.app_id, {
-                  opening_statement: props.opening_statement,
-                })
-              }
-            "
-          /> -->
           <Toolbar
             class="bg-white text-gray-700 rounded-lg border border-gray-200"
             :editor="editorRef"
